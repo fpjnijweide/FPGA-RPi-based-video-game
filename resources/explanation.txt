@@ -1,0 +1,1 @@
+resources will contain stuff like image and sound files
