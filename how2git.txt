@@ -15,10 +15,12 @@
     git push --set-upstream origin <yourFirstName>
 
 6. Pull from the repo (to get changes made by others)
-    git pull
+    git fetch origin master
+    git fetch
 
 7. Make sure you are working on your own branch
     git checkout <yourFirstName>
+
 
 8. Make changes then
     git pull
@@ -27,11 +29,11 @@
     git commit -m "<Descriptive commit message>" 
     git push
 
-8. merge from the git.snt.utwente.nl page (this way you dont have to switch branches)
+9. merge from the git.snt.utwente.nl page (this way you dont have to switch branches)
 
-9. To make git remember your gitlab username and password (for 15 minutes after you entered it)
+10. To make git remember your gitlab username and password (for 15 minutes after you entered it)
     git config --global credential.helper cache
 
-10. To change password cache time
+11. To change password cache time
     git config --global credential.helper 'cache --timeout=<timeout_in_seconds>'
 
