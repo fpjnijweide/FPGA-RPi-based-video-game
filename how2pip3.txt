@@ -14,3 +14,15 @@ The python3-venv package can be used to manage this virtual environment
     pip3 install --upgrade pip
 6: download project requirements from the requirements file
     pip3 install -r pip3requirments.txt
+
+
+
+To DISABLE the virtual environment:
+1. just type
+    deactivate
+
+
+
+To ADD a project requirement:
+1. install needed package
+    pip3 install <package>
