@@ -1,6 +1,16 @@
-1. sudo apt install git
-2. git clone https://git.snt.utwente.nl/s2014203/mod-5.git (inside directory of choice)
-3. cd ./mod-5/
-4. git checkout -b <yourFirstName>
-5. git push --set-upstream origin <yourFirstName>
+1. I think Raspbian comes with git installed. Otherwise, run the following:
+    sudo apt install git
+2. Now navigate to the directory in which you want to create the mod-5 project directory and clone the repository. 
+    git clone https://git.snt.utwente.nl/s2014203/mod-5.git (inside directory of choice)
+3. Get inside the repository. It should contain the all the master branch files, as well as a .git folder containing local settings
+    cd ./mod-5/ && ls -a
+4. Create a new branch called <yourFirstName> and switch to it
+    git checkout -b <yourFirstName>
+    Notice: It's probably best if everyone gets their own branch to work from.
+5. Set the new branch as upstream
+git push --set-upstream origin <yourFirstName>
+6. git status
+7. Make changes then
+git commit -m "<Descriptive commit message>" 
+git push
 
