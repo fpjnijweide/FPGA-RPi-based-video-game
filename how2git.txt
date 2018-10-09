@@ -20,18 +20,18 @@
 7. Make sure you are working on your own branch
     git checkout <yourFirstName>
 
-7. Make changes then
+8. Make changes then
     git pull
     git status
     git add <file_you_changed>
     git commit -m "<Descriptive commit message>" 
     git push
 
-7. merge from the git.snt.utwente.nl page (this way you dont have to switch branches)
+8. merge from the git.snt.utwente.nl page (this way you dont have to switch branches)
 
-8. To make git remember your gitlab username and password (for 15 minutes after you entered it)
+9. To make git remember your gitlab username and password (for 15 minutes after you entered it)
     git config --global credential.helper cache
 
-9. To change password cache time
+10. To change password cache time
     git config --global credential.helper 'cache --timeout=<timeout_in_seconds>'
 
