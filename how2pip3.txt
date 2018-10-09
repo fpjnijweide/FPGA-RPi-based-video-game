@@ -7,6 +7,7 @@ The python3-venv package can be used to manage this virtual environment
     cd <somewhere>/mod-5/
 3: create the virtual env in a folder called virtualenv by running the following
     python3 -m venv virtualenv
+        Note: this will create a new folder calles virtualenv that will be ignored by git because of the .gitignore file.
 4: activate the virtual env
     source ./virtualenv/bin/activate
         You should now see (virtualenv) in your console
@@ -15,6 +16,9 @@ The python3-venv package can be used to manage this virtual environment
 6: download project requirements from the requirements file
     pip3 install -r pip3requirments.txt
 
+
+Installing new project requirements can be done with
+    pip3 install -r pip3requirements.txt
 
 
 To DISABLE the virtual environment:
@@ -26,3 +30,9 @@ To DISABLE the virtual environment:
 To ADD a project requirement:
 1. install needed package
     pip3 install <package>
+2. check requirements file
+    pip3 freeze
+3. to overwrite the project requirements file 
+    pip3 freeze > pip3requirements.txt
+
+

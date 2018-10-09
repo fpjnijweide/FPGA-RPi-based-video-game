@@ -18,6 +18,7 @@
     git pull
 
 7. Make changes then
+    git pull
     git status
     git add <file_you_changed>
     git commit -m "<Descriptive commit message>" 
