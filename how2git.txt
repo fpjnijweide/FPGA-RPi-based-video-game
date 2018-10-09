@@ -23,6 +23,6 @@
 7. To make git remember your gitlab username and password (for 15 minutes after you entered it)
     git config --global credential.helper cache
 
-8. To increase password cache time
+8. To change password cache time
     git config --global credential.helper 'cache --timeout=<timeout_in_seconds>'
 
