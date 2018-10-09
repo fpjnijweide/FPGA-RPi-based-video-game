@@ -1,0 +1,6 @@
+1. sudo apt install git
+2. git clone https://git.snt.utwente.nl/s2014203/mod-5.git (inside directory of choice)
+3. cd ./mod-5/
+4. git checkout -b <yourFirstName>
+5. git push --set-upstream origin <yourFirstName>
+
