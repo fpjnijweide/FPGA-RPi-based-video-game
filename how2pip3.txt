@@ -1,0 +1,16 @@
+pip3 is used to install python packages.
+A python virtual environment can be used to keep project-related python packages in one place
+The python3-venv package can be used to manage this virtual environment
+1: install the python3 module
+    sudo apt install python3-venv
+2: navigate to the project directory
+    cd <somewhere>/mod-5/
+3: create the virtual env in a folder called virtualenv by running the following
+    python3 -m venv virtualenv
+4: activate the virtual env
+    source ./virtualenv/bin/activate
+        You should now see (virtualenv) in your console
+5: upgrade pip3
+    pip3 install --upgrade pip
+6: download project requirements from the requirements file
+    pip3 install -r pip3requirments.txt
