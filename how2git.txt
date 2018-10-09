@@ -14,15 +14,18 @@
 5. Set the new branch as upstream
     git push --set-upstream origin <yourFirstName>
 
-6. Make changes then
+6. Pull from the repo (to get changes made by others)
+    git pull
+
+7. Make changes then
     git status
     git add <file_you_changed>
     git commit -m "<Descriptive commit message>" 
     git push
 
-7. To make git remember your gitlab username and password (for 15 minutes after you entered it)
+8. To make git remember your gitlab username and password (for 15 minutes after you entered it)
     git config --global credential.helper cache
 
-8. To change password cache time
+9. To change password cache time
     git config --global credential.helper 'cache --timeout=<timeout_in_seconds>'
 
