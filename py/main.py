@@ -16,29 +16,31 @@ def init():
     pygame.init()
     
     #set up screen
-    global screen
-    screen = pygame.display.set_mode((constants.WINDOW_WIDTH, constants.WINDOW_HEIGHT)) 
+    global Screen
+    Screen = pygame.display.set_mode((constants.WINDOW_WIDTH, constants.WINDOW_HEIGHT)) 
     #set title of screen
     pygame.display.set_caption("Sensor Pong") 
     
     
-    global all_sprites_list
-    all_sprites_list = pygame.sprite.Group() #get list of sprites
+    global AllSpritesList
+    AllSpritesList = pygame.sprite.Group() #get list of sprites
 
-    playerBall = objects.Ball(constants.colors["WHITE"], constants.BALLRADIUS)
-    playerBall.rect.x = constants.WINDOW_WIDTH  // 2
-    playerBall.rect.y = constants.WINDOW_HEIGHT // 2
+#    playerBall = objects.Ball(constants.colors["WHITE"], constants.BALLRADIUS)
+#    playerBall.rect.x = constants.WINDOW_WIDTH  // 2
+#    playerBall.rect.y = constants.WINDOW_HEIGHT // 2
     
-    all_sprites_list.add(playerBall) #add this ball to the list of sprites
+#    AllSpritesList.add(playerBall) #add this ball to the list of sprites
     global clock
-    clock=pygame.time.Clock() #create game clock
+    clock = pygame.time.Clock() #create game clock
 
-
+    #call Game.__init__()
+    game = Game()
 
 
 def main():
     """
-    main() contains the game loop and is called once every frame.
+    main() contains the pygame draw loop and is called once every frame.
+    Level generation etc should be defined in the objects.Game class
     """
     while True:
         
@@ -49,13 +51,13 @@ def main():
                 #   exit main() function to end program.
                 return
 
-        screen.fill(constants.colors["BLACK"])
+        Screen.fill(constants.colors["BLACK"])
 
 
-        all_sprites_list.update()
+        AllSpritesList.update()
 
-        #draw sprites and refresh screen
-        all_sprites_list.draw(screen)
+        #draw sprites and refresh Screen
+        AllSpritesList.draw(Screen)
         pygame.display.flip()
 
         #then wait until tick has fully passed
@@ -63,6 +65,24 @@ def main():
         
         # End of game loop.
         # Note that the game stops updating but is not quit entirely
+
+
+
+
+
+
+class Game:
+    """
+
+    """
+    def __init__(self):
+        playerBall = objects.Ball(constants.colors["WHITE"], constants.BALLRADIUS)
+        AllSpritesList.add(playerBall)
+
+
+
+
+
 
 
 #execute init() and main() only when program is run directly (not imported)
@@ -80,4 +100,7 @@ if __name__ == '__main__':
 
 else:
     print("Imported main.py")
+
+
+
 
