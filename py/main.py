@@ -107,7 +107,7 @@ class Game:
     def __init__(self):
         self.playerBall = objects.Ball(constants.colors["WHITE"], constants.BALLRADIUS)
         AllSpritesList.add(self.playerBall)
-        self.paddle = objects.Paddle(constants.colors["WHITE"], constants.PADDLE_Y_POS, constants.PADDLEWIDTH, constants.PADDLEHEIGHT)
+        self.paddle = objects.Paddle(constants.colors["WHITE"], constants.PADDLE_Y_POS, constants.PADDLEWIDTH, constants.PADDLEHEIGHT) # WHYYYY is it not drawing white?????
         AllSpritesList.add(self.paddle)
 
     def handleKeys(self, keysPressed):
