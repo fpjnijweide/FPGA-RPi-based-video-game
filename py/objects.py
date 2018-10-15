@@ -21,6 +21,8 @@ class Ball(pygame.sprite.Sprite):
     This class represents a Ball.
     It derives from the "Sprite" class in Pygame.
     """ 
+    xspeed = 0
+    yspeed = 0
     def __init__(self, color, radius):
         # Call the parent class (Sprite) constructor
         super().__init__()

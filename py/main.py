@@ -6,7 +6,7 @@ Sensor Pong
 
 """
 import pygame, sys
-import objects, constants
+import objects, constants, keyBindings
 from enum import Enum
 
 def init():
@@ -35,11 +35,11 @@ def init():
     global clock
     clock = pygame.time.Clock() #create game clock
 
-    #call Game.__init__()
+    #call Game.__init__() and set gamestate
     global GameState
     GameState = GameStates.PLAYING
-    
-    Game()
+    global GameObj
+    GameObj = Game()
 
 def main():
     """
@@ -47,13 +47,25 @@ def main():
     Level generation etc should be defined in the objects.Game class
     """
     while True:
-        
+        # ==== Event handling ====
         for event in pygame.event.get():
 
             if event.type == pygame.QUIT:
                 # When the game window's [x] is pressed,
                 #   exit main() function to end program.
                 return
+
+        # ==== Keypress handling
+        # Get boolean array of key pressed
+        keysPressed = pygame.key.get_pressed()
+
+        if GameState == GameStates.PLAYING:
+
+            GameObj.handleKeys(keysPressed)
+            GameObj.updateGame()
+
+        # elif GameState == GameStates.MAINMENU:
+
 
         Screen.fill(constants.colors["BLACK"])
 
@@ -88,19 +100,41 @@ class Game:
     """
     main.Game class contains game generation and handling functionality.
     """
+
+    playerBall = None
+
     def __init__(self):
-        playerBall = objects.Ball(constants.colors["WHITE"], constants.BALLRADIUS)
-        AllSpritesList.add(playerBall)
+        self.playerBall = objects.Ball(constants.colors["WHITE"], constants.BALLRADIUS)
+        AllSpritesList.add(self.playerBall)
 
+    def handleKeys(self, keysPressed):
+        if keyBindings.checkPress('up', keysPressed):
+            self.playerBall.yspeed -= 0.1
+        if keyBindings.checkPress('down', keysPressed):
+            self.playerBall.yspeed += 0.1
+        if keyBindings.checkPress('left', keysPressed):
+            self.playerBall.xspeed -= 0.1
+        if keyBindings.checkPress('right', keysPressed):
+            self.playerBall.xspeed += 0.1
 
+    def updateGame(self):
+        self.playerBall.rect.x += self.playerBall.xspeed
+        self.playerBall.rect.y += self.playerBall.yspeed
 
+class MainMenu:
+    """
+    contains menu rendering and keyhandling specific to menu
+    i mean not yet but it should
+    """
+    def __init__(self):
+        pass # do nothing as of now
 
-
-
+    def handleKeys():
+        pass
 
 # Execute init() and main() only when program is run directly (not imported)
 # Note: this needs to be at the end of the file,
-#   otherwise stuff will be executed before it is loaded in python.
+#   otherwise stuff will be executed before python knows it exists
 # Optionally, the functionality of this if block can be moved to yet another file.
 if __name__ == '__main__':
 
