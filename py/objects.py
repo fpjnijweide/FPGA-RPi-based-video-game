@@ -58,13 +58,11 @@ class Paddle(pygame.sprite.Sprite):
         left = (constants.WINDOW_WIDTH // 2 ) - (width // 2)
 
         self.image = pygame.Surface([width, height])
-        
+        self.image.fill(color)
         self.rect = self.image.get_rect()
 
         self.rect.x = left
         self.rect.y = y_position
 
-        #pygame.draw.rect(self.image, color, [left, y_position, width, height], 20)
-        pygame.draw.rect(self.image, color, self.rect, 20)
         
         
