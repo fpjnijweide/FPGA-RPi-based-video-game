@@ -47,3 +47,24 @@ class Ball(pygame.sprite.Sprite):
         self.rect.x = constants.WINDOW_WIDTH  // 2
         self.rect.y = constants.WINDOW_HEIGHT // 2
 
+class Paddle(pygame.sprite.Sprite):
+    """
+    """
+    def __init__(self, color, y_position, width, height):
+
+        super().__init__()
+
+        # Paddle located in middle of screen
+        left = (constants.WINDOW_WIDTH // 2 ) - (width // 2)
+
+        self.image = pygame.Surface([width, height])
+        
+        self.rect = self.image.get_rect()
+
+        self.rect.x = left
+        self.rect.y = y_position
+
+        #pygame.draw.rect(self.image, color, [left, y_position, width, height], 20)
+        pygame.draw.rect(self.image, color, self.rect, 20)
+        
+        

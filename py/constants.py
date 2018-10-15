@@ -14,6 +14,11 @@ FPS = 60
 # Ball size
 BALLRADIUS = 5
 
+# Paddle size
+PADDLEWIDTH  = 100
+PADDLEHEIGHT = 45
+PADDLE_Y_POS = 520
+
 # Color definitions
 colors = {
     "GRAY"      : (100, 100, 100),

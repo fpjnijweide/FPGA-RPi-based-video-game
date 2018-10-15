@@ -67,7 +67,7 @@ def main():
         # elif GameState == GameStates.MAINMENU:
 
 
-        Screen.fill(constants.colors["BLACK"])
+        Screen.fill(constants.colors["GRAY"])
 
 
         AllSpritesList.update()
@@ -102,12 +102,17 @@ class Game:
     """
 
     playerBall = None
+    paddle = None
 
     def __init__(self):
         self.playerBall = objects.Ball(constants.colors["WHITE"], constants.BALLRADIUS)
         AllSpritesList.add(self.playerBall)
+        self.paddle = objects.Paddle(constants.colors["WHITE"], constants.PADDLE_Y_POS, constants.PADDLEWIDTH, constants.PADDLEHEIGHT)
+        AllSpritesList.add(self.paddle)
 
     def handleKeys(self, keysPressed):
+        if keyBindings.checkPress('exit', keysPressed):
+            pygame.quit()
         if keyBindings.checkPress('up', keysPressed):
             self.playerBall.yspeed -= 0.1
         if keyBindings.checkPress('down', keysPressed):
