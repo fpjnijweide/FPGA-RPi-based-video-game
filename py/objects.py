@@ -11,7 +11,7 @@ class Block(pygame.sprite.Sprite): #unused as of now
         self.blockHeight = 20
         pygame.sprite.Sprite.__init__(self)
         self.image = pygame.Surface((self.blockWidth, self.blockHeight))
-        self.rect = self.image.get_rect()
+        self.rect = self.image.get_rect() # lmao get rekt
         self.name = BLOCK
 
 

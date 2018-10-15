@@ -1,3 +1,43 @@
+"""
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+DEPRECATED... 
+Replaced by main.py, objects.py, constants.py, keyBindings.py
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+"""
 import pygame
 import sys
 

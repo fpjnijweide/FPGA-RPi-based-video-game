@@ -100,7 +100,6 @@ class Game:
     walls = [None, None, None, None]
 
     def __init__(self):
-         
         # Create two empty sprite groups.
         # One for sprites to render, another for sprites to collision detect
         self.AllSpritesList = pygame.sprite.Group()
@@ -146,9 +145,9 @@ class Game:
         
         # Return Sprite_List of objects colliding with ball
         collisions = pygame.sprite.spritecollide(self.playerBall, self.CollisionSpritesList, False)
-        print(collisions)
+        #print(collisions)
 
-        if len(collisions) != 0: # Placeholder logic for collision handling
+        if len(collisions) != 0: # Placeholder logic for collision handling (it really doesn't work)
             self.playerBall.xspeed = -self.playerBall.xspeed
             self.playerBall.yspeed = -self.playerBall.yspeed
         else: 
