@@ -25,7 +25,7 @@ def init():
     global all_sprites_list
     all_sprites_list = pygame.sprite.Group() #get list of sprites
 
-    playerBall = objects.Ball(constants.WHITE, constants.BALLRADIUS)
+    playerBall = objects.Ball(constants.colors["WHITE"], constants.BALLRADIUS)
     playerBall.rect.x = constants.WINDOW_WIDTH  // 2
     playerBall.rect.y = constants.WINDOW_HEIGHT // 2
     
@@ -33,7 +33,6 @@ def init():
     global clock
     clock=pygame.time.Clock() #create game clock
 
-    #pygame initialized
 
 
 
@@ -50,7 +49,7 @@ def main():
                 #   exit main() function to end program.
                 return
 
-        screen.fill(constants.BLACK)
+        screen.fill(constants.colors["BLACK"])
 
 
         all_sprites_list.update()
