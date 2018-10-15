@@ -24,8 +24,6 @@ def init():
     pygame.display.set_caption(constants.GAME_NAME) 
     
     
-    global AllSpritesList
-    AllSpritesList = pygame.sprite.Group() #get list of sprites
 
 #    playerBall = objects.Ball(constants.colors["WHITE"], constants.BALLRADIUS)
 #    playerBall.rect.x = constants.WINDOW_WIDTH  // 2
@@ -66,17 +64,11 @@ def main():
 
         # elif GameState == GameStates.MAINMENU:
 
-
-        Screen.fill(constants.colors["GRAY"])
-
-
-        AllSpritesList.update()
-
-        #draw sprites and refresh Screen
-        AllSpritesList.draw(Screen)
+        # Update entire graphical display, can be optimized
+        # (by using display.update() and passing it the screen area that needs to be updated)
         pygame.display.flip()
 
-        #then wait until tick has fully passed
+        # then wait until tick has fully passed
         clock.tick(constants.FPS)
         
         # End of game loop.
@@ -100,17 +92,39 @@ class Game:
     """
     main.Game class contains game generation and handling functionality.
     """
-
+    # define variables to be initialized
     playerBall = None
     paddle = None
+    AllSpritesList = None
+    CollisionSpritesList = None
+    walls = [None, None, None, None]
 
     def __init__(self):
+        # Create two empty sprite groups.
+        # One for sprites to render, another for sprites to collision detect
+        self.AllSpritesList = pygame.sprite.Group()
+        self.CollisionSpritesList = pygame.sprite.Group()
+
+        # Create Ball object
         self.playerBall = objects.Ball(constants.colors["WHITE"], constants.BALLRADIUS)
-        AllSpritesList.add(self.playerBall)
+        self.AllSpritesList.add(self.playerBall)
+
+        # Create paddle object
         self.paddle = objects.Paddle(constants.colors["WHITE"], constants.PADDLE_Y_POS, constants.PADDLEWIDTH, constants.PADDLEHEIGHT)
-        AllSpritesList.add(self.paddle)
+        self.AllSpritesList.add(self.paddle)
+        self.CollisionSpritesList.add(self.paddle)
+
+        # Create 4 walls
+        for i in range(4):
+            self.walls[i] = objects.Wall(constants.colors["GRAY"], constants.WALLSIZE, i)
+            self.AllSpritesList.add(self.walls[i])
+            self.CollisionSpritesList.add(self.walls[i])
+
 
     def handleKeys(self, keysPressed):
+        """
+        Calls keyBindings.checkPress and responds accordingly
+        """
         if keyBindings.checkPress('exit', keysPressed):
             pygame.quit()
         if keyBindings.checkPress('up', keysPressed):
@@ -123,8 +137,32 @@ class Game:
             self.playerBall.xspeed += 0.1
 
     def updateGame(self):
+        """
+        Updates sprites and stuff
+        """
         self.playerBall.rect.x += self.playerBall.xspeed
         self.playerBall.rect.y += self.playerBall.yspeed
+        
+        # Return Sprite_List of objects colliding with ball
+        collisions = pygame.sprite.spritecollide(self.playerBall, self.CollisionSpritesList, False)
+        #print(collisions)
+
+        if len(collisions) != 0: # Placeholder logic for collision handling (it really doesn't work)
+            self.playerBall.xspeed = -self.playerBall.xspeed
+            self.playerBall.yspeed = -self.playerBall.yspeed
+        else: 
+            print("No collisions")
+
+
+
+        Screen.fill(constants.colors["BLACK"])
+
+
+        self.AllSpritesList.update()
+
+        #draw sprites
+        self.AllSpritesList.draw(Screen)
+
 
 class MainMenu:
     """
@@ -138,7 +176,7 @@ class MainMenu:
         pass
 
 # Execute init() and main() only when program is run directly (not imported)
-# Note: this needs to be at the end of the file,
+# Note: this needs to be at the end of this file,
 #   otherwise stuff will be executed before python knows it exists
 # Optionally, the functionality of this if block can be moved to yet another file.
 if __name__ == '__main__':
@@ -154,7 +192,7 @@ if __name__ == '__main__':
     sys.exit()
 
 else:
-    print("Imported main.py")
+    print("Imported module main.py")
 
 
 
