@@ -22,9 +22,13 @@ BALLRADIUS = 5
 WALLSIZE = 10
 
 # Paddle size
-PADDLEWIDTH  = 100
-PADDLEHEIGHT = 45
+PADDLEWIDTH  = 70
+PADDLEHEIGHT = 25
 PADDLE_Y_POS = 520
+
+# Block size
+BLOCKWIDTH  = 50
+BLOCKHEIGHT = 20
 
 # Color definitions
 colors = {
