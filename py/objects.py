@@ -14,8 +14,6 @@ class Block(pygame.sprite.Sprite): #unused as of now
         self.rect = self.image.get_rect() # lmao get rekt
         self.name = BLOCK
 
-
-
 class Ball(pygame.sprite.Sprite):
     """
     This class represents a Ball.
@@ -82,7 +80,7 @@ class Wall(pygame.sprite.Sprite):
             self.name = "left_wall"
             
             
-        elif location == 1: # tpo wall
+        elif location == 1: # top wall
             w_h = [constants.WINDOW_WIDTH, size]
             x,y = 0, 0
             self.name = "top_wall"

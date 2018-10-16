@@ -1,3 +1,6 @@
+This stuff is all not necessary and can be ignored
+
+
 pip3 is used to install python packages.
 A python virtual environment can be used to keep project-related python packages in one place
 The python3-venv package can be used to manage this virtual environment

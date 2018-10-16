@@ -5,6 +5,3 @@
 def sendData():
     return
 
-
-
-

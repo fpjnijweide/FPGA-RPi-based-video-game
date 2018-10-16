@@ -152,19 +152,25 @@ class Game:
         """
         Updates sprites and stuff
         """
+        
+        # Handle collisions
+        self.playerBall.xspeed, self.playerBall.yspeed = CollisionHandling.evaluate(self.playerBall.xspeed, self.playerBall.yspeed, self.playerBall, self.CollisionSpritesList)
+        
+#        THE FOLLOWING CODE BLOCK HAS BEEN REPLACED BY CollisionHandling.evaluate():
+#
+#        # Return Sprite_List of objects colliding with ball
+#        collisions = pygame.sprite.spritecollide(self.playerBall, self.CollisionSpritesList, False)
+#        #print(collisions)
+#
+#        if len(collisions) != 0: # Placeholder logic for collision handling (it really doesn't work)
+#            self.playerBall.xspeed = -self.playerBall.xspeed
+#            self.playerBall.yspeed = -self.playerBall.yspeed
+#        #else: 
+#        #    print("No collisions")
+#        # Collisions should ultimately be forwarded to the FPGA
+
         self.playerBall.rect.x += self.playerBall.xspeed
         self.playerBall.rect.y += self.playerBall.yspeed
-        
-        # Return Sprite_List of objects colliding with ball
-        collisions = pygame.sprite.spritecollide(self.playerBall, self.CollisionSpritesList, False)
-        #print(collisions)
-
-        if len(collisions) != 0: # Placeholder logic for collision handling (it really doesn't work)
-            self.playerBall.xspeed = -self.playerBall.xspeed
-            self.playerBall.yspeed = -self.playerBall.yspeed
-        #else: 
-        #    print("No collisions")
-        # Collisions should ultimately be forwarded to the FPGA
 
         Screen.fill(constants.colors["BLACK"])
 
@@ -174,6 +180,55 @@ class Game:
         #draw sprites
         self.AllSpritesList.draw(Screen)
 
+
+class CollisionHandling:
+    """
+    Abstract class containing collision handling functions 
+    Should eventually also contain stuff for FPGA communication
+    """
+    def evaluate(ballXspeed, ballYspeed, ballObj, collisionSpritesList):
+        """
+        returns new (xspeed, yspeed)
+        """
+
+        collisions = pygame.sprite.spritecollide(ballObj, collisionSpritesList, False)
+
+        # if no collisions happen
+        if len(collisions) == 0:
+
+            # then speeds do not change and function exits
+            return (ballXspeed, ballYspeed)
+
+
+        # if there are collisions iterate through them
+        print(len(collisions), " collisions")
+        for c in collisions:
+
+            isVertical = CollisionHandling.findBounceIsVertical(ballObj, c)
+            print(isVertical)
+
+            if isVertical:
+
+                return (-ballXspeed, ballYspeed)
+
+            else:
+
+                return (ballXspeed, -ballYspeed)
+
+
+
+    def findBounceIsVertical(ballObj, collisionObj):
+        """
+        returns True if bounce happens on a vertical surface
+        """
+        # i copied this monster from stackoverflow and yet it doesnt do what i intended, i am stunned
+        # all booleans are reversed
+        top = ballObj.rect.top < collisionObj.rect.bottom and ballObj.rect.top > collisionObj.rect.top
+        bottom = ballObj.rect.bottom > collisionObj.rect.top and ballObj.rect.bottom < collisionObj.rect.bottom
+        right = ballObj.rect.right > collisionObj.rect.left and ballObj.rect.right < collisionObj.rect.right 
+        left = ballObj.rect.left < collisionObj.rect.right and ballObj.rect.left > collisionObj.rect.left
+        # so unreverse in the return statement
+        return not right or not left
 
 class MainMenu:
     """
@@ -203,7 +258,7 @@ class Audio:
             return
 
         pygame.mixer.music.load(constants.music[musicName])
-        pygame.mixer.music.play(-1)
+        pygame.mixer.music.play(-1) # loop music forever
         #self.__playAudio(constants.music[musicName], True)
 
     def playSound(self, soundName):
@@ -214,38 +269,6 @@ class Audio:
 
         pass #pygame.something.goes.here
        # self.__playAudio(constants.sounds[soundName], False)
-
-    def __playAudio(self, fileName, loop): 
-        """
-        private function, for audio playing use playMusic and playSound. Stop using this. delete this once you got it all in order
-        """
-
-        if loop: loops = -1
-        else: loops = 0
-
-        pygame.mixer.Sound(fileName).play(loops)
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
 
 
 
@@ -272,4 +295,5 @@ if __name__ == '__main__':
 
 else:
     print("Imported module main.py")
+
 
