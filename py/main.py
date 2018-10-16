@@ -70,6 +70,7 @@ def main():
             GameObj.updateGame()
 
         # elif GameState == GameStates.MAINMENU:
+            # Do MainMenuObj.handleKeys and updateGame
 
         # Update entire graphical display, can be optimized
         # (by using display.update() and passing it the screen area that needs to be updated)
@@ -121,7 +122,6 @@ class Game:
         self.AllSpritesList.add(self.paddle)
         self.CollisionSpritesList.add(self.paddle)
         
-        # Music should start playing, but this next line currently crashes my python3
         # Todo convert .wav files to SIGNED 16?-bit Little? Endian, 44.1KHz, Stereo
         #AudioObj.playMusic('mainGameMusic')
         #AudioObj.playMusic('menu')
@@ -164,8 +164,7 @@ class Game:
             self.playerBall.yspeed = -self.playerBall.yspeed
         #else: 
         #    print("No collisions")
-
-
+        # Collisions should ultimately be forwarded to the FPGA
 
         Screen.fill(constants.colors["BLACK"])
 
