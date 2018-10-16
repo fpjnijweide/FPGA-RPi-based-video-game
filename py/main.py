@@ -122,7 +122,7 @@ class Game:
         self.AllSpritesList.add(self.paddle)
         self.CollisionSpritesList.add(self.paddle)
         
-        # Todo convert .wav files to SIGNED 16?-bit Little? Endian, 44.1KHz, Stereo
+        # Todo convert .wav files to SIGNED 16-bit Little Endian, 44.1KHz, Stereo
         AudioObj.playMusic('mainGameMusic')
         #AudioObj.playMusic('menu')
 
@@ -139,6 +139,7 @@ class Game:
         """
         if keyBindings.checkPress('exit', keysPressed):
             pygame.quit()
+
         if keyBindings.checkPress('up', keysPressed):
             self.playerBall.yspeed -= 0.1
         if keyBindings.checkPress('down', keysPressed):
@@ -147,6 +148,11 @@ class Game:
             self.playerBall.xspeed -= 0.1
         if keyBindings.checkPress('right', keysPressed):
             self.playerBall.xspeed += 0.1
+
+        #reset ball location when pressing K_HOME
+        if keyBindings.checkPress('restart', keysPressed):
+            self.playerBall.rect.x = 100
+            self.playerBall.rect.y = 100
 
     def updateGame(self):
         """
@@ -202,11 +208,11 @@ class CollisionHandling:
 
 
         # if there are collisions iterate through them
-        print(len(collisions), " collisions")
+        #print(len(collisions), " collisions")
         for c in collisions:
 
             isVertical = CollisionHandling.findBounceIsVertical(ballObj, c)
-            print(isVertical)
+            #print(isVertical)
 
             if isVertical:
 
