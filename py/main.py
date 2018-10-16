@@ -123,7 +123,7 @@ class Game:
         self.CollisionSpritesList.add(self.paddle)
         
         # Todo convert .wav files to SIGNED 16?-bit Little? Endian, 44.1KHz, Stereo
-        #AudioObj.playMusic('mainGameMusic')
+        AudioObj.playMusic('mainGameMusic')
         #AudioObj.playMusic('menu')
 
         # Create 4 walls
@@ -155,6 +155,7 @@ class Game:
         
         # Handle collisions
         self.playerBall.xspeed, self.playerBall.yspeed = CollisionHandling.evaluate(self.playerBall.xspeed, self.playerBall.yspeed, self.playerBall, self.CollisionSpritesList)
+        # Note: collision handling is less broken now, but the ball still disappears into the walls
         
 #        THE FOLLOWING CODE BLOCK HAS BEEN REPLACED BY CollisionHandling.evaluate():
 #
@@ -280,7 +281,6 @@ class Audio:
 # Execute init() and main() only when program is run directly (not imported)
 # Note: this needs to be at the end of this file,
 #   otherwise stuff will be executed before python knows it exists
-# Optionally, the functionality of this if block can be moved to yet another file.
 if __name__ == '__main__':
 
     init()
