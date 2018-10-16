@@ -42,18 +42,20 @@ colors = {
         "COMBLUE"   : (233, 232, 255)
 }
 
-
 # Audio track mapping
 # 'audioName':'relative/path/to/file'
 sounds = {
-        'wallCollision':'../resources/audio/bounce.wav',
-        'blockbreak':'../resources/sound/bounce2.wav'
+#        'wallCollision':'../resources/audio/bounce.wav',
+#        'blockbreak':'../resources/sound/bounce2.wav'
+}
+music  = {
+        #'mainGameMusic':'../resources/audio/main3.ogg',
+#        'menu':'../resources/audio/menu.wav',
+#        'newGame':'../resources/audio/new game.wav',
+#        'mainGameMusic':'../resources/audio/main soundtrack _sample.wav',
+#        'gameOver':'../resources/audio/game over.wav',
+#        'highScore':'../resources/audio/new hiscore.wav'
 }
 
-music  = {
-        'menu':'../resources/audio/menu.wav',
-        'newGame':'../resources/audio/new game.wav',
-        'mainGameMusic':'../resources/audio/main soundtrack _sample.wav',
-        'gameOver':'../resources/audio/game over.wav',
-        'highScore':'../resources/audio/new hiscore.wav'
-}
+
+
