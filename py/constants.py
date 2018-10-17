@@ -53,12 +53,11 @@ sounds = {
 #        'blockbreak':'../resources/sound/bounce2.wav'
 }
 music  = {
-        'mainGameMusic':'../resources/audio/main_draft.ogg'#,
-#        'menu':'../resources/audio/menu.wav',
-#        'newGame':'../resources/audio/new game.wav',
-#        'mainGameMusic':'../resources/audio/main soundtrack _sample.wav',
-#        'gameOver':'../resources/audio/game over.wav',
-#        'highScore':'../resources/audio/new hiscore.wav'
+        'mainGameMusic':'../resources/audio/main.ogg',
+        'menu':'../resources/audio/menu.ogg',
+        'highScore':'../resources/audio/hiscore.ogg'
+#        'newGame':'../resources/audio/<file>.ogg',
+#        'gameOver':'../resources/audio/<file>.ogg',
 }
 
 

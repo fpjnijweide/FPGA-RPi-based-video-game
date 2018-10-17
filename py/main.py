@@ -123,8 +123,9 @@ class Game:
         self.CollisionSpritesList.add(self.paddle)
         
         # Todo convert .wav files to SIGNED 16-bit Little Endian, 44.1KHz, Stereo
-        AudioObj.playMusic('mainGameMusic')
+        #AudioObj.playMusic('mainGameMusic')
         #AudioObj.playMusic('menu')
+        #AudioObj.playMusic('highScore')
 
         # Create 4 walls
         for i in range(4):
@@ -175,9 +176,10 @@ class Game:
 #        #else: 
 #        #    print("No collisions")
 #        # Collisions should ultimately be forwarded to the FPGA
-
-        self.playerBall.rect.x += self.playerBall.xspeed
-        self.playerBall.rect.y += self.playerBall.yspeed
+        
+        self.playerBall.update()
+        #self.playerBall.rect.x += self.playerBall.xspeed
+        #self.playerBall.rect.y += self.playerBall.yspeed
 
         Screen.fill(constants.colors["BLACK"])
 

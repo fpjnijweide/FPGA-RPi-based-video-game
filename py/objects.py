@@ -21,6 +21,9 @@ class Ball(pygame.sprite.Sprite):
     """ 
     xspeed = 0
     yspeed = 0
+
+    maxSpeed = 50
+
     def __init__(self, color, radius):
         # Call the parent class (Sprite) constructor
         super().__init__()
@@ -44,6 +47,12 @@ class Ball(pygame.sprite.Sprite):
         #set position on screen
         self.rect.x = constants.WINDOW_WIDTH  // 2
         self.rect.y = constants.WINDOW_HEIGHT // 2
+
+    def update(self):
+        """update ball location"""
+        self.rect.x += self.xspeed
+        self.rect.y += self.yspeed
+
 
 class Paddle(pygame.sprite.Sprite):
     """
