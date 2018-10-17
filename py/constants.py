@@ -11,6 +11,8 @@ Music = True
 # Window resolution
 WINDOW_WIDTH = 800
 WINDOW_HEIGHT = 600
+WINDOW_HW = WINDOW_WIDTH//2
+WINDOW_HH = WINDOW_HEIGHT//2
 
 # Frames per second
 FPS = 60

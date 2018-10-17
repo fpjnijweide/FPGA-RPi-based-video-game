@@ -18,9 +18,8 @@ def init():
     """
     # Initialize pygame
     pygame.init()
-
-
-    #set up screen
+    pygame.font.init()
+    # set up screen
     global Screen
     Screen = pygame.display.set_mode((constants.WINDOW_WIDTH, constants.WINDOW_HEIGHT)) 
     #set title of screen
@@ -41,9 +40,11 @@ def init():
 
     #call Game.__init__() and set gamestate
     global GameState
-    GameState = GameStates.PLAYING
+    GameState = GameStates.MAINMENU
     global GameObj
     GameObj = Game()
+    global MainMenuObj
+    MainMenuObj = MainMenu()
 
 
 def main():
@@ -69,8 +70,9 @@ def main():
             GameObj.handleKeys(keysPressed)
             GameObj.updateGame()
 
-        # elif GameState == GameStates.MAINMENU:
-            # Do MainMenuObj.handleKeys and updateGame
+        elif GameState == GameStates.MAINMENU:
+            MainMenuObj.handleKeys(keysPressed)
+            MainMenuObj.updateMenu()
 
         # Update entire graphical display, can be optimized
         # (by using display.update() and passing it the screen area that needs to be updated)
@@ -91,7 +93,7 @@ class GameStates(Enum):
         it should always keep track of the screen that the player is on.
     Using this class to assign the GameState variable ensures that it is always one of the defined options.
     """
-    # MAINMENU = 0 # unused as of now
+    MAINMENU = 0 # unused as of now
     PLAYING  = 1
     # GAMEOVER = 2 # unused as of now
 
@@ -180,11 +182,65 @@ class MainMenu:
     contains menu rendering and keyhandling specific to menu
     i mean not yet but it should
     """
-    def __init__(self):
-        pass # do nothing as of now
+    pygame.font.init()
+    mainFont = None
+    subFont = None
 
-    def handleKeys():
-        pass
+    mainmenu = None
+    startgamemenu = None
+    highscoremenu = None
+    optionsmenu = None
+    exitmenu = None
+    # widths
+    mainmenu_Width = None
+    startgamemenu_Width = None
+    highscoremenu_Width = None
+    optionsmenu_Width = None
+    exitmenu_Width = None
+    # heights
+    mainmenu_Height = None
+    startgamemenu_Height = None
+    highscoremenu_Height = None
+    optionsmenu_Height = None
+    exitmenu_Height = None
+    # menuItems = [mainmenu, optionsmenu, highscoremenu, startgamemenu]
+    menuItems = None
+    def __init__(self):
+        pygame.display.set_caption(constants.GAME_NAME + ' - Main menu' )
+        self.mainFont = pygame.font.SysFont('arial', 36)
+        self.subFont = pygame.font.SysFont('arial', 30)
+
+        self.mainmenu = self.mainFont.render('Main menu', False, constants.colors['YELLOW'])
+        self.startgamemenu = self.subFont.render('Start game', False, constants.colors['YELLOW'])
+        self.highscoremenu = self.subFont.render('Highscores', False, constants.colors['YELLOW'])
+        self.optionsmenu = self.subFont.render('Options', False, constants.colors['YELLOW'])
+        self.exitmenu = self.subFont.render('Exit', False, constants.colors['YELLOW'])
+        self.menuItems = [self.mainmenu, self.optionsmenu, self.highscoremenu,self.exitmenu, self.startgamemenu]
+
+        # width menuItems
+        self.mainmenu_Width = constants.WINDOW_HW - self.mainmenu.get_width()//2
+        self.startgamemenu_Width = constants.WINDOW_HW - self.startgamemenu.get_width()
+        self.highscoremenu_Width = constants.WINDOW_HW - self.highscoremenu.get_width()
+        self.optionsmenu_Width = constants.WINDOW_HW - self.optionsmenu.get_width()
+        self.exitmenu_Width = constants.WINDOW_HW - self.exitmenu.get_width()
+        # height menuItems
+
+
+
+
+        for x in self.menuItems:
+            print(x.get_size())# width, height
+
+    def handleKeys(self, keysPressed):
+        if keyBindings.checkPress('exit', keysPressed):
+            pygame.quit()
+
+    def updateMenu(self):
+        Screen.blit(self.mainmenu, (self.mainmenu_Width , 0))
+        Screen.blit(self.startgamemenu, (self.startgamemenu_Width, constants.WINDOW_HH - constants.WINDOW_HEIGHT//5 - self.startgamemenu.get_height()//2 + 42))
+        Screen.blit(self.highscoremenu, (self.highscoremenu_Width,constants.WINDOW_HH - constants.WINDOW_HEIGHT//5 - self.highscoremenu.get_height()//2 + 36))
+        Screen.blit(self.optionsmenu, (self.optionsmenu_Width,constants.WINDOW_HH - constants.WINDOW_HEIGHT//5 - self.optionsmenu.get_height()//2 + 36*2))
+        Screen.blit(self.exitmenu, (self.exitmenu_Width,constants.WINDOW_HH - constants.WINDOW_HEIGHT//5 - self.exitmenu.get_height()//2 + 36*3))
 
 
 
