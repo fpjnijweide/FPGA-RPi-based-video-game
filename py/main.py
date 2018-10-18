@@ -25,7 +25,7 @@ def init():
     Screen = pygame.display.set_mode((constants.WINDOW_WIDTH, constants.WINDOW_HEIGHT)) 
     #set title of screen
     pygame.display.set_caption(constants.GAME_NAME) 
-    #TODO pygame.display.set_icon(Surface)
+    #TODO pygame.display.set_icon(Surface icon)
 
 
     global AudioObj

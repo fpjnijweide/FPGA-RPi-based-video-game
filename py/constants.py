@@ -24,7 +24,7 @@ FPS = 60
 BALLRADIUS = 5
 
 # Wall size
-WALLSIZE = 10
+WALLSIZE = 30
 
 # Paddle size
 PADDLEWIDTH  = 70
