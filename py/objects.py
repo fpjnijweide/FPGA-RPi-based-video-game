@@ -76,12 +76,16 @@ class Ball(pygame.sprite.Sprite):
         # TODO TODO TODO investigate...
         if (self.rect.x < 0 or self.rect.x > constants.WINDOW_WIDTH) or (self.rect.y < 0 or self.rect.y > constants.WINDOW_HEIGHT):
 
-            print("Alert! Ball is out of bounds!")
+            #print("Alert! Ball is out of bounds!")
+            pass
 
         else:
             # Can be used to see how many inside-bounds frames are inbetween OoB frames
-            #print(".___.")
+            # print(".___.")
             pass
+
+        # Perhaps, to fix the ball-getting-stuck issues, the game should check
+        #    if the ball is inside a wall and move the ball out of the wall
 
 
 
