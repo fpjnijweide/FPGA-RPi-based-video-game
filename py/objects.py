@@ -1,26 +1,53 @@
 import pygame, sys
 from pygame.locals import *
 import constants
+import random
 
-class Block(pygame.sprite.Sprite): #unused as of now
+class Block(pygame.sprite.Sprite):
     """
-    Block is a Sprite
     """
-    def __init__(self):
-        self.blockWidth = 50
-        self.blockHeight = 20
-        pygame.sprite.Sprite.__init__(self)
-        self.image = pygame.Surface((self.blockWidth, self.blockHeight))
-        self.rect = self.image.get_rect() # lmao get rekt
-        self.name = BLOCK
+    def __init__(self, color, width, height):
+
+        super().__init__()
+
+        # Paddle located in middle of screen
+        #self.blockWidth = constants.BLOCKWIDTH
+        #self.blockHeight = constants.BLOCKHEIGHT
+        
+        self.initialhp = constants.BLOCK_INITIAL_HP
+        self.hp = self.initialhp
+
+        self.initialColor = color
+        self.currentColor = self.initialColor
+        self.image = pygame.Surface([width, height])
+        self.image.fill(self.currentColor)
+        self.rect = self.image.get_rect()
+
+        self.rect.x = random.randint(200,800)
+        self.rect.y = random.randint(100,300)
+
+    def reduceHP(self,xspeed,yspeed):
+        if yspeed > xspeed:
+            self.hp = self.hp - yspeed
+        else:
+            self.hp = self.hp - xspeed
+
+
+        if self.hp > 0:
+            self.image.fill((128,0,0))
+
+        return self.hp
+        #self.currentColor = tuple(map(lambda x:   x*(self.hp//self.initialhp), self.initialColor))
+        
+        #TODO if hp is 0, remove the object instead of letting the game crash
 
 class Ball(pygame.sprite.Sprite):
     """
     This class represents a Ball.
     It derives from the "Sprite" class in Pygame.
     """ 
-    xspeed = 0
-    yspeed = 0
+   # xspeed = 0
+   # yspeed = 0
 
     maxSpeed = 50
 
@@ -41,12 +68,12 @@ class Ball(pygame.sprite.Sprite):
         self.rect = self.image.get_rect()
 
         #set initial speed
-        self.xspeed=0
-        self.yspeed=0
+        self.xspeed=2
+        self.yspeed=2
 
         #set position on screen
-        self.rect.x = constants.WINDOW_WIDTH  // 2
-        self.rect.y = constants.WINDOW_HEIGHT // 2
+        self.rect.x = 30
+        self.rect.y = 30
 
     def bounce(self, bounceIsVertical):
         """
@@ -101,7 +128,7 @@ class Paddle(pygame.sprite.Sprite):
 
         self.rect.x = left
         self.rect.y = y_position
-
+ 
         
 class Wall(pygame.sprite.Sprite):
     """

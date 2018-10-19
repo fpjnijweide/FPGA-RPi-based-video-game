@@ -119,9 +119,12 @@ class Game:
 
         # Create paddle object
         self.paddle = objects.Paddle(constants.colors["WHITE"], constants.PADDLE_Y_POS, constants.PADDLEWIDTH, constants.PADDLEHEIGHT)
+        self.block = objects.Block(constants.colors["RED"],constants.BLOCKWIDTH, constants.BLOCKHEIGHT)
         self.AllSpritesList.add(self.paddle)
         self.CollisionSpritesList.add(self.paddle)
         
+        self.AllSpritesList.add(self.block)
+        self.CollisionSpritesList.add(self.block)
         # Play some music!
         # use one of these
         #AudioObj.playMusic('highScore')
@@ -142,20 +145,17 @@ class Game:
         if keyBindings.checkPress('exit', keysPressed):
             pygame.quit()
 
-        if keyBindings.checkPress('up', keysPressed):
-            self.playerBall.yspeed -= 0.1
-        if keyBindings.checkPress('down', keysPressed):
-            self.playerBall.yspeed += 0.1
         if keyBindings.checkPress('left', keysPressed):
-            self.playerBall.xspeed -= 0.1
+            self.paddle.rect.x -= 6
         if keyBindings.checkPress('right', keysPressed):
-            self.playerBall.xspeed += 0.1
+            self.paddle.rect.x += 6
 
         #(re)set ball location when pressing K_HOME (cheat)
         if keyBindings.checkPress('restart', keysPressed):
-            self.playerBall.rect.x = 100
-            self.playerBall.rect.y = 100
-
+            self.playerBall.rect.x = 30
+            self.playerBall.rect.y = 30
+            self.playerBall.xspeed = 2
+            self.playerBall.yspeed = 2
     def updateGame(self):
         """
         Updates sprites and stuff. Called once every frame while playing game.
@@ -199,6 +199,12 @@ class CollisionHandling:
 
             isVertical = CollisionHandling.findBounceIsVertical(ballObj, c)
             ballObj.bounce(isVertical)
+            if isinstance(c, objects.Block):
+                c_newhp = c.reduceHP(ballXspeed,ballYspeed)
+                if c_newhp <= 0:
+                    Game.AllSpritesList.remove(c)
+                    Game.CollisionSpritesList.remove(c)
+                    #TODO get this working
 
 
     def findBounceIsVertical(ballObj, collisionObj):
