@@ -76,6 +76,10 @@ def main():
         # (by using display.update() and passing it the screen area that needs to be updated)
         pygame.display.flip()
 
+        # update music
+        AudioObj.updateMusic()
+
+
         # then wait until tick has fully passed
         clock.tick(constants.FPS)
         
@@ -126,7 +130,7 @@ class Game:
         # use one of these
         #AudioObj.playMusic('highScore')
         #AudioObj.playMusic('menu')
-        AudioObj.playMusic('mainGameMusic')
+        AudioObj.playMusic('main')
 
         # Create 4 walls
         for i in range(4):
@@ -168,10 +172,9 @@ class Game:
 
         Screen.fill(constants.colors["BLACK"])
 
-
         self.AllSpritesList.update()
 
-        #draw sprites
+        # draw sprites
         self.AllSpritesList.draw(Screen)
 
 
@@ -194,11 +197,12 @@ class CollisionHandling:
 
 
         # if there are collisions iterate through them
-        #print(len(collisions), " collisions")
+        print(len(collisions), " collisions this frame")
         for c in collisions:
 
             isVertical = CollisionHandling.findBounceIsVertical(ballObj, c)
             ballObj.bounce(isVertical)
+            print("Vertical: ", isVertical, " collision detected with ", c)
 
 
     def findBounceIsVertical(ballObj, collisionObj):
@@ -207,12 +211,23 @@ class CollisionHandling:
         """
         # i copied this monster from stackoverflow and yet it doesnt do what i intended, i am stunned
         # all booleans are reversed
-        top = ballObj.rect.top < collisionObj.rect.bottom and ballObj.rect.top > collisionObj.rect.top
-        bottom = ballObj.rect.bottom > collisionObj.rect.top and ballObj.rect.bottom < collisionObj.rect.bottom
-        right = ballObj.rect.right > collisionObj.rect.left and ballObj.rect.right < collisionObj.rect.right 
-        left = ballObj.rect.left < collisionObj.rect.right and ballObj.rect.left > collisionObj.rect.left
+        ball_top = ballObj.rect.top
+        ball_bot = ballObj.rect.bottom
+        ball_rgt = ballObj.rect.right
+        ball_lft = ballObj.rect.left
+
+        coll_top = collisionObj.rect.top
+        coll_bot = collisionObj.rect.bottom
+        coll_rgt = collisionObj.rect.right
+        coll_lft = collisionObj.rect.left
+
+        top = ball_top <= coll_bot and ball_top >= coll_top
+        bot = ball_bot >= coll_top and ball_bot <= coll_bot
+        rgt = ball_rgt >= coll_lft and ball_rgt <= coll_rgt
+        lft = ball_lft <= coll_rgt and ball_lft >= coll_lft
         # so unreverse in the return statement
-        return not right or not left
+        return not rgt or not lft
+
 
 class MainMenu:
     """
@@ -231,9 +246,13 @@ class Audio:
     """
     Handles playing music and sound effects. Uses sound mapping from constants.sounds and constants.music
     """
+
+    fadeoutTime = 1500 # (ms)
+    trackPlaying = None
+    trackToPlay = None
+
     def __init__(self):
-        #pygame.init()
-        pygame.mixer.init() # TODO set mixer audio settings that work with raspberry pi if applicable
+        pygame.mixer.init()  # TODO set mixer audio settings that work with raspberry pi if applicable
 
     def playMusic(self, musicName):
 
@@ -241,9 +260,19 @@ class Audio:
         if not constants.Music:
             return
 
-        pygame.mixer.music.load(constants.music[musicName])
-        pygame.mixer.music.play(-1) # loop music forever
-        #self.__playAudio(constants.music[musicName], True)
+        self.trackToPlay = constants.music[musicName]
+
+        if pygame.mixer.music.get_busy() and self.trackToPlay != self.trackPlaying:
+            pygame.mixer.music.fadeout(self.fadeoutTime)
+
+
+    def updateMusic(self):
+
+        # Checks if music track has ended and track exists in queue
+        if not pygame.mixer.music.get_busy() and self.trackToPlay:
+            pygame.mixer.music.load(self.trackToPlay)
+            pygame.mixer.music.play(0)
+            self.trackPlaying = self.trackToPlay
 
     def playSound(self, soundName):
 
@@ -253,12 +282,6 @@ class Audio:
 
         pass #pygame.something.goes.here
        # self.__playAudio(constants.sounds[soundName], False)
-
-
-
-
-
-
 
 
 # Execute init() and main() only when program is run directly (not imported)
