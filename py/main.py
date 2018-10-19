@@ -5,7 +5,7 @@ Sensor Pong
 
 
 """
-import pygame, sys
+import pygame, sys, math
 import objects, constants, keyBindings
 from enum import Enum
 
@@ -19,23 +19,18 @@ def init():
     # Initialize pygame
     pygame.init()
 
-
-    #set up screen
+    # Set up screen
     global Screen
-    Screen = pygame.display.set_mode((constants.WINDOW_WIDTH, constants.WINDOW_HEIGHT)) 
-    #set title of screen
+    Screen = pygame.display.set_mode((constants.WINDOW_WIDTH, constants.WINDOW_HEIGHT))
+
+    # Set title of screen
     pygame.display.set_caption(constants.GAME_NAME) 
-    #TODO pygame.display.set_icon(Surface icon)
+    # TODO: pygame.display.set_icon(Surface icon)
 
 
     global AudioObj
     AudioObj = Audio()
 
-#    playerBall = objects.Ball(constants.colors["WHITE"], constants.BALLRADIUS)
-#    playerBall.rect.x = constants.WINDOW_WIDTH  // 2
-#    playerBall.rect.y = constants.WINDOW_HEIGHT // 2
-    
-#    AllSpritesList.add(playerBall) #add this ball to the list of sprites
     global clock
     clock = pygame.time.Clock() #create game clock
 
@@ -166,7 +161,7 @@ class Game:
         """
         
         # Handle collisions
-        CollisionHandling.evaluate(self.playerBall.xspeed, self.playerBall.yspeed, self.playerBall, self.CollisionSpritesList)
+        CollisionHandling.evaluate(self.playerBall, self.CollisionSpritesList)
         # Note: collision handling is less broken once again, but the ball still disappears into the walls
         self.playerBall.update()
 
@@ -182,9 +177,10 @@ class CollisionHandling:
     """
     Abstract class containing collision handling functions 
     """
-    def evaluate(ballXspeed, ballYspeed, ballObj, collisionSpritesList):
+    @staticmethod
+    def evaluate(ballObj, collisionSpritesList):
         """
-        returns new (xspeed, yspeed)
+        Detect collisions, check verticality and objects.Ball.bounce()
         """
 
         collisions = pygame.sprite.spritecollide(ballObj, collisionSpritesList, False)
@@ -195,22 +191,35 @@ class CollisionHandling:
             # then speeds do not change and function exits
             return
 
-
         # if there are collisions iterate through them
         print(len(collisions), " collisions this frame")
         for c in collisions:
 
             isVertical = CollisionHandling.findBounceIsVertical(ballObj, c)
+            CollisionHandling.findBounceIsVertical_2(ballObj, c)
             ballObj.bounce(isVertical)
             print("Vertical: ", isVertical, " collision detected with ", c)
 
+    @staticmethod
+    def findBounceIsVertical_2(ballObj, collisionObj):
 
+        ballIncomingAngle = math.tanh(ballObj.rect.y / ballObj.rect.x)
+
+        # https://gamedev.stackexchange.com/questions/61705/pygame-colliderect-but-how-do-they-collide
+
+        print(collisionObj.rect.top)
+
+        print(ballIncomingAngle)
+
+        pass
+
+    @staticmethod
     def findBounceIsVertical(ballObj, collisionObj):
         """
         returns True if bounce happens on a vertical surface
+        I suspect this function to be the source of the horrendous collision physics.
         """
         # i copied this monster from stackoverflow and yet it doesnt do what i intended, i am stunned
-        # all booleans are reversed
         ball_top = ballObj.rect.top
         ball_bot = ballObj.rect.bottom
         ball_rgt = ballObj.rect.right
@@ -221,11 +230,13 @@ class CollisionHandling:
         coll_rgt = collisionObj.rect.right
         coll_lft = collisionObj.rect.left
 
+        # all booleans are reversed for some reason
         top = ball_top <= coll_bot and ball_top >= coll_top
         bot = ball_bot >= coll_top and ball_bot <= coll_bot
         rgt = ball_rgt >= coll_lft and ball_rgt <= coll_rgt
         lft = ball_lft <= coll_rgt and ball_lft >= coll_lft
         # so unreverse in the return statement
+        print(not top, not bot, not rgt, not lft)
         return not rgt or not lft
 
 
@@ -247,7 +258,7 @@ class Audio:
     Handles playing music and sound effects. Uses sound mapping from constants.sounds and constants.music
     """
 
-    fadeoutTime = 1500 # (ms)
+    fadeoutTime = 1500  # ms
     trackPlaying = None
     trackToPlay = None
 
@@ -257,7 +268,7 @@ class Audio:
     def playMusic(self, musicName):
 
         # Don't do anything if music is disabled.
-        if not constants.Music:
+        if not constants.MUSIC:
             return
 
         self.trackToPlay = constants.music[musicName]

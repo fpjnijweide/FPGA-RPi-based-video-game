@@ -10,8 +10,8 @@ FPGA_ENABLED = False
 
 
 # Audio settings
-Sound = True
-Music = True
+SOUND = True
+MUSIC = True
 
 # Window resolution
 WINDOW_WIDTH = 800
