@@ -25,7 +25,7 @@ def init():
     Screen = pygame.display.set_mode((constants.WINDOW_WIDTH, constants.WINDOW_HEIGHT)) 
     #set title of screen
     pygame.display.set_caption(constants.GAME_NAME) 
-    #TODO pygame.display.set_icon(Surface)
+    #TODO pygame.display.set_icon(Surface icon)
 
 
     global AudioObj
@@ -122,9 +122,11 @@ class Game:
         self.AllSpritesList.add(self.paddle)
         self.CollisionSpritesList.add(self.paddle)
         
-        # Todo convert .wav files to SIGNED 16-bit Little Endian, 44.1KHz, Stereo
-        AudioObj.playMusic('mainGameMusic')
+        # Play some music!
+        # use one of these
+        #AudioObj.playMusic('highScore')
         #AudioObj.playMusic('menu')
+        AudioObj.playMusic('mainGameMusic')
 
         # Create 4 walls
         for i in range(4):
@@ -149,35 +151,20 @@ class Game:
         if keyBindings.checkPress('right', keysPressed):
             self.playerBall.xspeed += 0.1
 
-        #reset ball location when pressing K_HOME
+        #(re)set ball location when pressing K_HOME (cheat)
         if keyBindings.checkPress('restart', keysPressed):
             self.playerBall.rect.x = 100
             self.playerBall.rect.y = 100
 
     def updateGame(self):
         """
-        Updates sprites and stuff
+        Updates sprites and stuff. Called once every frame while playing game.
         """
         
         # Handle collisions
-        self.playerBall.xspeed, self.playerBall.yspeed = CollisionHandling.evaluate(self.playerBall.xspeed, self.playerBall.yspeed, self.playerBall, self.CollisionSpritesList)
-        # Note: collision handling is less broken now, but the ball still disappears into the walls
-        
-#        THE FOLLOWING CODE BLOCK HAS BEEN REPLACED BY CollisionHandling.evaluate():
-#
-#        # Return Sprite_List of objects colliding with ball
-#        collisions = pygame.sprite.spritecollide(self.playerBall, self.CollisionSpritesList, False)
-#        #print(collisions)
-#
-#        if len(collisions) != 0: # Placeholder logic for collision handling (it really doesn't work)
-#            self.playerBall.xspeed = -self.playerBall.xspeed
-#            self.playerBall.yspeed = -self.playerBall.yspeed
-#        #else: 
-#        #    print("No collisions")
-#        # Collisions should ultimately be forwarded to the FPGA
-
-        self.playerBall.rect.x += self.playerBall.xspeed
-        self.playerBall.rect.y += self.playerBall.yspeed
+        CollisionHandling.evaluate(self.playerBall.xspeed, self.playerBall.yspeed, self.playerBall, self.CollisionSpritesList)
+        # Note: collision handling is less broken once again, but the ball still disappears into the walls
+        self.playerBall.update()
 
         Screen.fill(constants.colors["BLACK"])
 
@@ -191,7 +178,6 @@ class Game:
 class CollisionHandling:
     """
     Abstract class containing collision handling functions 
-    Should eventually also contain stuff for FPGA communication
     """
     def evaluate(ballXspeed, ballYspeed, ballObj, collisionSpritesList):
         """
@@ -204,7 +190,7 @@ class CollisionHandling:
         if len(collisions) == 0:
 
             # then speeds do not change and function exits
-            return (ballXspeed, ballYspeed)
+            return
 
 
         # if there are collisions iterate through them
@@ -212,16 +198,7 @@ class CollisionHandling:
         for c in collisions:
 
             isVertical = CollisionHandling.findBounceIsVertical(ballObj, c)
-            #print(isVertical)
-
-            if isVertical:
-
-                return (-ballXspeed, ballYspeed)
-
-            else:
-
-                return (ballXspeed, -ballYspeed)
-
+            ballObj.bounce(isVertical)
 
 
     def findBounceIsVertical(ballObj, collisionObj):

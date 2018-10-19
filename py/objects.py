@@ -21,6 +21,9 @@ class Ball(pygame.sprite.Sprite):
     """ 
     xspeed = 0
     yspeed = 0
+
+    maxSpeed = 50
+
     def __init__(self, color, radius):
         # Call the parent class (Sprite) constructor
         super().__init__()
@@ -44,6 +47,43 @@ class Ball(pygame.sprite.Sprite):
         #set position on screen
         self.rect.x = constants.WINDOW_WIDTH  // 2
         self.rect.y = constants.WINDOW_HEIGHT // 2
+
+    def bounce(self, bounceIsVertical):
+        """
+        Used in conjunction with 
+        """
+        # This function should 
+        # but until the connection is realized this function will take care of that.
+        if constants.FPGA_ENABLED:
+            #self.rect.x, self.rect.y = fpga_connection.sendBounce(bounceIsVertical, self.xspeed, self.yspeed, bounceConstant)
+            pass
+        else:
+            if bounceIsVertical:
+                self.xspeed *= -1
+            else:
+                self.yspeed *= -1
+
+
+    def update(self):
+        """update ball location"""
+        self.rect.x += self.xspeed
+        self.rect.y += self.yspeed
+
+
+        # test if ball is OoB
+        # The out of bounds glitch seems to have something to do with how pygame handles
+        #     collisions, as well as the way the main.CollisionHandler works.
+        # TODO TODO TODO investigate...
+        if (self.rect.x < 0 or self.rect.x > constants.WINDOW_WIDTH) or (self.rect.y < 0 or self.rect.y > constants.WINDOW_HEIGHT):
+
+            print("Alert! Ball is out of bounds!")
+
+        else:
+            # Can be used to see how many inside-bounds frames are inbetween OoB frames
+            #print(".___.")
+            pass
+
+
 
 class Paddle(pygame.sprite.Sprite):
     """
