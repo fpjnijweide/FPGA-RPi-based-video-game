@@ -198,20 +198,46 @@ class CollisionHandling:
             isVertical = CollisionHandling.findBounceIsVertical(ballObj, c)
             CollisionHandling.findBounceIsVertical_2(ballObj, c)
             ballObj.bounce(isVertical)
-            print("Vertical: ", isVertical, " collision detected with ", c)
+            #print("Vertical: ", isVertical, " collision detected with ", c)
 
     @staticmethod
     def findBounceIsVertical_2(ballObj, collisionObj):
 
-        ballIncomingAngle = math.tanh(ballObj.rect.y / ballObj.rect.x)
+        # FIXME
+        # TODO
+        # This problem is going to need some good-ole pen and paper
+        # Debugging this is not easy.
+        # Perhaps, a library should be used to compare the angles because the modulo stuff doesnt work yet
 
+        # see this link for explanation:
         # https://gamedev.stackexchange.com/questions/61705/pygame-colliderect-but-how-do-they-collide
 
-        print(collisionObj.rect.top)
+        # phi = arctan(yspeed / xspeed)
+        # result is in radians, ranging from -pi to pi
+        # can be flipped by adding pi
+        ball_in_angle = math.atan2(ballObj.yspeed, ballObj.xspeed)
+        ball_out_angle = (ball_in_angle + math.pi) % (2 * math.pi)
 
-        print(ballIncomingAngle)
+        coll_x = collisionObj.rect.width
+        coll_y = collisionObj.rect.height
 
-        pass
+        tau = 2 * math.pi
+
+        topLeft  = math.atan2(-coll_y, -coll_x) % tau
+        topRight = math.atan2(-coll_y,  coll_x) % tau
+        botRight = math.atan2( coll_y,  coll_x) % tau
+        botLeft  = math.atan2( coll_y, -coll_x) % tau
+
+        top = ball_out_angle > topLeft and ball_out_angle <= topRight
+        right = ball_out_angle > topRight and ball_out_angle <= botRight
+        bottom = ball_out_angle > botRight and ball_out_angle <= botLeft
+        left = ball_out_angle > botLeft and ball_out_angle <= topLeft
+
+        print(top, right, bottom, left)
+
+        #print(ball_out_angle)
+
+        return left or right
 
     @staticmethod
     def findBounceIsVertical(ballObj, collisionObj):
@@ -236,7 +262,7 @@ class CollisionHandling:
         rgt = ball_rgt >= coll_lft and ball_rgt <= coll_rgt
         lft = ball_lft <= coll_rgt and ball_lft >= coll_lft
         # so unreverse in the return statement
-        print(not top, not bot, not rgt, not lft)
+        #print(not top, not bot, not rgt, not lft)
         return not rgt or not lft
 
 
