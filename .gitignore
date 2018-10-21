@@ -1,5 +1,4 @@
 virtualenv/
 py/__pycache__/
 .idea/
-
-.ycm_extra.conf.py
+.ycm_extra_conf.py
