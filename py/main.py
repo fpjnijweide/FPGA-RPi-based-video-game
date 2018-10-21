@@ -57,6 +57,7 @@ def main():
 
         # ==== Keypress handling
         # Get boolean array of key pressed
+        # TODO use events to handle presses.
         keysPressed = pygame.key.get_pressed()
 
         if GameState == GameStates.PLAYING:
@@ -152,8 +153,8 @@ class Game:
 
         #(re)set ball location when pressing K_HOME (cheat)
         if keyBindings.checkPress('restart', keysPressed):
-            self.playerBall.rect.x = 100
-            self.playerBall.rect.y = 100
+            self.playerBall.xfloat = 100
+            self.playerBall.yfloat = 100
 
     def updateGame(self):
         """
@@ -162,7 +163,8 @@ class Game:
         
         # Handle collisions
         CollisionHandling.evaluate(self.playerBall, self.CollisionSpritesList)
-        # Note: collision handling is less broken once again, but the ball still disappears into the walls
+
+        # Note: collision handling is less broken yet once again, but the ball still disappears into the walls
         self.playerBall.update()
 
         Screen.fill(constants.colors["BLACK"])
@@ -192,78 +194,78 @@ class CollisionHandling:
             return
 
         # if there are collisions iterate through them
-        print(len(collisions), " collisions this frame")
+        #print(len(collisions), " collisions this frame")
         for c in collisions:
 
             isVertical = CollisionHandling.findBounceIsVertical(ballObj, c)
-            CollisionHandling.findBounceIsVertical_2(ballObj, c)
             ballObj.bounce(isVertical)
-            #print("Vertical: ", isVertical, " collision detected with ", c)
 
     @staticmethod
-    def findBounceIsVertical_2(ballObj, collisionObj):
-
-        # FIXME
-        # TODO
-        # This problem is going to need some good-ole pen and paper
-        # Debugging this is not easy.
-        # Perhaps, a library should be used to compare the angles because the modulo stuff doesnt work yet
-
+    def findBounceIsVertical(ballObj, collisionObj):
+        """
+        Returns True if the ball collides on a vertical surface
+        If True, the ball's xspeed should be flipped
+        :param ballObj: the ball object with which the collision happens
+        :param collisionObj: the object collided with
+        :return: True for vertical surface, False for horizontal surface
+        """
         # see this link for explanation:
         # https://gamedev.stackexchange.com/questions/61705/pygame-colliderect-but-how-do-they-collide
 
         # phi = arctan(yspeed / xspeed)
         # result is in radians, ranging from -pi to pi
         # can be flipped by adding pi
+        tau = 2 * math.pi
+
         ball_in_angle = math.atan2(ballObj.yspeed, ballObj.xspeed)
-        ball_out_angle = (ball_in_angle + math.pi) % (2 * math.pi)
+        ball_out_angle = ((ball_in_angle + tau) % tau) - math.pi
 
         coll_x = collisionObj.rect.width
         coll_y = collisionObj.rect.height
 
-        tau = 2 * math.pi
-
-        topLeft  = math.atan2(-coll_y, -coll_x) % tau
-        topRight = math.atan2(-coll_y,  coll_x) % tau
-        botRight = math.atan2( coll_y,  coll_x) % tau
-        botLeft  = math.atan2( coll_y, -coll_x) % tau
+        topLeft  = math.atan2(-coll_y, -coll_x)
+        topRight = math.atan2(-coll_y,  coll_x)
+        botRight = math.atan2( coll_y,  coll_x)
+        botLeft  = math.atan2( coll_y, -coll_x)
 
         top = ball_out_angle > topLeft and ball_out_angle <= topRight
         right = ball_out_angle > topRight and ball_out_angle <= botRight
         bottom = ball_out_angle > botRight and ball_out_angle <= botLeft
-        left = ball_out_angle > botLeft and ball_out_angle <= topLeft
+        # TODO surfaces hit on the left do not work.
+        # TODO detecting the top and bottom should be enough but ill leave this in here in case weird stuff occurs
+        left = (ball_out_angle > botLeft and ball_out_angle <= topLeft)
 
-        print(top, right, bottom, left)
+        if not (top or right or bottom or left):
+            print("Bounce side not detected.")
 
-        #print(ball_out_angle)
 
-        return left or right
-
-    @staticmethod
-    def findBounceIsVertical(ballObj, collisionObj):
-        """
-        returns True if bounce happens on a vertical surface
-        I suspect this function to be the source of the horrendous collision physics.
-        """
-        # i copied this monster from stackoverflow and yet it doesnt do what i intended, i am stunned
-        ball_top = ballObj.rect.top
-        ball_bot = ballObj.rect.bottom
-        ball_rgt = ballObj.rect.right
-        ball_lft = ballObj.rect.left
-
-        coll_top = collisionObj.rect.top
-        coll_bot = collisionObj.rect.bottom
-        coll_rgt = collisionObj.rect.right
-        coll_lft = collisionObj.rect.left
-
-        # all booleans are reversed for some reason
-        top = ball_top <= coll_bot and ball_top >= coll_top
-        bot = ball_bot >= coll_top and ball_bot <= coll_bot
-        rgt = ball_rgt >= coll_lft and ball_rgt <= coll_rgt
-        lft = ball_lft <= coll_rgt and ball_lft >= coll_lft
-        # so unreverse in the return statement
-        #print(not top, not bot, not rgt, not lft)
-        return not rgt or not lft
+        return not (top or bottom)
+    #
+    # @staticmethod
+    # def findBounceIsVertical_old(ballObj, collisionObj):
+    #     """
+    #     returns True if bounce happens on a vertical surface
+    #     I suspect this function to be the source of the horrendous collision physics.
+    #     """
+    #     # i copied this monster from stackoverflow and yet it doesnt do what i intended, i am stunned
+    #     ball_top = ballObj.rect.top
+    #     ball_bot = ballObj.rect.bottom
+    #     ball_rgt = ballObj.rect.right
+    #     ball_lft = ballObj.rect.left
+    #
+    #     coll_top = collisionObj.rect.top
+    #     coll_bot = collisionObj.rect.bottom
+    #     coll_rgt = collisionObj.rect.right
+    #     coll_lft = collisionObj.rect.left
+    #
+    #     # all booleans are reversed for some reason
+    #     top = ball_top <= coll_bot and ball_top >= coll_top
+    #     bot = ball_bot >= coll_top and ball_bot <= coll_bot
+    #     rgt = ball_rgt >= coll_lft and ball_rgt <= coll_rgt
+    #     lft = ball_lft <= coll_rgt and ball_lft >= coll_lft
+    #     # so unreverse in the return statement
+    #     #print(not top, not bot, not rgt, not lft)
+    #     return not rgt or not lft
 
 
 class MainMenu:
