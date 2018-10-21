@@ -32,9 +32,9 @@ def init():
     AudioObj = Audio()
 
     global clock
-    clock = pygame.time.Clock() #create game clock
+    clock = pygame.time.Clock()  # create game clock
 
-    #call Game.__init__() and set gamestate
+    # Call Game.__init__() and set gamestate
     global GameState
     GameState = GameStates.PLAYING
     global GameObj
@@ -48,6 +48,9 @@ def main():
     """
     while True:
         # ==== Event handling ====
+        # Internally process events
+        pygame.event.pump()
+        # Iterate through each event
         for event in pygame.event.get():
 
             if event.type == pygame.QUIT:
@@ -57,7 +60,7 @@ def main():
 
         # ==== Keypress handling
         # Get boolean array of key pressed
-        # TODO use events to handle presses.
+        # TODO use events to handle presses (maybe)
         keysPressed = pygame.key.get_pressed()
 
         if GameState == GameStates.PLAYING:
@@ -75,13 +78,11 @@ def main():
         # update music
         AudioObj.updateMusic()
 
-
         # then wait until tick has fully passed
         clock.tick(constants.FPS)
         
         # End of game loop.
         # Note that the game stops updating but is not quit entirely
-
 
 
 class GameStates(Enum):
@@ -124,8 +125,8 @@ class Game:
         
         # Play some music!
         # use one of these
-        #AudioObj.playMusic('highScore')
-        #AudioObj.playMusic('menu')
+        # AudioObj.playMusic('highScore')
+        # AudioObj.playMusic('menu')
         AudioObj.playMusic('main')
 
         # Create 4 walls
@@ -134,13 +135,12 @@ class Game:
             self.AllSpritesList.add(self.walls[i])
             self.CollisionSpritesList.add(self.walls[i])
 
-
     def handleKeys(self, keysPressed):
         """
         Calls keyBindings.checkPress and responds accordingly
         """
         if keyBindings.checkPress('exit', keysPressed):
-            pygame.quit()
+            pygame.event.post(pygame.event.Event(pygame.QUIT))
 
         if keyBindings.checkPress('up', keysPressed):
             self.playerBall.yspeed -= 0.1
@@ -151,7 +151,7 @@ class Game:
         if keyBindings.checkPress('right', keysPressed):
             self.playerBall.xspeed += 0.1
 
-        #(re)set ball location when pressing K_HOME (cheat)
+        # (re)set ball location when pressing K_HOME (cheat)
         if keyBindings.checkPress('restart', keysPressed):
             self.playerBall.xfloat = 100
             self.playerBall.yfloat = 100
@@ -187,14 +187,14 @@ class CollisionHandling:
 
         collisions = pygame.sprite.spritecollide(ballObj, collisionSpritesList, False)
 
-        # if no collisions happen
+        # If no collisions happen
         if len(collisions) == 0:
 
             # then speeds do not change and function exits
             return
 
-        # if there are collisions iterate through them
-        #print(len(collisions), " collisions this frame")
+        # If there are collisions iterate through them
+        # print(len(collisions), " collisions this frame")
         for c in collisions:
 
             isVertical = CollisionHandling.findBounceIsVertical(ballObj, c)
@@ -214,10 +214,11 @@ class CollisionHandling:
 
         # phi = arctan(yspeed / xspeed)
         # result is in radians, ranging from -pi to pi
-        # can be flipped by adding pi
+        # can be flipped by adding or subtracting pi
         tau = 2 * math.pi
 
         ball_in_angle = math.atan2(ballObj.yspeed, ballObj.xspeed)
+        # Flip angle but keep range intact.
         ball_out_angle = ((ball_in_angle + tau) % tau) - math.pi
 
         coll_x = collisionObj.rect.width
@@ -228,18 +229,20 @@ class CollisionHandling:
         botRight = math.atan2( coll_y,  coll_x)
         botLeft  = math.atan2( coll_y, -coll_x)
 
-        top = ball_out_angle > topLeft and ball_out_angle <= topRight
-        right = ball_out_angle > topRight and ball_out_angle <= botRight
-        bottom = ball_out_angle > botRight and ball_out_angle <= botLeft
+        # TODO simplify chained comparisons with a < b <= c
+        top = topLeft < ball_out_angle <= topRight
+        right = topRight < ball_out_angle <= botRight
+        bottom = botRight < ball_out_angle <= botLeft
         # TODO surfaces hit on the left do not work.
         # TODO detecting the top and bottom should be enough but ill leave this in here in case weird stuff occurs
-        left = (ball_out_angle > botLeft and ball_out_angle <= topLeft)
+        left = botLeft < ball_out_angle <= topLeft
 
         if not (top or right or bottom or left):
             print("Bounce side not detected.")
 
-
         return not (top or bottom)
+
+    # LEGACY CODE
     #
     # @staticmethod
     # def findBounceIsVertical_old(ballObj, collisionObj):
@@ -304,7 +307,6 @@ class Audio:
         if pygame.mixer.music.get_busy() and self.trackToPlay != self.trackPlaying:
             pygame.mixer.music.fadeout(self.fadeoutTime)
 
-
     def updateMusic(self):
 
         # Checks if music track has ended and track exists in queue
@@ -334,8 +336,9 @@ if __name__ == '__main__':
 
     # Game loop broken, program exits
     pygame.quit()
-    print("Thank you for playing")
-    print("Program exited.")
+
+    print("\n\nThank you for playing", constants.GAME_NAME + "!")
+
     sys.exit()
 
 else:
