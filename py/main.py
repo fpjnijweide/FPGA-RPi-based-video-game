@@ -27,12 +27,11 @@ def init():
     pygame.display.set_caption(constants.GAME_NAME) 
     # TODO: pygame.display.set_icon(Surface icon)
 
-
     global AudioObj
     AudioObj = Audio()
 
-    global clock
-    clock = pygame.time.Clock()  # create game clock
+    global ClockObj
+    ClockObj = pygame.time.Clock()  # create game clock
 
     # Call Game.__init__() and set gamestate
     global GameState
@@ -71,15 +70,16 @@ def main():
         # elif GameState == GameStates.MAINMENU:
             # Do MainMenuObj.handleKeys and updateGame
 
-        # Update entire graphical display, can be optimized
-        # (by using display.update() and passing it the screen area that needs to be updated)
+        # Update entire graphical display, TODO can be heavily optimized
+        # (by using display.update() and passing it only the screen area that needs to be updated)
+        # see https://www.pygame.org/docs/tut/newbieguide.html and look for "Dirty rect animation." section
         pygame.display.flip()
 
         # update music
         AudioObj.updateMusic()
 
         # then wait until tick has fully passed
-        clock.tick(constants.FPS)
+        ClockObj.tick(constants.FPS)
         
         # End of game loop.
         # Note that the game stops updating but is not quit entirely
@@ -179,6 +179,11 @@ class CollisionHandling:
     """
     Abstract class containing collision handling functions 
     """
+    # README CollisionHandling:
+    # Both verticality-detecting methods have some problems.
+    # The old function will behave unpredictably when the ball's speed is high
+    # The new function is bad at detecting collisions on small sides of a large rectangle.
+
     @staticmethod
     def evaluate(ballObj, collisionSpritesList):
         """
@@ -197,11 +202,19 @@ class CollisionHandling:
         # print(len(collisions), " collisions this frame")
         for c in collisions:
 
+            # TODO there should be decided which algorithm is better at detecting
+            # TODO // collision issues.
+            isVertical_old = CollisionHandling.findBounceIsVertical_old(ballObj, c)
             isVertical = CollisionHandling.findBounceIsVertical(ballObj, c)
-            ballObj.bounce(isVertical)
+            if (isVertical != isVertical_old):
+                # This print statement can be used to inspect discrepancies between the two
+                # print("old vertical %s, new vertical %s" % (isVertical_old, isVertical))
+                pass
+
+            ballObj.bounce(isVertical)  # or change to the old one
 
             # Should be handled at the object collided with, not here
-            # AudioObj.playSound('bounce')
+            AudioObj.playSound('bounce')
 
     @staticmethod
     def findBounceIsVertical(ballObj, collisionObj):
@@ -237,41 +250,38 @@ class CollisionHandling:
         right = topRight < ball_out_angle <= botRight
         bottom = botRight < ball_out_angle <= botLeft
         # TODO surfaces hit on the left do not work.
-        # TODO detecting the top and bottom should be enough but ill leave this in here in case weird stuff occurs
+        # TODO detecting the top and bottom should be enough but ill leave this todo in here in case weird stuff occurs
         left = botLeft < ball_out_angle <= topLeft
-
-        if not (top or right or bottom or left):
-            print("Bounce side not detected.")
 
         return not (top or bottom)
 
     # LEGACY CODE
     #
-    # @staticmethod
-    # def findBounceIsVertical_old(ballObj, collisionObj):
-    #     """
-    #     returns True if bounce happens on a vertical surface
-    #     I suspect this function to be the source of the horrendous collision physics.
-    #     """
-    #     # i copied this monster from stackoverflow and yet it doesnt do what i intended, i am stunned
-    #     ball_top = ballObj.rect.top
-    #     ball_bot = ballObj.rect.bottom
-    #     ball_rgt = ballObj.rect.right
-    #     ball_lft = ballObj.rect.left
-    #
-    #     coll_top = collisionObj.rect.top
-    #     coll_bot = collisionObj.rect.bottom
-    #     coll_rgt = collisionObj.rect.right
-    #     coll_lft = collisionObj.rect.left
-    #
-    #     # all booleans are reversed for some reason
-    #     top = ball_top <= coll_bot and ball_top >= coll_top
-    #     bot = ball_bot >= coll_top and ball_bot <= coll_bot
-    #     rgt = ball_rgt >= coll_lft and ball_rgt <= coll_rgt
-    #     lft = ball_lft <= coll_rgt and ball_lft >= coll_lft
-    #     # so unreverse in the return statement
-    #     #print(not top, not bot, not rgt, not lft)
-    #     return not rgt or not lft
+    @staticmethod
+    def findBounceIsVertical_old(ballObj, collisionObj):
+        """
+        returns True if bounce happens on a vertical surface
+        I suspect this function to be the source of the horrendous collision physics.
+        """
+        # i copied this monster from stackoverflow and yet it doesnt do what i intended, i am stunned
+        ball_top = ballObj.rect.top
+        ball_bot = ballObj.rect.bottom
+        ball_rgt = ballObj.rect.right
+        ball_lft = ballObj.rect.left
+
+        coll_top = collisionObj.rect.top
+        coll_bot = collisionObj.rect.bottom
+        coll_rgt = collisionObj.rect.right
+        coll_lft = collisionObj.rect.left
+
+        # all booleans are reversed for some reason
+        top = ball_top <= coll_bot and ball_top >= coll_top
+        bot = ball_bot >= coll_top and ball_bot <= coll_bot
+        rgt = ball_rgt >= coll_lft and ball_rgt <= coll_rgt
+        lft = ball_lft <= coll_rgt and ball_lft >= coll_lft
+        # so unreverse in the return statement
+        #print(not top, not bot, not rgt, not lft)
+        return not rgt or not lft
 
 
 class MainMenu:
@@ -286,7 +296,6 @@ class MainMenu:
         pass
 
 
-
 class Audio:
     """
     Handles playing music and sound effects. Uses sound mapping from constants.sounds and constants.music
@@ -298,6 +307,7 @@ class Audio:
 
     def __init__(self):
         pygame.mixer.init()  # TODO set mixer audio settings that work with raspberry pi if applicable
+        self.bounceTest = pygame.mixer.Sound(constants.sounds['bounce'])
 
     def playMusic(self, musicName):
 
@@ -317,6 +327,7 @@ class Audio:
             pygame.mixer.music.load(self.trackToPlay)
             pygame.mixer.music.play(0)
             self.trackPlaying = self.trackToPlay
+        # TODO use pygame.mixer.music.set_endevent() for optimization
 
     def playSound(self, soundName):
 
@@ -324,7 +335,9 @@ class Audio:
         if not constants.SOUND:
             return
 
-        pygame.mixer.Sound(constants.sounds[soundName]).play(0)
+        # TODO make it not create a new sound object instance every time it plays
+        #   but instead save instances to be reused.
+        self.bounceTest.play(0)
 
 
 # Execute init() and main() only when program is run directly (not imported)
@@ -339,7 +352,7 @@ if __name__ == '__main__':
     # Game loop broken, program exits
     pygame.quit()
 
-    print("\n\nThank you for playing", constants.GAME_NAME + "!")
+    print("\n\nThank you for playing %s!" % constants.GAME_NAME)
 
     sys.exit()
 

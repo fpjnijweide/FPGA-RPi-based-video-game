@@ -55,7 +55,7 @@ colors = {
 # Audio track mapping
 # 'audioName':'relative/path/to/file'
 sounds = {
-#        'bounce':'../resources/audio/hiscore.ogg'
+        'bounce':'../resources/audio/bounce.ogg'
 #        'wallCollision':'../resources/audio/bounce.wav',
 #        'blockbreak':'../resources/sound/bounce2.wav'
 }
