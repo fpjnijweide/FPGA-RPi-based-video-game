@@ -200,6 +200,9 @@ class CollisionHandling:
             isVertical = CollisionHandling.findBounceIsVertical(ballObj, c)
             ballObj.bounce(isVertical)
 
+            # Should be handled at the object collided with, not here
+            # AudioObj.playSound('bounce')
+
     @staticmethod
     def findBounceIsVertical(ballObj, collisionObj):
         """
@@ -318,11 +321,10 @@ class Audio:
     def playSound(self, soundName):
 
         # Don't do anything if game sounds are disabled.
-        if not constants.Sound:
+        if not constants.SOUND:
             return
 
-        pass #pygame.something.goes.here
-       # self.__playAudio(constants.sounds[soundName], False)
+        pygame.mixer.Sound(constants.sounds[soundName]).play(0)
 
 
 # Execute init() and main() only when program is run directly (not imported)
