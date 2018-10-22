@@ -203,8 +203,8 @@ class CollisionHandling:
         # print(len(collisions), " collisions this frame")
         for c in collisions:
 
-            # TODO there should be decided which algorithm is better at detecting
-            # TODO // collision issues.
+            # TODO decide which algorithm is better at detecting
+            # TODO                              collision issues.
             isVertical_old = CollisionHandling.findBounceIsVertical_old(ballObj, c)
             isVertical = CollisionHandling.findBounceIsVertical(ballObj, c)
             if (isVertical != isVertical_old):
@@ -303,10 +303,12 @@ class Audio:
     fadeoutTime = 1500  # ms
     trackPlaying = None
     trackToPlay = None
+    gameSounds = dict()
 
     def __init__(self):
-        # pygame.mixer.init()  # TODO set mixer audio settings that work with raspberry pi if applicable
-        self.bounceTest = pygame.mixer.Sound(constants.sounds['bounce'])
+        # Create gameSounds dictionary from the constants.sounds dictionary containing Sound objects
+        for key in constants.sounds.keys():
+            self.gameSounds[key] = pygame.mixer.Sound(constants.sounds[key])
 
     def playMusic(self, musicName):
 
@@ -336,7 +338,7 @@ class Audio:
 
         # TODO make it not create a new sound object instance every time it plays
         #   but instead save instances to be reused.
-        self.bounceTest.play(0)
+        self.gameSounds[soundName].play(0)
 
 
 # Execute init() and main() only when program is run directly (not imported)
