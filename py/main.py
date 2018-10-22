@@ -54,7 +54,7 @@ def main():
     """
     while True:
         # ==== Event handling ====
-        time.sleep(1)
+        time.sleep(0.01      )
         for event in pygame.event.get():
 
             if event.type == pygame.QUIT:
@@ -226,8 +226,8 @@ class MainMenu:
         self.exitmenu = self.writeText('Exit', self.subFont)
         self.menuItems = { 0:self.startgamemenu, 1:self.highscoremenu, 2:self.optionsmenu, 3:self.exitmenu}
         self.selectedItem = 0
-        for x in range(0, len(self.menuItems)):
-            print(self.menuItems[x].get_size())# width, height
+        # for x in range(0, len(self.menuItems)):
+        #     print(self.menuItems[x].get_size())# width, height
         self.mainmenu_Width = constants.WINDOW_HW - self.mainmenu.get_width()//2
         self.startgamemenu_Width = 30 #constants.WINDOW_WIDTH/1000 # + self.startgamemenu.get_width()//2
         self.highscoremenu_Width = self.startgamemenu_Width + self.startgamemenu.get_width()
@@ -249,17 +249,25 @@ class MainMenu:
             self.selectedItem = (self.selectedItem - 1) % len(self.menuItems)
             self.menuItems[self.selectedItem] = self.writeText(self.texts[self.selectedItem], self.highlight)
         if keyBindings.checkPress('right', keysPressed):
-            # print(self.highscoremenu) # highscores
-            # print(self.menuItems[self.selectedItem+1]) # highscores
-            # print(self.writeText('Highscores', self.highlight)) # 224 -> highlighted
-            # self.highscoremenu = self.writeText(self.texts[self.selectedItem], self.subFont)
             self.menuItems[self.selectedItem] = self.writeText(self.texts[self.selectedItem], self.subFont)
             self.selectedItem = (self.selectedItem + 1) % len(self.menuItems)
             self.menuItems[self.selectedItem] = self.writeText(self.texts[self.selectedItem], self.highlight)
             if keyBindings.checkPress('activate', keysPressed):
-                print('pressed up.. trying to change color')
-                # self.menucolor = list(constants.colors.keys().index(self.menucolor)) + 1   % len(constants.colors)
-                # self.menucolor = "YELLOW"
+                print('entered loop')
+                global GameState
+                if self.selectedItem == 0:
+                    GameState = GameStates.PLAYING
+                    # return
+                if self.selectedItem == 1:
+                    GameState = GameStates.HIGHSCORES
+                    # return
+                if self.selectedItem == 2:
+                    GameState = GameStates.OPTIONS
+                    # return
+                if self.selectedItem == 3:
+                    pygame.quit()
+                    # return
+
     def writeText(self, text, font):
         if font == self.mainFont:
             return self.mainFont.render(text, False, constants.colors['YELLOW'])
