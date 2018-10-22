@@ -16,9 +16,8 @@ def init():
     It also set some global variables used inside the pygame loop.
     Note: creating a multiline string using triple quotation marks is how you create python documentation
     """
+    pygame.mixer.pre_init()  # TODO set right variables inside this
     # Initialize pygame
-    # TODO pygame.mixer.pre_init() to reduce sound delay
-    # see https://stackoverflow.com/questions/18273722/pygame-sound-delay
     pygame.init()
 
     # Set up screen
@@ -306,7 +305,7 @@ class Audio:
     trackToPlay = None
 
     def __init__(self):
-        pygame.mixer.init()  # TODO set mixer audio settings that work with raspberry pi if applicable
+        # pygame.mixer.init()  # TODO set mixer audio settings that work with raspberry pi if applicable
         self.bounceTest = pygame.mixer.Sound(constants.sounds['bounce'])
 
     def playMusic(self, musicName):
