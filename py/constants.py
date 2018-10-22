@@ -1,5 +1,6 @@
 # ==== Global variables should be defined here
-# Note: User-Customizable variables (settings) should be defined in a different, not-yet created .txt or .conf or whatever file [TODO]
+# Note: User-Customizable variables (settings) should be defined in a different,
+# not-yet created .txt or .conf or whatever file [TODO]
 # Game name string
 GAME_NAME = "Sensor Pong" # use this when referencing the game name so that we can easily change it
 # GAME_VERSION = '0.0.1' # not used currently but might be nice eventually
@@ -10,8 +11,8 @@ FPGA_ENABLED = False
 
 
 # Audio settings
-Sound = True
-Music = True
+SOUND = True
+MUSIC = True
 
 # Window resolution
 WINDOW_WIDTH = 800
@@ -54,6 +55,7 @@ colors = {
 # Audio track mapping
 # 'audioName':'relative/path/to/file'
 sounds = {
+        'bounce':'../resources/audio/bounce.ogg'
 #        'wallCollision':'../resources/audio/bounce.wav',
 #        'blockbreak':'../resources/sound/bounce2.wav'
 }

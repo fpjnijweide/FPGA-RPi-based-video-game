@@ -5,7 +5,7 @@ Sensor Pong
 
 
 """
-import pygame, sys
+import pygame, sys, math
 import objects, constants, keyBindings
 from enum import Enum
 
@@ -16,30 +16,25 @@ def init():
     It also set some global variables used inside the pygame loop.
     Note: creating a multiline string using triple quotation marks is how you create python documentation
     """
+    pygame.mixer.pre_init()  # TODO set right variables inside this
     # Initialize pygame
     pygame.init()
 
-
-    #set up screen
+    # Set up screen
     global Screen
-    Screen = pygame.display.set_mode((constants.WINDOW_WIDTH, constants.WINDOW_HEIGHT)) 
-    #set title of screen
-    pygame.display.set_caption(constants.GAME_NAME) 
-    #TODO pygame.display.set_icon(Surface icon)
+    Screen = pygame.display.set_mode((constants.WINDOW_WIDTH, constants.WINDOW_HEIGHT))
 
+    # Set title of screen
+    pygame.display.set_caption(constants.GAME_NAME) 
+    # TODO: pygame.display.set_icon(Surface icon)
 
     global AudioObj
     AudioObj = Audio()
 
-#    playerBall = objects.Ball(constants.colors["WHITE"], constants.BALLRADIUS)
-#    playerBall.rect.x = constants.WINDOW_WIDTH  // 2
-#    playerBall.rect.y = constants.WINDOW_HEIGHT // 2
-    
-#    AllSpritesList.add(playerBall) #add this ball to the list of sprites
-    global clock
-    clock = pygame.time.Clock() #create game clock
+    global ClockObj
+    ClockObj = pygame.time.Clock()  # create game clock
 
-    #call Game.__init__() and set gamestate
+    # Call Game.__init__() and set gamestate
     global GameState
     GameState = GameStates.PLAYING
     global GameObj
@@ -53,6 +48,9 @@ def main():
     """
     while True:
         # ==== Event handling ====
+        # Internally process events
+        pygame.event.pump()
+        # Iterate through each event
         for event in pygame.event.get():
 
             if event.type == pygame.QUIT:
@@ -62,6 +60,7 @@ def main():
 
         # ==== Keypress handling
         # Get boolean array of key pressed
+        # TODO use events to handle presses (maybe)
         keysPressed = pygame.key.get_pressed()
 
         if GameState == GameStates.PLAYING:
@@ -72,20 +71,20 @@ def main():
         # elif GameState == GameStates.MAINMENU:
             # Do MainMenuObj.handleKeys and updateGame
 
-        # Update entire graphical display, can be optimized
-        # (by using display.update() and passing it the screen area that needs to be updated)
+        # Update entire graphical display, TODO can be heavily optimized
+        # (by using display.update() and passing it only the screen area that needs to be updated)
+        # see https://www.pygame.org/docs/tut/newbieguide.html and look for "Dirty rect animation." section
         pygame.display.flip()
 
         # update music
+        # TODO use pygame.music.set_endevent() and only update if music end event happens.
         AudioObj.updateMusic()
 
-
         # then wait until tick has fully passed
-        clock.tick(constants.FPS)
+        ClockObj.tick(constants.FPS)
         
         # End of game loop.
         # Note that the game stops updating but is not quit entirely
-
 
 
 class GameStates(Enum):
@@ -128,8 +127,8 @@ class Game:
         
         # Play some music!
         # use one of these
-        #AudioObj.playMusic('highScore')
-        #AudioObj.playMusic('menu')
+        # AudioObj.playMusic('highScore')
+        # AudioObj.playMusic('menu')
         AudioObj.playMusic('main')
 
         # Create 4 walls
@@ -138,13 +137,12 @@ class Game:
             self.AllSpritesList.add(self.walls[i])
             self.CollisionSpritesList.add(self.walls[i])
 
-
     def handleKeys(self, keysPressed):
         """
         Calls keyBindings.checkPress and responds accordingly
         """
         if keyBindings.checkPress('exit', keysPressed):
-            pygame.quit()
+            pygame.event.post(pygame.event.Event(pygame.QUIT))
 
         if keyBindings.checkPress('up', keysPressed):
             self.playerBall.yspeed -= 0.1
@@ -155,10 +153,10 @@ class Game:
         if keyBindings.checkPress('right', keysPressed):
             self.playerBall.xspeed += 0.1
 
-        #(re)set ball location when pressing K_HOME (cheat)
+        # (re)set ball location when pressing K_HOME (cheat)
         if keyBindings.checkPress('restart', keysPressed):
-            self.playerBall.rect.x = 100
-            self.playerBall.rect.y = 100
+            self.playerBall.xfloat = 100
+            self.playerBall.yfloat = 100
 
     def updateGame(self):
         """
@@ -166,8 +164,9 @@ class Game:
         """
         
         # Handle collisions
-        CollisionHandling.evaluate(self.playerBall.xspeed, self.playerBall.yspeed, self.playerBall, self.CollisionSpritesList)
-        # Note: collision handling is less broken once again, but the ball still disappears into the walls
+        CollisionHandling.evaluate(self.playerBall, self.CollisionSpritesList)
+
+        # Note: collision handling is less broken yet once again, but the ball still disappears into the walls
         self.playerBall.update()
 
         Screen.fill(constants.colors["BLACK"])
@@ -182,35 +181,88 @@ class CollisionHandling:
     """
     Abstract class containing collision handling functions 
     """
-    def evaluate(ballXspeed, ballYspeed, ballObj, collisionSpritesList):
-        """
-        returns new (xspeed, yspeed)
-        """
+    # README CollisionHandling:
+    # Both verticality-detecting methods have some problems.
+    # The old function will behave unpredictably when the ball's speed is high
+    # The new function is bad at detecting collisions on small sides of a large rectangle.
 
+    @staticmethod
+    def evaluate(ballObj, collisionSpritesList):
+        """
+        Detect collisions, check findBounceIsVertical and objects.Ball.bounce()
+        """
         collisions = pygame.sprite.spritecollide(ballObj, collisionSpritesList, False)
 
-        # if no collisions happen
+        # If no collisions happen
         if len(collisions) == 0:
 
             # then speeds do not change and function exits
             return
 
-
-        # if there are collisions iterate through them
-        print(len(collisions), " collisions this frame")
+        # If there are collisions iterate through them
+        # print(len(collisions), " collisions this frame")
         for c in collisions:
 
+            # TODO there should be decided which algorithm is better at detecting
+            # TODO // collision issues.
+            isVertical_old = CollisionHandling.findBounceIsVertical_old(ballObj, c)
             isVertical = CollisionHandling.findBounceIsVertical(ballObj, c)
-            ballObj.bounce(isVertical)
-            print("Vertical: ", isVertical, " collision detected with ", c)
+            if (isVertical != isVertical_old):
+                # This print statement can be used to inspect discrepancies between the two
+                # print("old vertical %s, new vertical %s" % (isVertical_old, isVertical))
+                pass
 
+            ballObj.bounce(isVertical)  # or change to the old one
 
+            # Should be handled at the object collided with, not here
+            AudioObj.playSound('bounce')
+
+    @staticmethod
     def findBounceIsVertical(ballObj, collisionObj):
         """
-        returns True if bounce happens on a vertical surface
+        Returns True if the ball collides on a vertical surface
+        If True, the ball's xspeed should be flipped
+        :param ballObj: the ball object with which the collision happens
+        :param collisionObj: the object collided with
+        :return: True for vertical surface, False for horizontal surface
         """
-        # i copied this monster from stackoverflow and yet it doesnt do what i intended, i am stunned
-        # all booleans are reversed
+        # see this link for explanation:
+        # https://gamedev.stackexchange.com/questions/61705/pygame-colliderect-but-how-do-they-collide
+
+        # phi = arctan(yspeed / xspeed)
+        # result is in radians, ranging from -pi to pi
+        # can be flipped by adding or subtracting pi
+        tau = 2 * math.pi
+
+        ball_in_angle = math.atan2(ballObj.yspeed, ballObj.xspeed)
+        # Flip angle but keep range intact.
+        ball_out_angle = ((ball_in_angle + tau) % tau) - math.pi
+
+        coll_x = collisionObj.rect.width
+        coll_y = collisionObj.rect.height
+
+        topLeft  = math.atan2(-coll_y, -coll_x)
+        topRight = math.atan2(-coll_y,  coll_x)
+        botRight = math.atan2( coll_y,  coll_x)
+        botLeft  = math.atan2( coll_y, -coll_x)
+
+        # TODO simplify chained comparisons with a < b <= c
+        top = topLeft < ball_out_angle <= topRight
+        right = topRight < ball_out_angle <= botRight
+        bottom = botRight < ball_out_angle <= botLeft
+        # TODO surfaces hit on the left do not work.
+        # TODO detecting the top and bottom should be enough but ill leave this todo in here in case weird stuff occurs
+        left = botLeft < ball_out_angle <= topLeft
+
+        return not (top or bottom)
+
+    @staticmethod
+    def findBounceIsVertical_old(ballObj, collisionObj):
+        """
+        returns True if bounce happens on a vertical surface
+        This function seems to do alright, except for at large ball speeds.
+        """
+        # i copied this monster from stackoverflow so be warned
         ball_top = ballObj.rect.top
         ball_bot = ballObj.rect.bottom
         ball_rgt = ballObj.rect.right
@@ -221,11 +273,13 @@ class CollisionHandling:
         coll_rgt = collisionObj.rect.right
         coll_lft = collisionObj.rect.left
 
+        # all booleans are reversed for some reason
         top = ball_top <= coll_bot and ball_top >= coll_top
         bot = ball_bot >= coll_top and ball_bot <= coll_bot
         rgt = ball_rgt >= coll_lft and ball_rgt <= coll_rgt
         lft = ball_lft <= coll_rgt and ball_lft >= coll_lft
         # so unreverse in the return statement
+        # print(not top, not bot, not rgt, not lft)
         return not rgt or not lft
 
 
@@ -241,30 +295,29 @@ class MainMenu:
         pass
 
 
-
 class Audio:
     """
     Handles playing music and sound effects. Uses sound mapping from constants.sounds and constants.music
     """
 
-    fadeoutTime = 1500 # (ms)
+    fadeoutTime = 1500  # ms
     trackPlaying = None
     trackToPlay = None
 
     def __init__(self):
-        pygame.mixer.init()  # TODO set mixer audio settings that work with raspberry pi if applicable
+        # pygame.mixer.init()  # TODO set mixer audio settings that work with raspberry pi if applicable
+        self.bounceTest = pygame.mixer.Sound(constants.sounds['bounce'])
 
     def playMusic(self, musicName):
 
         # Don't do anything if music is disabled.
-        if not constants.Music:
+        if not constants.MUSIC:
             return
 
         self.trackToPlay = constants.music[musicName]
 
         if pygame.mixer.music.get_busy() and self.trackToPlay != self.trackPlaying:
             pygame.mixer.music.fadeout(self.fadeoutTime)
-
 
     def updateMusic(self):
 
@@ -273,21 +326,24 @@ class Audio:
             pygame.mixer.music.load(self.trackToPlay)
             pygame.mixer.music.play(0)
             self.trackPlaying = self.trackToPlay
+        # TODO use pygame.mixer.music.set_endevent() for optimization
 
     def playSound(self, soundName):
 
         # Don't do anything if game sounds are disabled.
-        if not constants.Sound:
+        if not constants.SOUND:
             return
 
-        pass #pygame.something.goes.here
-       # self.__playAudio(constants.sounds[soundName], False)
+        # TODO make it not create a new sound object instance every time it plays
+        #   but instead save instances to be reused.
+        self.bounceTest.play(0)
 
 
 # Execute init() and main() only when program is run directly (not imported)
 # Note: this needs to be at the end of this file,
 #   otherwise stuff will be executed before python knows it exists
 if __name__ == '__main__':
+    print("\n\nWelcome to %s!\n\n" % constants.GAME_NAME)
 
     init()
 
@@ -295,8 +351,9 @@ if __name__ == '__main__':
 
     # Game loop broken, program exits
     pygame.quit()
-    print("Thank you for playing")
-    print("Program exited.")
+
+    print("\n\nThank you for playing %s!\n\n" % constants.GAME_NAME)
+
     sys.exit()
 
 else:
