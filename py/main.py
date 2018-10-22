@@ -17,6 +17,8 @@ def init():
     Note: creating a multiline string using triple quotation marks is how you create python documentation
     """
     # Initialize pygame
+    # TODO pygame.mixer.pre_init() to reduce sound delay
+    # see https://stackoverflow.com/questions/18273722/pygame-sound-delay
     pygame.init()
 
     # Set up screen
@@ -76,6 +78,7 @@ def main():
         pygame.display.flip()
 
         # update music
+        # TODO use pygame.music.set_endevent() and only update if music end event happens.
         AudioObj.updateMusic()
 
         # then wait until tick has fully passed
@@ -187,9 +190,8 @@ class CollisionHandling:
     @staticmethod
     def evaluate(ballObj, collisionSpritesList):
         """
-        Detect collisions, check verticality and objects.Ball.bounce()
+        Detect collisions, check findBounceIsVertical and objects.Ball.bounce()
         """
-
         collisions = pygame.sprite.spritecollide(ballObj, collisionSpritesList, False)
 
         # If no collisions happen
@@ -255,15 +257,13 @@ class CollisionHandling:
 
         return not (top or bottom)
 
-    # LEGACY CODE
-    #
     @staticmethod
     def findBounceIsVertical_old(ballObj, collisionObj):
         """
         returns True if bounce happens on a vertical surface
-        I suspect this function to be the source of the horrendous collision physics.
+        This function seems to do alright, except for at large ball speeds.
         """
-        # i copied this monster from stackoverflow and yet it doesnt do what i intended, i am stunned
+        # i copied this monster from stackoverflow so be warned
         ball_top = ballObj.rect.top
         ball_bot = ballObj.rect.bottom
         ball_rgt = ballObj.rect.right
@@ -280,7 +280,7 @@ class CollisionHandling:
         rgt = ball_rgt >= coll_lft and ball_rgt <= coll_rgt
         lft = ball_lft <= coll_rgt and ball_lft >= coll_lft
         # so unreverse in the return statement
-        #print(not top, not bot, not rgt, not lft)
+        # print(not top, not bot, not rgt, not lft)
         return not rgt or not lft
 
 
@@ -344,6 +344,7 @@ class Audio:
 # Note: this needs to be at the end of this file,
 #   otherwise stuff will be executed before python knows it exists
 if __name__ == '__main__':
+    print("\n\nWelcome to %s!\n\n" % constants.GAME_NAME)
 
     init()
 
@@ -352,7 +353,7 @@ if __name__ == '__main__':
     # Game loop broken, program exits
     pygame.quit()
 
-    print("\n\nThank you for playing %s!" % constants.GAME_NAME)
+    print("\n\nThank you for playing %s!\n\n" % constants.GAME_NAME)
 
     sys.exit()
 
