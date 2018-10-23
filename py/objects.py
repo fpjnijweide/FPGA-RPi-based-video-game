@@ -72,12 +72,12 @@ class Ball(pygame.sprite.Sprite):
         self.rect = self.image.get_rect()
 
         #set initial speed
-        self.xspeed=2
-        self.yspeed=2
+        self.xspeed=constants.INITIAL_BALL_XSPEED
+        self.yspeed=constants.INITIAL_BALL_YSPEED
 
         #set position on screen
-        self.rect.x = 30
-        self.rect.y = 30
+        self.rect.x = constants.INITIAL_BALL_X
+        self.rect.y = constants.INITIAL_BALL_Y
 
         self.xfloat = float(self.rect.x)
         self.yfloat = float(self.rect.y)

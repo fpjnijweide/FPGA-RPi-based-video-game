@@ -21,8 +21,14 @@ WINDOW_HEIGHT = 600
 # Frames per second
 FPS = 60
 
-# Ball size
+# Ball size and pos
 BALLRADIUS = 10
+INITIAL_BALL_X = 30
+INITIAL_BALL_Y = 30
+
+#Ball speed
+INITIAL_BALL_XSPEED = 2
+INITIAL_BALL_YSPEED = 2
 
 # Wall size
 WALLSIZE = 30
@@ -32,6 +38,8 @@ PADDLEWIDTH  = 70
 PADDLEHEIGHT = 20
 PADDLE_Y_POS = 520
 
+#Paddle speed
+PADDLESPEED=6
 
 # Block size
 BLOCKWIDTH  = 200
