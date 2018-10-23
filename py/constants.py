@@ -32,6 +32,10 @@ PADDLEWIDTH  = 70
 PADDLEHEIGHT = 20
 PADDLE_Y_POS = 520
 
+# Powerup chance
+# TODO change this
+POWERUP_CHANCE = 0.5
+
 
 # Block size
 BLOCKWIDTH  = 200

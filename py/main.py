@@ -7,6 +7,7 @@ Sensor Pong
 """
 import pygame, sys, math
 import objects, constants, keyBindings
+import random
 from enum import Enum
 
 
@@ -166,7 +167,7 @@ class Game:
         CollisionHandling.evaluate(self.playerBall, self.CollisionSpritesList)
 
         # Note: collision handling is less broken yet once again, but the ball still disappears into the walls
-        self.playerBall.update()
+        # self.playerBall.update()
 
         Screen.fill(constants.colors["BLACK"])
 
@@ -206,10 +207,15 @@ class CollisionHandling:
         # If there are collisions iterate through them
         # print(len(collisions), " collisions this frame")
         for c in collisions:
+
             if isinstance(c, objects.Block):
                 c_newhp = c.reduceHP(ballObj.xspeed, ballObj.yspeed)
+
                 if c_newhp <= 0:
                     GameObj.removesprite(c)
+
+                    if random.random() < constants.POWERUP_CHANCE:
+                        print("generating powerup goes here")
 
 
             isVertical_old = CollisionHandling.findBounceIsVertical_old(ballObj, c)
@@ -253,13 +259,12 @@ class CollisionHandling:
         botRight = math.atan2( coll_y,  coll_x)
         botLeft  = math.atan2( coll_y, -coll_x)
 
-        # TODO simplify chained comparisons with a < b <= c
         top = topLeft < ball_out_angle <= topRight
-        right = topRight < ball_out_angle <= botRight
+        # right = topRight < ball_out_angle <= botRight
         bottom = botRight < ball_out_angle <= botLeft
         # TODO surfaces hit on the left do not work.
         # TODO detecting the top and bottom should be enough but ill leave this todo in here in case weird stuff occurs
-        left = botLeft < ball_out_angle <= topLeft
+        # left = botLeft < ball_out_angle <= topLeft
 
         return not (top or bottom)
 
