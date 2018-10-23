@@ -23,7 +23,7 @@ class Block(pygame.sprite.Sprite):
         self.image.fill(self.currentColor)
         self.rect = self.image.get_rect()
 
-        self.rect.x = random.randint(300,constants.WINDOW_WIDTH-300)
+        self.rect.x = random.randint(300,constants.WINDOW_WIDTH-300-constants.BLOCKWIDTH)
         self.rect.y = random.randint(100,constants.WINDOW_HEIGHT//2)
 
     def reduceHP(self,xspeed,yspeed):
@@ -72,12 +72,12 @@ class Ball(pygame.sprite.Sprite):
         self.rect = self.image.get_rect()
 
         #set initial speed
-        self.xspeed=2
-        self.yspeed=2
+        self.xspeed=constants.INITIAL_BALL_XSPEED
+        self.yspeed=constants.INITIAL_BALL_YSPEED
 
         #set position on screen
-        self.rect.x = 30
-        self.rect.y = 30
+        self.rect.x = constants.INITIAL_BALL_X
+        self.rect.y = constants.INITIAL_BALL_Y
 
         self.xfloat = float(self.rect.x)
         self.yfloat = float(self.rect.y)
@@ -164,17 +164,50 @@ class Wall(pygame.sprite.Sprite):
         self.rect.x = x
         self.rect.y = y
 
-class PowerUp:
+class PowerUps:
     """
 
     """
-    pass
+    # ('name', rng_chance)
+    types = [('speed', 0.7), ('rocket', 0.2)]
 
+    def __init__(self):
+        pass
+
+    def generateType(self):
+        rngchoose = 0.0
+        rngtotal = 0.0
+        for type in self.types:
+            rngtotal += type[1]
+            print(rngtotal)
+        rngnum = random.uniform(0, rngtotal)
+        for type in self.types:
+            rngchoose += type[1]
+            if rngnum <= rngchoose:
+                return type[0]
+        else:
+            print("Warning, no PowerUp type was generated")
 
 
 class PowerUpSprite(pygame.sprite.Sprite):
     """
     Contains the object of a powerup that is displayed on the screen.
     """
-    def __init__(self, type, location):
+    width  = 10
+    height = 20
+    powerUpHandler = PowerUps()
+    def __init__(self, x, y):
         super().__init__()
+
+        self.type = self.powerUpHandler.generateType()
+        print("generated %s powerup." % self.type)
+
+        self.image = pygame.Surface([self.width, self.height])
+        self.image.fill(constants.colors['CYAN'])
+        self.rect = self.image.get_rect()
+        self.rect.x = x
+        self.rect.y = y
+
+    def update(self):
+        self.rect.y += 1
+
