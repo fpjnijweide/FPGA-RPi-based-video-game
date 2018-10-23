@@ -79,6 +79,10 @@ class Ball(pygame.sprite.Sprite):
         self.rect.x = 30
         self.rect.y = 30
 
+        self.xfloat = float(self.rect.x)
+        self.yfloat = float(self.rect.y)
+
+
     def bounce(self, bounceIsVertical):
         """
         Used in conjunction with 
@@ -97,23 +101,10 @@ class Ball(pygame.sprite.Sprite):
 
     def update(self):
         """update ball location"""
-        self.rect.x += self.xspeed
-        self.rect.y += self.yspeed
-
-
-        # test if ball is OoB
-        # The out of bounds glitch seems to have something to do with how pygame handles
-        #     collisions, as well as the way the main.CollisionHandler works.
-        # TODO TODO TODO investigate...
-        if (self.rect.x < 0 or self.rect.x > constants.WINDOW_WIDTH) or (self.rect.y < 0 or self.rect.y > constants.WINDOW_HEIGHT):
-
-            print("Alert! Ball is out of bounds!")
-
-        else:
-            # Can be used to see how many inside-bounds frames are inbetween OoB frames
-            #print(".___.")
-            pass
-
+        self.xfloat += self.xspeed
+        self.yfloat += self.yspeed
+        self.rect.x = self.xfloat
+        self.rect.y = self.yfloat
 
 
 class Paddle(pygame.sprite.Sprite):
@@ -138,9 +129,8 @@ class Wall(pygame.sprite.Sprite):
     """
     edges of screen. Used for collision detection as well as graphical purposes
     wall is size pixels thicc
+    location is int from 0 to 3 meaning left,top,right,bottom
     """
-
-
     def __init__(self, color, size, location):
         
         super().__init__()
@@ -150,18 +140,17 @@ class Wall(pygame.sprite.Sprite):
             x,y = 0, 0
             self.name = "left_wall"
             
-            
-        elif location == 1: # top wall
+        elif location == 1:  # top wall
             w_h = [constants.WINDOW_WIDTH, size]
             x,y = 0, 0
             self.name = "top_wall"
 
-        elif location == 2: # right wall
+        elif location == 2:  # right wall
             w_h = [size, constants.WINDOW_HEIGHT]
             x,y = constants.WINDOW_WIDTH - size, 0
             self.name = "right_wall"
 
-        elif location == 3: # bottom wall
+        elif location == 3:  # bottom wall
             w_h = [constants.WINDOW_WIDTH, size]
             x,y = 0, (constants.WINDOW_HEIGHT - size) 
             self.name = "bottom_wall"
@@ -169,11 +158,23 @@ class Wall(pygame.sprite.Sprite):
         else:
             raise IndexError('Wall location out of range (0..3)')
 
-
         self.image = pygame.Surface(w_h)
         self.image.fill(color)
         self.rect = self.image.get_rect()
         self.rect.x = x
         self.rect.y = y
 
+class PowerUp:
+    """
 
+    """
+    pass
+
+
+
+class PowerUpSprite(pygame.sprite.Sprite):
+    """
+    Contains the object of a powerup that is displayed on the screen.
+    """
+    def __init__(self, type, location):
+        super().__init__()
