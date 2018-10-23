@@ -61,7 +61,7 @@ GRIDY = 3
 GRIDMARGIN = 100
 
 # Block respawn time range
-RESPAWNDELAY = 5
+RESPAWNDELAY = 2
 RESPAWNRANGE = 2
 
 # Color definitions

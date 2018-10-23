@@ -169,7 +169,7 @@ class PowerUps:
 
     """
     # ('name', rng_chance)
-    types = [('speed', 0.7), ('rocket', 0.2)]
+    types = [('speed', 0.7, 'CYAN'), ('rocket', 0.2, 'ORANGE')]
 
     def __init__(self):
         pass
@@ -188,6 +188,11 @@ class PowerUps:
         else:
             print("Warning, no PowerUp type was generated")
 
+    def getTypeInfo(self, type):
+        for t in self.types:
+            if t[0] == type:
+                return t
+        print("getTypeInfo error!")
 
 class PowerUpSprite(pygame.sprite.Sprite):
     """
@@ -203,7 +208,7 @@ class PowerUpSprite(pygame.sprite.Sprite):
         print("generated %s powerup." % self.type)
 
         self.image = pygame.Surface([self.width, self.height])
-        self.image.fill(constants.colors['CYAN'])
+        self.image.fill(constants.colors[self.powerUpHandler.getTypeInfo(self.type)[2]])
         self.rect = self.image.get_rect()
         self.rect.x = x
         self.rect.y = y
@@ -211,3 +216,9 @@ class PowerUpSprite(pygame.sprite.Sprite):
     def update(self):
         self.rect.y += 1
 
+class readyPowerUp:
+
+    type = None
+
+    def __init__(self, type):
+        self.type = type

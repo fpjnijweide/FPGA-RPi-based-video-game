@@ -112,6 +112,7 @@ class Game:
     CollisionSpritesList = None
     walls = [None, None, None, None]
     PowerUps = None
+    readyPowerUp = None
 
     def __init__(self):
         # Create two empty sprite groups.
@@ -131,14 +132,13 @@ class Game:
         # Create collision handling object
         self.collisionHandler = CollisionHandling(self)
 
+        # Create object for powerup handling
+        self.powerUps = objects.PowerUps()
+
         self.init_grid()
         self.time_until_next_block = 0
         self.last_block_time = 0
         self.blocklist=[]
-
-        # Create object for powerup handling
-        self.powerUps = objects.PowerUps()
-
 
         # Play some music!
         # use one of these
@@ -182,7 +182,7 @@ class Game:
         self.collisionHandler.evaluate(self.playerBall, self.CollisionSpritesList)
 
         # Note: collision handling is less broken yet once again, but the ball still disappears into the walls
-        self.playerBall.update()
+        #self.playerBall.update()
 
         Screen.fill(constants.colors["BLACK"])
 
@@ -237,7 +237,7 @@ class Game:
 
 class CollisionHandling:
     """
-    Abstract class containing collision handling functions 
+    class containing collision handling functions
     """
     # README CollisionHandling:
     # Both verticality-detecting methods have some problems.
@@ -264,11 +264,17 @@ class CollisionHandling:
             if isinstance(c, objects.Block):
                 c_newhp = c.reduceHP(ballObj.xspeed, ballObj.yspeed)
                 if c_newhp <= 0:
-                    GameObj.removeblock(c)
+                    self.game.removeblock(c)
 
                     if random.random() < constants.POWERUP_CHANCE:
-                        self.game.AllSpritesList.add(objects.PowerUpSprite(ballObj.rect.x, ballObj.rect.y))
-                        print("generating powerup goes here")
+                        newPowerUp = objects.PowerUpSprite(ballObj.rect.x, ballObj.rect.y)
+                        self.game.AllSpritesList.add(newPowerUp)
+                        #self.game.CollisionSpritesList.add(newPowerUp)
+                        print("Powerup generated")
+
+            # if isinstance(c, objects.PowerUpSprite):
+            #     print("received new powerup!")
+            #     self.game.readyPowerUp = objects.readyPowerUp(c.type)
 
 
             isVertical_old = CollisionHandling.findBounceIsVertical_old(ballObj, c)
