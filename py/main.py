@@ -10,6 +10,7 @@ import objects, constants, keyBindings
 from enum import Enum
 import random
 import time
+import numpy as np
 
 def init():
     """
@@ -126,6 +127,7 @@ class Game:
         self.AllSpritesList.add(self.paddle)
         self.CollisionSpritesList.add(self.paddle)
         
+        self.init_grid()
         self.time_until_next_block = 0
         self.last_block_time = 0
         self.blocklist=[]
@@ -184,24 +186,45 @@ class Game:
         self.AllSpritesList.remove(obj1)
         self.CollisionSpritesList.remove(obj1)
         self.blocklist.remove(obj1)
+        self.grid[obj1.y_on_grid,obj1.x_on_grid]=None
         del obj1
 
-    def addBlock(self):
+    # def addBlock(self):
 
-        valid_block=True
-        newblock = objects.Block(constants.colors["RED"],constants.BLOCKWIDTH, constants.BLOCKHEIGHT)
-        for block in self.blocklist:
-            if pygame.sprite.collide_rect(newblock,block):
-                valid_block=False
-        if valid_block:
+    #     valid_block=True
+    #     newblock = objects.Block(constants.colors["RED"],constants.BLOCKWIDTH, constants.BLOCKHEIGHT)
+    #     for block in self.blocklist:
+    #         if pygame.sprite.collide_rect(newblock,block):
+    #             valid_block=False
+    #     if valid_block:
+    #         self.AllSpritesList.add(newblock)
+    #         self.CollisionSpritesList.add(newblock)
+    #         self.blocklist.append(newblock)
+    #         time_until_next_block = random.randint(5,6)
+    #         return time_until_next_block
+    #     else:
+    #         return 0
+
+    def init_grid(self):
+        self.grid = np.ndarray(([constants.GRIDY,constants.GRIDX]),dtype=np.object)
+        self.blocksize = (constants.WINDOW_WIDTH-(2*constants.GRIDMARGIN))//constants.GRIDX
+
+    def addBlock(self):
+        newblock = objects.Block(constants.colors["RED"],self.blocksize, self.blocksize)
+        newblock.x_on_grid=random.randint(1,constants.GRIDX)-1
+        newblock.y_on_grid=random.randint(1,constants.GRIDY)-1
+
+        if self.grid[newblock.y_on_grid,newblock.x_on_grid] == None:
+            newblock.rect.x=constants.GRIDMARGIN + self.blocksize*newblock.x_on_grid
+            newblock.rect.y=constants.GRIDMARGIN + self.blocksize*newblock.y_on_grid
             self.AllSpritesList.add(newblock)
             self.CollisionSpritesList.add(newblock)
             self.blocklist.append(newblock)
-            time_until_next_block = random.randint(5,6)
+            time_until_next_block = random.randint(constants.RESPAWNDELAY,constants.RESPAWNDELAY+constants.RESPAWNRANGE)
             return time_until_next_block
         else:
+            del newblock
             return 0
-
 
 class CollisionHandling:
     """

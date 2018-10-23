@@ -46,6 +46,15 @@ BLOCKWIDTH  = 100
 BLOCKHEIGHT = 100
 BLOCK_INITIAL_HP = 4
 
+# Block grid size
+GRIDX = 10
+GRIDY = 3
+GRIDMARGIN = 100
+
+# Block respawn time range
+RESPAWNDELAY = 5
+RESPAWNRANGE = 5
+
 # Color definitions
 colors = {
         "GRAY"     : (100, 100, 100),
