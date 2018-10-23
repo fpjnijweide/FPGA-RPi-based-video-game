@@ -21,7 +21,7 @@ WINDOW_HEIGHT = 600
 FPS = 60
 
 # Ball size
-BALLRADIUS = 5
+BALLRADIUS = 10
 
 # Wall size
 WALLSIZE = 30
@@ -33,8 +33,8 @@ PADDLE_Y_POS = 520
 
 
 # Block size
-BLOCKWIDTH  = 50
-BLOCKHEIGHT = 50
+BLOCKWIDTH  = 200
+BLOCKHEIGHT = 200
 BLOCK_INITIAL_HP = 4
 
 # Color definitions
