@@ -41,8 +41,8 @@ def init():
     GameState = GameStates.PLAYING
     global GameObj
     GameObj = Game()
-    global CollisionHandler
-    CollisionHandler = CollisionHandling(GameObj)
+    # global CollisionHandler
+    # CollisionHandler = CollisionHandling(GameObj)
 
 
 def main():
@@ -116,11 +116,15 @@ class Game:
     PowerUps = None
     readyPowerUp = None
 
+    # self.collisionHandler
+
     def __init__(self):
         # Create two empty sprite groups.
         # One for sprites to render, another for sprites to collision detect
         self.AllSpritesList = pygame.sprite.Group()
         self.CollisionSpritesList = pygame.sprite.Group()
+        # also one for powerups
+        self.powerUpSpritesList = pygame.sprite.Group()
 
         # Create Ball object
         self.playerBall = objects.Ball(constants.colors["WHITE"], constants.BALLRADIUS)
@@ -134,8 +138,8 @@ class Game:
         # Create collision handling object
         self.collisionHandler = CollisionHandling(self)
 
-        # Create object for powerup handling
-        self.powerUps = objects.PowerUps()
+        # Create object for powerup handling and (empty) sprite list
+        self.powerUps = objects.PowerUp()
 
         self.init_grid()
         self.time_until_next_block = 0
@@ -181,7 +185,7 @@ class Game:
             self.time_until_next_block = self.addBlock()
 
         # Handle collisions
-        self.collisionHandler.evaluate(self.playerBall, self.CollisionSpritesList)
+        self.collisionHandler.evaluate()
 
         # Note: collision handling is less broken yet once again, but the ball still disappears into the walls
         #self.playerBall.update()
@@ -244,7 +248,8 @@ class CollisionHandling:
         self.next_collision_exclusion=[]
         self.next_collision_exclusion_time=[]
 
-    def evaluate(self,ballObj, collisionSpritesList):
+
+    def evaluate(self):
         """
         Detect collisions, check findBounceIsVertical and objects.Ball.bounce()
         """
@@ -253,9 +258,9 @@ class CollisionHandling:
             if time.time()>col_timer:
                 del self.next_collision_exclusion[index]
                 del self.next_collision_exclusion_time[index]
-            index+=1
+            index += 1
 
-        collisions = pygame.sprite.spritecollide(ballObj, collisionSpritesList, False)
+        collisions = pygame.sprite.spritecollide(self.game.playerBall, self.game.CollisionSpritesList, False)
 
         # If no collisions happen
         if len(collisions) == 0:
@@ -270,29 +275,38 @@ class CollisionHandling:
             if c not in self.next_collision_exclusion:
 
                 if isinstance(c, objects.Block):
-                    c_newhp = c.reduceHP(ballObj.xspeed, ballObj.yspeed)
+                    c_newhp = c.reduceHP(self.game.playerBall.xspeed, self.game.playerBall.yspeed)
                     if c_newhp <= 0:
                         GameObj.removeblock(c)
 
                         if random.random() < constants.POWERUP_CHANCE:
-                            newPowerUp = objects.PowerUps.PowerUpSprite(ballObj.rect.x, ballObj.rect.y)
+                            newPowerUp = objects.PowerUp.PowerUpSprite(self.game.playerBall.rect.x, self.game.playerBall.rect.y)
                             self.game.AllSpritesList.add(newPowerUp)
-                            #self.game.CollisionSpritesList.add(newPowerUp)
+                            self.game.powerUpSpritesList.add(newPowerUp)
 
                 
-                isVertical_old = CollisionHandling.findBounceIsVertical_old(ballObj, c)
-                isVertical = CollisionHandling.findBounceIsVertical(ballObj, c)
+                isVertical_old = CollisionHandling.findBounceIsVertical_old(self.game.playerBall, c)
+                isVertical = CollisionHandling.findBounceIsVertical(self.game.playerBall, c)
                 if (isVertical != isVertical_old):
                     # This print statement can be used to inspect discrepancies between the two
                     # print("old vertical %s, new vertical %s" % (isVertical_old, isVertical))
                     pass
 
-                ballObj.bounce(isVertical)  # or change to the old one
+                self.game.playerBall.bounce(isVertical_old)  # or change to the old one
 
                 # Should be handled at the object collided with, not here
                 AudioObj.playSound('bounce')
                 self.next_collision_exclusion.append(c)
                 self.next_collision_exclusion_time.append(time.time()+0.2)
+
+        # After checking ball collisions, check for powerups to collect
+        powerCollisions = pygame.sprite.spritecollide(self.game.paddle, self.game.powerUpSpritesList, True)
+        for c in powerCollisions:
+            self.game.readyPowerUp = c.powerUp
+            print("caught powerup", c)
+
+
+
 
     @staticmethod
     def findBounceIsVertical(ballObj, collisionObj):

@@ -176,7 +176,7 @@ class Wall(pygame.sprite.Sprite):
         self.rect.x = x
         self.rect.y = y
 
-class PowerUps:
+class PowerUp:
     """
 
     """
@@ -186,18 +186,18 @@ class PowerUps:
     color = None
 
     def __init__(self):
-        self.type = PowerUps.generateType()
+        self.type = PowerUp.generateType()
         self.color = self.getTypeInfo()[2]
 
     @staticmethod
     def generateType():
         rngchoose = 0.0
         rngtotal = 0.0
-        for t in PowerUps.types:
+        for t in PowerUp.types:
             rngtotal += t[1]
             print(rngtotal)
         rngnum = random.uniform(0, rngtotal)
-        for t in PowerUps.types:
+        for t in PowerUp.types:
             rngchoose += t[1]
             if rngnum <= rngchoose:
                 return t[0]
@@ -221,7 +221,7 @@ class PowerUps:
         def __init__(self, x, y):
             super().__init__()
 
-            self.powerUp = PowerUps()
+            self.powerUp = PowerUp()
             print("generated %s powerup." % self.powerUp.type)
 
             self.image = pygame.Surface([self.width, self.height])

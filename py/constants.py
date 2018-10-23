@@ -32,11 +32,11 @@ INITIAL_BALL_X = 30
 INITIAL_BALL_Y = 30
 
 #Ball speed
-INITIAL_BALL_XSPEED = 4
-INITIAL_BALL_YSPEED = 4
+INITIAL_BALL_XSPEED = 7
+INITIAL_BALL_YSPEED = 5
 
 # Wall size
-WALLSIZE = 30
+WALLSIZE = 20
 
 # Paddle size
 PADDLEWIDTH  = 70
@@ -54,7 +54,7 @@ PADDLESPEED=6
 BLOCKWIDTH  = 100
 BLOCKHEIGHT = 100
 BLOCK_INITIAL_HP = 2
-BLOCKMARGIN = 5 #(margin of block within grid)
+BLOCKMARGIN = 5  # (margin of block within grid)
 
 # Block grid size
 GRIDX = 10
@@ -85,16 +85,16 @@ colors = {
 # Audio track mapping
 # 'audioName':'relative/path/to/file'
 sounds = {
-        'bounce':'../resources/audio/bounce.ogg'
+        'bounce': '../resources/audio/bounce.ogg'
 #        'wallCollision':'../resources/audio/bounce.wav',
 #        'blockbreak':'../resources/sound/bounce2.wav'
 }
 music  = {
-        'main':'../resources/audio/main.ogg',
-        'menu':'../resources/audio/menu.ogg',
-        'highScore':'../resources/audio/hiscore.ogg'
-#        'newGame':'../resources/audio/<file>.ogg',
-#        'gameOver':'../resources/audio/<file>.ogg',
+        'main': '../resources/audio/main.ogg',
+        'menu': '../resources/audio/menu.ogg',
+        'highScore': '../resources/audio/hiscore.ogg'
+#        'newGame': '../resources/audio/<file>.ogg',
+#        'gameOver': '../resources/audio/<file>.ogg',
 }
 
 
