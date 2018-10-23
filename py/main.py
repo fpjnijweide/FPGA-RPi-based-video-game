@@ -8,7 +8,8 @@ Sensor Pong
 import pygame, sys, math
 import objects, constants, keyBindings
 from enum import Enum
-
+import random
+import time
 
 def init():
     """
@@ -122,12 +123,13 @@ class Game:
 
         # Create paddle object
         self.paddle = objects.Paddle(constants.colors["WHITE"], constants.PADDLE_Y_POS, constants.PADDLEWIDTH, constants.PADDLEHEIGHT)
-        self.block = objects.Block(constants.colors["RED"],constants.BLOCKWIDTH, constants.BLOCKHEIGHT)
         self.AllSpritesList.add(self.paddle)
         self.CollisionSpritesList.add(self.paddle)
         
-        self.AllSpritesList.add(self.block)
-        self.CollisionSpritesList.add(self.block)
+        self.time_until_next_block = 0
+        self.last_block_time = 0
+        #self.block_nr=0
+        #self.block=[]
         # Play some music!
         # use one of these
         # AudioObj.playMusic('highScore')
@@ -162,6 +164,10 @@ class Game:
         Updates sprites and stuff. Called once every frame while playing game.
         """
         
+        if time.time() >= self.last_block_time + self.time_until_next_block:
+            self.last_block_time=time.time()
+            self.time_until_next_block = self.addBlock()
+
         # Handle collisions
         CollisionHandling.evaluate(self.playerBall, self.CollisionSpritesList)
 
@@ -179,6 +185,14 @@ class Game:
         self.AllSpritesList.remove(obj1)
         self.CollisionSpritesList.remove(obj1)
         del obj1
+
+    def addBlock(self):
+        #self.block_nr+=1
+        newblock = objects.Block(constants.colors["RED"],constants.BLOCKWIDTH, constants.BLOCKHEIGHT)
+        self.AllSpritesList.add(newblock)
+        self.CollisionSpritesList.add(newblock)
+        time_until_next_block = random.randint(10,20)
+        return time_until_next_block
 
 
 class CollisionHandling:

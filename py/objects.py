@@ -23,7 +23,7 @@ class Block(pygame.sprite.Sprite):
         self.image.fill(self.currentColor)
         self.rect = self.image.get_rect()
 
-        self.rect.x = random.randint(300,constants.WINDOW_WIDTH-300)
+        self.rect.x = random.randint(300,constants.WINDOW_WIDTH-300-constants.BLOCKWIDTH)
         self.rect.y = random.randint(100,constants.WINDOW_HEIGHT//2)
 
     def reduceHP(self,xspeed,yspeed):
