@@ -17,6 +17,11 @@ MUSIC = True
 # Window resolution
 WINDOW_WIDTH = 800
 WINDOW_HEIGHT = 600
+WINDOW_HW = WINDOW_WIDTH//2
+WINDOW_HH = WINDOW_HEIGHT//2
+MAINFONT = 70
+SUBFONT = 58
+
 
 # Frames per second
 FPS = 60
@@ -31,10 +36,6 @@ WALLSIZE = 30
 PADDLEWIDTH  = 70
 PADDLEHEIGHT = 20
 PADDLE_Y_POS = 520
-
-# Powerup chance
-# TODO change this
-POWERUP_CHANCE = 0.5
 
 
 # Block size

@@ -7,7 +7,6 @@ Sensor Pong
 """
 import pygame, sys, math
 import objects, constants, keyBindings
-import random
 from enum import Enum
 
 
@@ -167,7 +166,7 @@ class Game:
         CollisionHandling.evaluate(self.playerBall, self.CollisionSpritesList)
 
         # Note: collision handling is less broken yet once again, but the ball still disappears into the walls
-        # self.playerBall.update()
+        self.playerBall.update()
 
         Screen.fill(constants.colors["BLACK"])
 
@@ -207,15 +206,10 @@ class CollisionHandling:
         # If there are collisions iterate through them
         # print(len(collisions), " collisions this frame")
         for c in collisions:
-
             if isinstance(c, objects.Block):
                 c_newhp = c.reduceHP(ballObj.xspeed, ballObj.yspeed)
-
                 if c_newhp <= 0:
                     GameObj.removesprite(c)
-
-                    if random.random() < constants.POWERUP_CHANCE:
-                        print("generating powerup goes here")
 
 
             isVertical_old = CollisionHandling.findBounceIsVertical_old(ballObj, c)
@@ -259,12 +253,13 @@ class CollisionHandling:
         botRight = math.atan2( coll_y,  coll_x)
         botLeft  = math.atan2( coll_y, -coll_x)
 
+        # TODO simplify chained comparisons with a < b <= c
         top = topLeft < ball_out_angle <= topRight
-        # right = topRight < ball_out_angle <= botRight
+        right = topRight < ball_out_angle <= botRight
         bottom = botRight < ball_out_angle <= botLeft
         # TODO surfaces hit on the left do not work.
         # TODO detecting the top and bottom should be enough but ill leave this todo in here in case weird stuff occurs
-        # left = botLeft < ball_out_angle <= topLeft
+        left = botLeft < ball_out_angle <= topLeft
 
         return not (top or bottom)
 
@@ -300,11 +295,111 @@ class MainMenu:
     contains menu rendering and keyhandling specific to menu
     i mean not yet but it should
     """
+    pygame.font.init()
+    mainFont = None
+    subFont = None
+    highlight = None
+    mainmenu = None
+    startgamemenu = None
+    highscoremenu = None
+    optionsmenu = None
+    exitmenu = None
+    texts = None
+    # widths
+    mainmenu_Width = None
+    startgamemenu_Width = None
+    highscoremenu_Width = None
+    optionsmenu_Width = None
+    exitmenu_Width = None
+    # heights
+    mainmenu_Height = None
+    startgamemenu_Height = None
+    highscoremenu_Height = None
+    optionsmenu_Height = None
+    exitmenu_Height = None
+    selectedItem = None
+    # menuItems = [mainmenu, optionsmenu, highscoremenu, startgamemenu]
+    menuItems = None
+    menucolor = None
     def __init__(self):
-        pass # do nothing as of now
+        pygame.display.set_caption(constants.GAME_NAME + ' - Main menu' )
+        self.mainFont = pygame.font.SysFont('arial', 60) # 76? HEIGTH
+        self.subFont = pygame.font.SysFont('arial', 50) # 58 HEIGTH
+        self.highlight = pygame.font.SysFont('arial', 50, italic=True, bold=True)
+        self.highlight.set_underline(True)
 
-    def handleKeys():
-        pass
+        self.texts = ['Start game','Highscores','Options', 'exit']
+        self.mainmenu = self.writeText('Main Menu', self.mainFont)
+        self.startgamemenu = self.writeText('Start game', self.highlight)
+        self.highscoremenu = self.writeText('Highscores', self.subFont)
+        self.optionsmenu = self.writeText('Options', self.subFont)
+        self.exitmenu = self.writeText('Exit', self.subFont)
+        self.menuItems = { 0:self.startgamemenu, 1:self.highscoremenu, 2:self.optionsmenu, 3:self.exitmenu}
+        self.selectedItem = 0
+        # for x in range(0, len(self.menuItems)):
+        #     print(self.menuItems[x].get_size())# width, height
+        self.mainmenu_Width = constants.WINDOW_HW - self.mainmenu.get_width()//2
+        self.startgamemenu_Width = 30 #constants.WINDOW_WIDTH/1000 # + self.startgamemenu.get_width()//2
+        self.highscoremenu_Width = self.startgamemenu_Width + self.startgamemenu.get_width()
+        self.optionsmenu_Width = self.highscoremenu_Width + self.highscoremenu.get_width()
+        self.exitmenu_Width = self.optionsmenu_Width + self.optionsmenu.get_width()
+        # height menuItems
+        self.mainmenu_Height = constants.WINDOW_HEIGHT*1/4 - self.mainmenu.get_height()//2
+        self.startgamemenu_Height = self.mainmenu_Height + constants.MAINFONT
+        self.highscoremenu_Height = self.startgamemenu_Height + constants.SUBFONT
+        self.optionsmenu_Height = self.highscoremenu_Height + constants.SUBFONT
+        self.exitmenu_Height = self.optionsmenu_Height + constants.SUBFONT
+        self.menucolor = 'RED'
+
+    def handleKeys(self, keysPressed):
+        if keyBindings.checkPress('exit', keysPressed):
+            pygame.quit()
+        if keyBindings.checkPress('left', keysPressed):
+            self.menuItems[self.selectedItem] = self.writeText(self.texts[self.selectedItem], self.subFont)
+            self.selectedItem = (self.selectedItem - 1) % len(self.menuItems)
+            self.menuItems[self.selectedItem] = self.writeText(self.texts[self.selectedItem], self.highlight)
+        if keyBindings.checkPress('right', keysPressed):
+            self.menuItems[self.selectedItem] = self.writeText(self.texts[self.selectedItem], self.subFont)
+            self.selectedItem = (self.selectedItem + 1) % len(self.menuItems)
+            self.menuItems[self.selectedItem] = self.writeText(self.texts[self.selectedItem], self.highlight)
+            if keyBindings.checkPress('activate', keysPressed):
+                print('entered loop')
+                global GameState
+                if self.selectedItem == 0:
+                    GameState = GameStates.PLAYING
+                    # return
+                if self.selectedItem == 1:
+                    GameState = GameStates.HIGHSCORES
+                    # return
+                if self.selectedItem == 2:
+                    GameState = GameStates.OPTIONS
+                    # return
+                if self.selectedItem == 3:
+                    pygame.quit()
+                    # return
+
+    def writeText(self, text, font):
+        if font == self.mainFont:
+            return self.mainFont.render(text, False, constants.colors['YELLOW'])
+        if font == self.subFont:
+            return self.subFont.render(text, False, constants.colors['YELLOW'])
+        if font == self.highlight:
+            return self.highlight.render(text, False, constants.colors['RED'])
+
+    def updateMenu(self):
+        Screen.fill(constants.colors["BLACK"])
+        # Screen.blit(self.mainmenu, (self.mainmenu_Width, self.mainmenu_Height))
+        # Screen.blit(self.startgamemenu, (self.startgamemenu_Width, self.startgamemenu_Height))
+        # Screen.blit(self.highscoremenu, (self.highscoremenu_Width, self.highscoremenu_Height))
+        # Screen.blit(self.optionsmenu, (self.optionsmenu_Width, self.optionsmenu_Height))
+        # Screen.blit(self.exitmenu, (self.exitmenu_Width, self.exitmenu_Height))
+
+        Screen.blit(self.mainmenu, (self.mainmenu_Width, self.mainmenu_Height))
+        Screen.blit(self.menuItems[0], (self.startgamemenu_Width, self.startgamemenu_Height))
+        Screen.blit(self.menuItems[1], (self.highscoremenu_Width, self.highscoremenu_Height))
+        Screen.blit(self.menuItems[2], (self.optionsmenu_Width, self.optionsmenu_Height))
+        Screen.blit(self.menuItems[3], (self.exitmenu_Width, self.exitmenu_Height))
+
 
 
 class Audio:
