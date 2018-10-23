@@ -27,15 +27,19 @@ class Block(pygame.sprite.Sprite):
         self.rect.y = random.randint(100,300)
 
     def reduceHP(self,xspeed,yspeed):
-        if yspeed > xspeed:
-            self.hp = self.hp - yspeed
+        if abs(yspeed) > abs(xspeed):
+            self.hp = self.hp - abs(yspeed)
         else:
-            self.hp = self.hp - xspeed
+            self.hp = self.hp - abs(xspeed)
 
 
         if self.hp > 0:
-            self.image.fill((128,0,0))
-
+            print(self.hp)
+            print(self.initialhp)
+            redcolor= int(255*(self.hp/self.initialhp))
+            self.image.fill((    redcolor   ,0,0))
+        if self.hp <= 0:
+            self.image.fill((0,0,0))
         return self.hp
         #self.currentColor = tuple(map(lambda x:   x*(self.hp//self.initialhp), self.initialColor))
         

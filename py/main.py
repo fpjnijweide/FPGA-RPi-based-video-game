@@ -174,6 +174,11 @@ class Game:
         #draw sprites
         self.AllSpritesList.draw(Screen)
 
+    def removesprite(self, obj1):
+        self.AllSpritesList.remove(obj1)
+        self.CollisionSpritesList.remove(obj1)
+        del obj1
+
 
 class CollisionHandling:
     """
@@ -196,14 +201,13 @@ class CollisionHandling:
         # if there are collisions iterate through them
         #print(len(collisions), " collisions")
         for c in collisions:
-
-            isVertical = CollisionHandling.findBounceIsVertical(ballObj, c)
-            ballObj.bounce(isVertical)
             if isinstance(c, objects.Block):
                 c_newhp = c.reduceHP(ballXspeed,ballYspeed)
                 if c_newhp <= 0:
-                    Game.AllSpritesList.remove(c)
-                    Game.CollisionSpritesList.remove(c)
+                    GameObj.removesprite(c)            
+            isVertical = CollisionHandling.findBounceIsVertical(ballObj, c)
+            ballObj.bounce(isVertical)
+
                     #TODO get this working
 
 
