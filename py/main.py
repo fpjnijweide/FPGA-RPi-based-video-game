@@ -7,6 +7,7 @@ Sensor Pong
 """
 import pygame, sys, math
 import objects, constants, keyBindings
+import random
 from enum import Enum
 
 
@@ -122,9 +123,12 @@ class Game:
 
         # Create paddle object
         self.paddle = objects.Paddle(constants.colors["WHITE"], constants.PADDLE_Y_POS, constants.PADDLEWIDTH, constants.PADDLEHEIGHT)
+        self.block = objects.Block(constants.colors["RED"],constants.BLOCKWIDTH, constants.BLOCKHEIGHT)
         self.AllSpritesList.add(self.paddle)
         self.CollisionSpritesList.add(self.paddle)
         
+        self.AllSpritesList.add(self.block)
+        self.CollisionSpritesList.add(self.block)
         # Play some music!
         # use one of these
         # AudioObj.playMusic('highScore')
@@ -144,14 +148,10 @@ class Game:
         if keyBindings.checkPress('exit', keysPressed):
             pygame.event.post(pygame.event.Event(pygame.QUIT))
 
-        if keyBindings.checkPress('up', keysPressed):
-            self.playerBall.yspeed -= 0.1
-        if keyBindings.checkPress('down', keysPressed):
-            self.playerBall.yspeed += 0.1
         if keyBindings.checkPress('left', keysPressed):
-            self.playerBall.xspeed -= 0.1
+            self.paddle.rect.x -= 6
         if keyBindings.checkPress('right', keysPressed):
-            self.playerBall.xspeed += 0.1
+            self.paddle.rect.x += 6
 
         # (re)set ball location when pressing K_HOME (cheat)
         if keyBindings.checkPress('restart', keysPressed):
@@ -167,7 +167,7 @@ class Game:
         CollisionHandling.evaluate(self.playerBall, self.CollisionSpritesList)
 
         # Note: collision handling is less broken yet once again, but the ball still disappears into the walls
-        self.playerBall.update()
+        # self.playerBall.update()
 
         Screen.fill(constants.colors["BLACK"])
 
@@ -175,6 +175,11 @@ class Game:
 
         # draw sprites
         self.AllSpritesList.draw(Screen)
+
+    def removesprite(self, obj1):
+        self.AllSpritesList.remove(obj1)
+        self.CollisionSpritesList.remove(obj1)
+        del obj1
 
 
 class CollisionHandling:
@@ -203,8 +208,16 @@ class CollisionHandling:
         # print(len(collisions), " collisions this frame")
         for c in collisions:
 
-            # TODO there should be decided which algorithm is better at detecting
-            # TODO // collision issues.
+            if isinstance(c, objects.Block):
+                c_newhp = c.reduceHP(ballObj.xspeed, ballObj.yspeed)
+
+                if c_newhp <= 0:
+                    GameObj.removesprite(c)
+
+                    if random.random() < constants.POWERUP_CHANCE:
+                        print("generating powerup goes here")
+
+
             isVertical_old = CollisionHandling.findBounceIsVertical_old(ballObj, c)
             isVertical = CollisionHandling.findBounceIsVertical(ballObj, c)
             if (isVertical != isVertical_old):
@@ -246,13 +259,12 @@ class CollisionHandling:
         botRight = math.atan2( coll_y,  coll_x)
         botLeft  = math.atan2( coll_y, -coll_x)
 
-        # TODO simplify chained comparisons with a < b <= c
         top = topLeft < ball_out_angle <= topRight
-        right = topRight < ball_out_angle <= botRight
+        # right = topRight < ball_out_angle <= botRight
         bottom = botRight < ball_out_angle <= botLeft
         # TODO surfaces hit on the left do not work.
         # TODO detecting the top and bottom should be enough but ill leave this todo in here in case weird stuff occurs
-        left = botLeft < ball_out_angle <= topLeft
+        # left = botLeft < ball_out_angle <= topLeft
 
         return not (top or bottom)
 
@@ -303,10 +315,12 @@ class Audio:
     fadeoutTime = 1500  # ms
     trackPlaying = None
     trackToPlay = None
+    gameSounds = dict()
 
     def __init__(self):
-        # pygame.mixer.init()  # TODO set mixer audio settings that work with raspberry pi if applicable
-        self.bounceTest = pygame.mixer.Sound(constants.sounds['bounce'])
+        # Create gameSounds dictionary from the constants.sounds dictionary containing Sound objects
+        for key in constants.sounds.keys():
+            self.gameSounds[key] = pygame.mixer.Sound(constants.sounds[key])
 
     def playMusic(self, musicName):
 
@@ -336,7 +350,7 @@ class Audio:
 
         # TODO make it not create a new sound object instance every time it plays
         #   but instead save instances to be reused.
-        self.bounceTest.play(0)
+        self.gameSounds[soundName].play(0)
 
 
 # Execute init() and main() only when program is run directly (not imported)
