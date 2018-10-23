@@ -296,10 +296,8 @@ class MainMenu:
     i mean not yet but it should
     """
     def __init__(self):
-        pass # do nothing as of now
+        Screen.blit(self.mainmenu, (self.mainmenu_Width, self.mainmenu_Height))
 
-    def handleKeys():
-        pass
 
 
 class Audio:
