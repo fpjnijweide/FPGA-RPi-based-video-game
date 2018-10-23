@@ -133,4 +133,17 @@ class Wall(pygame.sprite.Sprite):
         self.rect.x = x
         self.rect.y = y
 
+class PowerUp:
+    """
 
+    """
+    pass
+
+
+
+class PowerUpSprite(pygame.sprite.Sprite):
+    """
+    Contains the object of a powerup that is displayed on the screen.
+    """
+    def __init__(self, type, location):
+        super().__init__()
