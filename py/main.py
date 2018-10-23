@@ -41,6 +41,8 @@ def init():
     GameState = GameStates.PLAYING
     global GameObj
     GameObj = Game()
+    global CollisionHandler
+    CollisionHandler = CollisionHandling()
 
 
 def main():
@@ -170,7 +172,7 @@ class Game:
             self.time_until_next_block = self.addBlock()
 
         # Handle collisions
-        CollisionHandling.evaluate(self.playerBall, self.CollisionSpritesList)
+        CollisionHandler.evaluate(CollisionHandler,self.playerBall, self.CollisionSpritesList)
 
         # Note: collision handling is less broken yet once again, but the ball still disappears into the walls
         self.playerBall.update()
@@ -220,6 +222,7 @@ class Game:
             return 0
 
 class CollisionHandling:
+
     """
     Abstract class containing collision handling functions 
     """
@@ -228,11 +231,22 @@ class CollisionHandling:
     # The old function will behave unpredictably when the ball's speed is high
     # The new function is bad at detecting collisions on small sides of a large rectangle.
 
+    def __init__(self):
+        self.next_collision_exclusion=[]
+        self.next_collision_exclusion_time=[]
+
     @staticmethod
-    def evaluate(ballObj, collisionSpritesList):
+    def evaluate(self,ballObj, collisionSpritesList):
         """
         Detect collisions, check findBounceIsVertical and objects.Ball.bounce()
         """
+        index=0
+        for col_timer in self.next_collision_exclusion_time:
+            if time.time()>col_timer:
+                del self.next_collision_exclusion[index]
+                del self.next_collision_exclusion_time[index]
+            index+=1
+
         collisions = pygame.sprite.spritecollide(ballObj, collisionSpritesList, False)
 
         # If no collisions happen
@@ -244,23 +258,26 @@ class CollisionHandling:
         # If there are collisions iterate through them
         # print(len(collisions), " collisions this frame")
         for c in collisions:
-            if isinstance(c, objects.Block):
-                c_newhp = c.reduceHP(ballObj.xspeed, ballObj.yspeed)
-                if c_newhp <= 0:
-                    GameObj.removeblock(c)
+            if c not in self.next_collision_exclusion:
+                if isinstance(c, objects.Block):
+                    c_newhp = c.reduceHP(ballObj.xspeed, ballObj.yspeed)
+                    if c_newhp <= 0:
+                        GameObj.removeblock(c)
 
+                
+                isVertical_old = CollisionHandling.findBounceIsVertical_old(ballObj, c)
+                isVertical = CollisionHandling.findBounceIsVertical(ballObj, c)
+                if (isVertical != isVertical_old):
+                    # This print statement can be used to inspect discrepancies between the two
+                    # print("old vertical %s, new vertical %s" % (isVertical_old, isVertical))
+                    pass
 
-            isVertical_old = CollisionHandling.findBounceIsVertical_old(ballObj, c)
-            isVertical = CollisionHandling.findBounceIsVertical(ballObj, c)
-            if (isVertical != isVertical_old):
-                # This print statement can be used to inspect discrepancies between the two
-                # print("old vertical %s, new vertical %s" % (isVertical_old, isVertical))
-                pass
+                ballObj.bounce(isVertical)  # or change to the old one
 
-            ballObj.bounce(isVertical)  # or change to the old one
-
-            # Should be handled at the object collided with, not here
-            AudioObj.playSound('bounce')
+                # Should be handled at the object collided with, not here
+                AudioObj.playSound('bounce')
+                self.next_collision_exclusion.append(c)
+                self.next_collision_exclusion_time.append(time.time()+0.2)
 
     @staticmethod
     def findBounceIsVertical(ballObj, collisionObj):
