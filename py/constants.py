@@ -32,11 +32,11 @@ INITIAL_BALL_X = 30
 INITIAL_BALL_Y = 30
 
 #Ball speed
-INITIAL_BALL_XSPEED = 4
-INITIAL_BALL_YSPEED = 4
+INITIAL_BALL_XSPEED = 7
+INITIAL_BALL_YSPEED = 5
 
 # Wall size
-WALLSIZE = 30
+WALLSIZE = 5
 
 # Paddle size
 PADDLEWIDTH  = 70
@@ -45,24 +45,26 @@ PADDLE_Y_POS = 520
 
 # Powerup chance
 # TODO change this
-POWERUP_CHANCE = 0.8
+POWERUP_CHANCE = 0.15
 
-#Paddle speed
-PADDLESPEED=6
+# Paddle speed
+PADDLESPEED=7
 
 # Block size
 BLOCKWIDTH  = 100
 BLOCKHEIGHT = 100
-BLOCK_INITIAL_HP = 4
+BLOCK_INITIAL_HP = 2
+BLOCKMARGIN = 5  # (margin of block within grid)
 
 # Block grid size
 GRIDX = 10
 GRIDY = 3
 GRIDMARGIN = 100
 
+
 # Block respawn time range
-RESPAWNDELAY = 5
-RESPAWNRANGE = 2
+RESPAWNDELAY = 1
+RESPAWNRANGE = 3
 
 # Color definitions
 colors = {
@@ -83,16 +85,16 @@ colors = {
 # Audio track mapping
 # 'audioName':'relative/path/to/file'
 sounds = {
-        'bounce':'../resources/audio/bounce.ogg'
+        'bounce': '../resources/audio/bounce.ogg'
 #        'wallCollision':'../resources/audio/bounce.wav',
 #        'blockbreak':'../resources/sound/bounce2.wav'
 }
 music  = {
-        'main':'../resources/audio/main.ogg',
-        'menu':'../resources/audio/menu.ogg',
-        'highScore':'../resources/audio/hiscore.ogg'
-#        'newGame':'../resources/audio/<file>.ogg',
-#        'gameOver':'../resources/audio/<file>.ogg',
+        'main': '../resources/audio/main.ogg',
+        'menu': '../resources/audio/menu.ogg',
+        'highScore': '../resources/audio/hiscore.ogg'
+#        'newGame': '../resources/audio/<file>.ogg',
+#        'gameOver': '../resources/audio/<file>.ogg',
 }
 
 
