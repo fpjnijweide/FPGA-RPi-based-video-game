@@ -8,7 +8,9 @@ Sensor Pong
 import pygame, sys, math
 import objects, constants, keyBindings
 from enum import Enum
-
+import random
+import time
+import numpy as np
 
 def init():
     """
@@ -109,6 +111,7 @@ class Game:
     AllSpritesList = None
     CollisionSpritesList = None
     walls = [None, None, None, None]
+    PowerUps = None
 
     def __init__(self):
         # Create two empty sprite groups.
@@ -122,12 +125,21 @@ class Game:
 
         # Create paddle object
         self.paddle = objects.Paddle(constants.colors["WHITE"], constants.PADDLE_Y_POS, constants.PADDLEWIDTH, constants.PADDLEHEIGHT)
-        self.block = objects.Block(constants.colors["RED"],constants.BLOCKWIDTH, constants.BLOCKHEIGHT)
         self.AllSpritesList.add(self.paddle)
         self.CollisionSpritesList.add(self.paddle)
-        
-        self.AllSpritesList.add(self.block)
-        self.CollisionSpritesList.add(self.block)
+
+        # Create collision handling object
+        self.collisionHandler = CollisionHandling(self)
+
+        self.init_grid()
+        self.time_until_next_block = 0
+        self.last_block_time = 0
+        self.blocklist=[]
+
+        # Create object for powerup handling
+        self.powerUps = objects.PowerUps()
+
+
         # Play some music!
         # use one of these
         # AudioObj.playMusic('highScore')
@@ -147,23 +159,27 @@ class Game:
         if keyBindings.checkPress('exit', keysPressed):
             pygame.event.post(pygame.event.Event(pygame.QUIT))
 
-        if keyBindings.checkPress('left', keysPressed):
-            self.paddle.rect.x -= 6
-        if keyBindings.checkPress('right', keysPressed):
-            self.paddle.rect.x += 6
+        if keyBindings.checkPress('left', keysPressed) and (self.paddle.rect.x > (constants.PADDLEWIDTH//2)):
+            self.paddle.rect.x -= constants.PADDLESPEED
+        if keyBindings.checkPress('right', keysPressed) and (self.paddle.rect.x < (constants.WINDOW_WIDTH - constants.PADDLEWIDTH*1.5)):
+            self.paddle.rect.x += constants.PADDLESPEED
 
         # (re)set ball location when pressing K_HOME (cheat)
         if keyBindings.checkPress('restart', keysPressed):
-            self.playerBall.xfloat = 100
-            self.playerBall.yfloat = 100
+            self.playerBall.xfloat = constants.INITIAL_BALL_X
+            self.playerBall.yfloat = constants.INITIAL_BALL_Y
 
     def updateGame(self):
         """
         Updates sprites and stuff. Called once every frame while playing game.
         """
         
+        if time.time() >= self.last_block_time + self.time_until_next_block:
+            self.last_block_time=time.time()
+            self.time_until_next_block = self.addBlock()
+
         # Handle collisions
-        CollisionHandling.evaluate(self.playerBall, self.CollisionSpritesList)
+        self.collisionHandler.evaluate(self.playerBall, self.CollisionSpritesList)
 
         # Note: collision handling is less broken yet once again, but the ball still disappears into the walls
         self.playerBall.update()
@@ -175,11 +191,49 @@ class Game:
         # draw sprites
         self.AllSpritesList.draw(Screen)
 
-    def removesprite(self, obj1):
+    def removeblock(self, obj1):
         self.AllSpritesList.remove(obj1)
         self.CollisionSpritesList.remove(obj1)
+        self.blocklist.remove(obj1)
+        self.grid[obj1.y_on_grid,obj1.x_on_grid]=None
         del obj1
 
+    # def addBlock(self):
+
+    #     valid_block=True
+    #     newblock = objects.Block(constants.colors["RED"],constants.BLOCKWIDTH, constants.BLOCKHEIGHT)
+    #     for block in self.blocklist:
+    #         if pygame.sprite.collide_rect(newblock,block):
+    #             valid_block=False
+    #     if valid_block:
+    #         self.AllSpritesList.add(newblock)
+    #         self.CollisionSpritesList.add(newblock)
+    #         self.blocklist.append(newblock)
+    #         time_until_next_block = random.randint(5,6)
+    #         return time_until_next_block
+    #     else:
+    #         return 0
+
+    def init_grid(self):
+        self.grid = np.ndarray(([constants.GRIDY,constants.GRIDX]),dtype=np.object)
+        self.blocksize = (constants.WINDOW_WIDTH-(2*constants.GRIDMARGIN))//constants.GRIDX
+
+    def addBlock(self):
+        newblock = objects.Block(constants.colors["RED"],self.blocksize, self.blocksize)
+        newblock.x_on_grid=random.randint(1,constants.GRIDX)-1
+        newblock.y_on_grid=random.randint(1,constants.GRIDY)-1
+
+        if self.grid[newblock.y_on_grid,newblock.x_on_grid] == None:
+            newblock.rect.x=constants.GRIDMARGIN + self.blocksize*newblock.x_on_grid
+            newblock.rect.y=constants.GRIDMARGIN + self.blocksize*newblock.y_on_grid
+            self.AllSpritesList.add(newblock)
+            self.CollisionSpritesList.add(newblock)
+            self.blocklist.append(newblock)
+            time_until_next_block = random.randint(constants.RESPAWNDELAY,constants.RESPAWNDELAY+constants.RESPAWNRANGE)
+            return time_until_next_block
+        else:
+            del newblock
+            return 0
 
 class CollisionHandling:
     """
@@ -189,9 +243,10 @@ class CollisionHandling:
     # Both verticality-detecting methods have some problems.
     # The old function will behave unpredictably when the ball's speed is high
     # The new function is bad at detecting collisions on small sides of a large rectangle.
+    def __init__(self, game):
+        self.game = game
 
-    @staticmethod
-    def evaluate(ballObj, collisionSpritesList):
+    def evaluate(self, ballObj, collisionSpritesList):
         """
         Detect collisions, check findBounceIsVertical and objects.Ball.bounce()
         """
@@ -209,7 +264,11 @@ class CollisionHandling:
             if isinstance(c, objects.Block):
                 c_newhp = c.reduceHP(ballObj.xspeed, ballObj.yspeed)
                 if c_newhp <= 0:
-                    GameObj.removesprite(c)
+                    GameObj.removeblock(c)
+
+                    if random.random() < constants.POWERUP_CHANCE:
+                        self.game.AllSpritesList.add(objects.PowerUpSprite(ballObj.rect.x, ballObj.rect.y))
+                        print("generating powerup goes here")
 
 
             isVertical_old = CollisionHandling.findBounceIsVertical_old(ballObj, c)
@@ -219,7 +278,7 @@ class CollisionHandling:
                 # print("old vertical %s, new vertical %s" % (isVertical_old, isVertical))
                 pass
 
-            ballObj.bounce(isVertical)  # or change to the old one
+            ballObj.bounce(isVertical_old)  # or change to the new one
 
             # Should be handled at the object collided with, not here
             AudioObj.playSound('bounce')
