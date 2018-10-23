@@ -21,8 +21,14 @@ WINDOW_HEIGHT = 600
 # Frames per second
 FPS = 60
 
-# Ball size
+# Ball size and pos
 BALLRADIUS = 10
+INITIAL_BALL_X = 30
+INITIAL_BALL_Y = 30
+
+#Ball speed
+INITIAL_BALL_XSPEED = 4
+INITIAL_BALL_YSPEED = 4
 
 # Wall size
 WALLSIZE = 30
@@ -34,13 +40,24 @@ PADDLE_Y_POS = 520
 
 # Powerup chance
 # TODO change this
-POWERUP_CHANCE = 0.5
+POWERUP_CHANCE = 0.8
 
+#Paddle speed
+PADDLESPEED=6
 
 # Block size
-BLOCKWIDTH  = 200
-BLOCKHEIGHT = 200
+BLOCKWIDTH  = 100
+BLOCKHEIGHT = 100
 BLOCK_INITIAL_HP = 4
+
+# Block grid size
+GRIDX = 10
+GRIDY = 3
+GRIDMARGIN = 100
+
+# Block respawn time range
+RESPAWNDELAY = 5
+RESPAWNRANGE = 5
 
 # Color definitions
 colors = {
