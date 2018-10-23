@@ -129,6 +129,8 @@ class Game:
         
         self.AllSpritesList.add(self.block)
         self.CollisionSpritesList.add(self.block)
+
+        self.collisionHandler = CollisionHandling(self)
         # Play some music!
         # use one of these
         # AudioObj.playMusic('highScore')
@@ -164,7 +166,7 @@ class Game:
         """
         
         # Handle collisions
-        CollisionHandling.evaluate(self.playerBall, self.CollisionSpritesList)
+        self.collisionHandler.evaluate(self.playerBall, self.CollisionSpritesList)
 
         # Note: collision handling is less broken yet once again, but the ball still disappears into the walls
         # self.playerBall.update()
@@ -190,9 +192,10 @@ class CollisionHandling:
     # Both verticality-detecting methods have some problems.
     # The old function will behave unpredictably when the ball's speed is high
     # The new function is bad at detecting collisions on small sides of a large rectangle.
+    def __init__(self, game):
+        self.game = game
 
-    @staticmethod
-    def evaluate(ballObj, collisionSpritesList):
+    def evaluate(self, ballObj, collisionSpritesList):
         """
         Detect collisions, check findBounceIsVertical and objects.Ball.bounce()
         """
