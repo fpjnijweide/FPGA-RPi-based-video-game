@@ -128,8 +128,7 @@ class Game:
         
         self.time_until_next_block = 0
         self.last_block_time = 0
-        #self.block_nr=0
-        #self.block=[]
+        self.blocklist=[]
         # Play some music!
         # use one of these
         # AudioObj.playMusic('highScore')
@@ -181,18 +180,27 @@ class Game:
         # draw sprites
         self.AllSpritesList.draw(Screen)
 
-    def removesprite(self, obj1):
+    def removeblock(self, obj1):
         self.AllSpritesList.remove(obj1)
         self.CollisionSpritesList.remove(obj1)
+        self.blocklist.remove(obj1)
         del obj1
 
     def addBlock(self):
-        #self.block_nr+=1
+
+        valid_block=True
         newblock = objects.Block(constants.colors["RED"],constants.BLOCKWIDTH, constants.BLOCKHEIGHT)
-        self.AllSpritesList.add(newblock)
-        self.CollisionSpritesList.add(newblock)
-        time_until_next_block = random.randint(10,20)
-        return time_until_next_block
+        for block in self.blocklist:
+            if pygame.sprite.collide_rect(newblock,block):
+                valid_block=False
+        if valid_block:
+            self.AllSpritesList.add(newblock)
+            self.CollisionSpritesList.add(newblock)
+            self.blocklist.append(newblock)
+            time_until_next_block = random.randint(5,6)
+            return time_until_next_block
+        else:
+            return 0
 
 
 class CollisionHandling:
@@ -223,7 +231,7 @@ class CollisionHandling:
             if isinstance(c, objects.Block):
                 c_newhp = c.reduceHP(ballObj.xspeed, ballObj.yspeed)
                 if c_newhp <= 0:
-                    GameObj.removesprite(c)
+                    GameObj.removeblock(c)
 
 
             isVertical_old = CollisionHandling.findBounceIsVertical_old(ballObj, c)
