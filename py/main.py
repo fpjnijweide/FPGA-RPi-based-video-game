@@ -189,34 +189,18 @@ class Game:
         self.grid[obj1.y_on_grid,obj1.x_on_grid]=None
         del obj1
 
-    # def addBlock(self):
-
-    #     valid_block=True
-    #     newblock = objects.Block(constants.colors["RED"],constants.BLOCKWIDTH, constants.BLOCKHEIGHT)
-    #     for block in self.blocklist:
-    #         if pygame.sprite.collide_rect(newblock,block):
-    #             valid_block=False
-    #     if valid_block:
-    #         self.AllSpritesList.add(newblock)
-    #         self.CollisionSpritesList.add(newblock)
-    #         self.blocklist.append(newblock)
-    #         time_until_next_block = random.randint(5,6)
-    #         return time_until_next_block
-    #     else:
-    #         return 0
-
     def init_grid(self):
         self.grid = np.ndarray(([constants.GRIDY,constants.GRIDX]),dtype=np.object)
         self.blocksize = (constants.WINDOW_WIDTH-(2*constants.GRIDMARGIN))//constants.GRIDX
 
     def addBlock(self):
-        newblock = objects.Block(constants.colors["RED"],self.blocksize, self.blocksize)
+        newblock = objects.Block(constants.colors["RED"],self.blocksize-(2*constants.BLOCKMARGIN), self.blocksize-(2*constants.BLOCKMARGIN))
         newblock.x_on_grid=random.randint(1,constants.GRIDX)-1
         newblock.y_on_grid=random.randint(1,constants.GRIDY)-1
 
         if self.grid[newblock.y_on_grid,newblock.x_on_grid] == None:
-            newblock.rect.x=constants.GRIDMARGIN + self.blocksize*newblock.x_on_grid
-            newblock.rect.y=constants.GRIDMARGIN + self.blocksize*newblock.y_on_grid
+            newblock.rect.x=constants.GRIDMARGIN + self.blocksize*newblock.x_on_grid + constants.BLOCKMARGIN
+            newblock.rect.y=constants.GRIDMARGIN + self.blocksize*newblock.y_on_grid + constants.BLOCKMARGIN
             self.AllSpritesList.add(newblock)
             self.CollisionSpritesList.add(newblock)
             self.blocklist.append(newblock)

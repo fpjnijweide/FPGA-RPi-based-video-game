@@ -45,15 +45,17 @@ PADDLESPEED=6
 BLOCKWIDTH  = 100
 BLOCKHEIGHT = 100
 BLOCK_INITIAL_HP = 4
+BLOCKMARGIN = 5 #(margin of block within grid)
 
 # Block grid size
 GRIDX = 10
 GRIDY = 3
 GRIDMARGIN = 100
 
+
 # Block respawn time range
-RESPAWNDELAY = 5
-RESPAWNRANGE = 5
+RESPAWNDELAY = 2
+RESPAWNRANGE = 2
 
 # Color definitions
 colors = {
