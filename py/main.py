@@ -19,8 +19,8 @@ def init():
     pygame.mixer.pre_init()  # TODO set right variables inside this
     # Initialize pygame
     pygame.init()
-    pygame.font.init()
-    # set up screen
+
+    # Set up screen
     global Screen
     Screen = pygame.display.set_mode((constants.WINDOW_WIDTH, constants.WINDOW_HEIGHT))
 
@@ -36,11 +36,9 @@ def init():
 
     # Call Game.__init__() and set gamestate
     global GameState
-    GameState = GameStates.MAINMENU
+    GameState = GameStates.PLAYING
     global GameObj
     GameObj = Game()
-    global MainMenuObj
-    MainMenuObj = MainMenu()
 
 
 def main():
@@ -70,9 +68,8 @@ def main():
             GameObj.handleKeys(keysPressed)
             GameObj.updateGame()
 
-        elif GameState == GameStates.MAINMENU:
-            MainMenuObj.handleKeys(keysPressed)
-            MainMenuObj.updateMenu()
+        # elif GameState == GameStates.MAINMENU:
+            # Do MainMenuObj.handleKeys and updateGame
 
         # Update entire graphical display, TODO can be heavily optimized
         # (by using display.update() and passing it only the screen area that needs to be updated)
@@ -97,11 +94,9 @@ class GameStates(Enum):
         it should always keep track of the screen that the player is on.
     Using this class to assign the GameState variable ensures that it is always one of the defined options.
     """
-    MAINMENU = 0 # unused as of now
+    # MAINMENU = 0 # unused as of now
     PLAYING  = 1
     # GAMEOVER = 2 # unused as of now
-    HIGHSCORES = 2
-    OPTIONS = 3
 
 
 class Game:
@@ -186,111 +181,10 @@ class CollisionHandling:
     """
     Abstract class containing collision handling functions 
     """
-    pygame.font.init()
-    mainFont = None
-    subFont = None
-    highlight = None
-    mainmenu = None
-    startgamemenu = None
-    highscoremenu = None
-    optionsmenu = None
-    exitmenu = None
-    texts = None
-    # widths
-    mainmenu_Width = None
-    startgamemenu_Width = None
-    highscoremenu_Width = None
-    optionsmenu_Width = None
-    exitmenu_Width = None
-    # heights
-    mainmenu_Height = None
-    startgamemenu_Height = None
-    highscoremenu_Height = None
-    optionsmenu_Height = None
-    exitmenu_Height = None
-    selectedItem = None
-    # menuItems = [mainmenu, optionsmenu, highscoremenu, startgamemenu]
-    menuItems = None
-    menucolor = None
-    def __init__(self):
-        pygame.display.set_caption(constants.GAME_NAME + ' - Main menu' )
-        self.mainFont = pygame.font.SysFont('arial', 60) # 76? HEIGTH
-        self.subFont = pygame.font.SysFont('arial', 50) # 58 HEIGTH
-        self.highlight = pygame.font.SysFont('arial', 50, italic=True, bold=True)
-        self.highlight.set_underline(True)
-
-        self.texts = ['Start game','Highscores','Options', 'exit']
-        self.mainmenu = self.writeText('Main Menu', self.mainFont)
-        self.startgamemenu = self.writeText('Start game', self.highlight)
-        self.highscoremenu = self.writeText('Highscores', self.subFont)
-        self.optionsmenu = self.writeText('Options', self.subFont)
-        self.exitmenu = self.writeText('Exit', self.subFont)
-        self.menuItems = { 0:self.startgamemenu, 1:self.highscoremenu, 2:self.optionsmenu, 3:self.exitmenu}
-        self.selectedItem = 0
-        # for x in range(0, len(self.menuItems)):
-        #     print(self.menuItems[x].get_size())# width, height
-        self.mainmenu_Width = constants.WINDOW_HW - self.mainmenu.get_width()//2
-        self.startgamemenu_Width = 30 #constants.WINDOW_WIDTH/1000 # + self.startgamemenu.get_width()//2
-        self.highscoremenu_Width = self.startgamemenu_Width + self.startgamemenu.get_width()
-        self.optionsmenu_Width = self.highscoremenu_Width + self.highscoremenu.get_width()
-        self.exitmenu_Width = self.optionsmenu_Width + self.optionsmenu.get_width()
-        # height menuItems
-        self.mainmenu_Height = constants.WINDOW_HEIGHT*1/4 - self.mainmenu.get_height()//2
-        self.startgamemenu_Height = self.mainmenu_Height + constants.MAINFONT
-        self.highscoremenu_Height = self.startgamemenu_Height + constants.SUBFONT
-        self.optionsmenu_Height = self.highscoremenu_Height + constants.SUBFONT
-        self.exitmenu_Height = self.optionsmenu_Height + constants.SUBFONT
-        self.menucolor = 'RED'
-
-    def handleKeys(self, keysPressed):
-        if keyBindings.checkPress('exit', keysPressed):
-            pygame.quit()
-        if keyBindings.checkPress('left', keysPressed):
-            self.menuItems[self.selectedItem] = self.writeText(self.texts[self.selectedItem], self.subFont)
-            self.selectedItem = (self.selectedItem - 1) % len(self.menuItems)
-            self.menuItems[self.selectedItem] = self.writeText(self.texts[self.selectedItem], self.highlight)
-        if keyBindings.checkPress('right', keysPressed):
-            self.menuItems[self.selectedItem] = self.writeText(self.texts[self.selectedItem], self.subFont)
-            self.selectedItem = (self.selectedItem + 1) % len(self.menuItems)
-            self.menuItems[self.selectedItem] = self.writeText(self.texts[self.selectedItem], self.highlight)
-            if keyBindings.checkPress('activate', keysPressed):
-                print('entered loop')
-                global GameState
-                if self.selectedItem == 0:
-                    GameState = GameStates.PLAYING
-                    # return
-                if self.selectedItem == 1:
-                    GameState = GameStates.HIGHSCORES
-                    # return
-                if self.selectedItem == 2:
-                    GameState = GameStates.OPTIONS
-                    # return
-                if self.selectedItem == 3:
-                    pygame.quit()
-                    # return
-
-    def writeText(self, text, font):
-        if font == self.mainFont:
-            return self.mainFont.render(text, False, constants.colors['YELLOW'])
-        if font == self.subFont:
-            return self.subFont.render(text, False, constants.colors['YELLOW'])
-        if font == self.highlight:
-            return self.highlight.render(text, False, constants.colors['RED'])
-
-    def updateMenu(self):
-        Screen.fill(constants.colors["BLACK"])
-        # Screen.blit(self.mainmenu, (self.mainmenu_Width, self.mainmenu_Height))
-        # Screen.blit(self.startgamemenu, (self.startgamemenu_Width, self.startgamemenu_Height))
-        # Screen.blit(self.highscoremenu, (self.highscoremenu_Width, self.highscoremenu_Height))
-        # Screen.blit(self.optionsmenu, (self.optionsmenu_Width, self.optionsmenu_Height))
-        # Screen.blit(self.exitmenu, (self.exitmenu_Width, self.exitmenu_Height))
-
-        Screen.blit(self.mainmenu, (self.mainmenu_Width, self.mainmenu_Height))
-        Screen.blit(self.menuItems[0], (self.startgamemenu_Width, self.startgamemenu_Height))
-        Screen.blit(self.menuItems[1], (self.highscoremenu_Width, self.highscoremenu_Height))
-        Screen.blit(self.menuItems[2], (self.optionsmenu_Width, self.optionsmenu_Height))
-        Screen.blit(self.menuItems[3], (self.exitmenu_Width, self.exitmenu_Height))
-
+    # README CollisionHandling:
+    # Both verticality-detecting methods have some problems.
+    # The old function will behave unpredictably when the ball's speed is high
+    # The new function is bad at detecting collisions on small sides of a large rectangle.
 
     @staticmethod
     def evaluate(ballObj, collisionSpritesList):
