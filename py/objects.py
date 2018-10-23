@@ -210,3 +210,4 @@ class PowerUpSprite(pygame.sprite.Sprite):
 
     def update(self):
         self.rect.y += 1
+

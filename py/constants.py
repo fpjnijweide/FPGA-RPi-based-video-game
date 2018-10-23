@@ -17,6 +17,11 @@ MUSIC = True
 # Window resolution
 WINDOW_WIDTH = 800
 WINDOW_HEIGHT = 600
+WINDOW_HW = WINDOW_WIDTH//2
+WINDOW_HH = WINDOW_HEIGHT//2
+MAINFONT = 70
+SUBFONT = 58
+
 
 # Frames per second
 FPS = 60
@@ -57,7 +62,7 @@ GRIDMARGIN = 100
 
 # Block respawn time range
 RESPAWNDELAY = 5
-RESPAWNRANGE = 5
+RESPAWNRANGE = 2
 
 # Color definitions
 colors = {
