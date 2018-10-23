@@ -44,7 +44,6 @@ PADDLEHEIGHT = 20
 PADDLE_Y_POS = 520
 
 # Powerup chance
-# TODO change this
 POWERUP_CHANCE = 0.15
 
 # Paddle speed

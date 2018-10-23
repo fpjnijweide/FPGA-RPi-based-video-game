@@ -12,6 +12,7 @@ import random
 import time
 import numpy as np
 
+
 def init():
     """
     main.init() is called once at the very start of the program and sets up pygame.
@@ -38,14 +39,14 @@ def init():
 
     # Call Game.__init__() and set gamestate
     global GameState
-    GameState = GameStates.PLAYING
+    GameState = GameStates.MAINMENU
 
     global GameObj
-    GameObj = Game()
+    GameObj = None  # Game()
     global MenuObj
-    MenuObj = MainMenu()
-    global HighObj
-    HighObj = HighScores()
+    MenuObj = MainMenu()  # None
+    # global HighObj
+    # HighObj = HighScores()
 
 
 def main():
@@ -262,11 +263,11 @@ class CollisionHandling:
 
     def evaluate(self):
         self.handle_ball_collisions()
-        self.handlePowerUpCollisions()
+        self.handle_power_up_collisions()
 
     def handle_ball_collisions(self):
         """
-        Detect collisions, check findBounceIsVertical and objects.Ball.bounce()
+        detect collisions, check findBounceIsVertical and objects.Ball.bounce()
         """
         index=0
         for col_timer in self.next_collision_exclusion_time:
@@ -277,14 +278,8 @@ class CollisionHandling:
 
         collisions = pygame.sprite.spritecollide(self.game.playerBall, self.game.CollisionSpritesList, False)
 
-        # If no collisions happen
-        if len(collisions) == 0:
-
-            # then speeds do not change and function exits
-            return
-
-        # If there are collisions iterate through them
-        # print(len(collisions), " collisions this frame")
+        if len(collisions) > 1:
+            print(collisions)
         for c in collisions:
 
             if c not in self.next_collision_exclusion:
@@ -302,8 +297,8 @@ class CollisionHandling:
                             self.game.AllSpritesList.add(newPowerUp)
                             self.game.powerUpSpritesList.add(newPowerUp)
 
-                isVertical_old = CollisionHandling.findBounceIsVertical_old(self.game.playerBall, c)
-                isVertical = CollisionHandling.findBounceIsVertical(self.game.playerBall, c)
+                isVertical_old = CollisionHandling.find_bounce_is_vertical_old(self.game.playerBall, c)
+                isVertical = CollisionHandling.find_bounce_is_vertical(self.game.playerBall, c)
 
                 self.game.playerBall.bounce(isVertical)  # or change to the old one
 
@@ -312,18 +307,15 @@ class CollisionHandling:
                 self.next_collision_exclusion.append(c)
                 self.next_collision_exclusion_time.append(time.time()+0.2)
 
-    def handlePowerUpCollisions(self):
+    def handle_power_up_collisions(self):
         # After checking ball collisions, check for powerups to collect
         powerUpCollisions = pygame.sprite.spritecollide(self.game.paddle, self.game.powerUpSpritesList, True)
         for c in powerUpCollisions:
             self.game.readyPowerUp = c.powerUp
             print("caught %s powerup" % self.game.readyPowerUp.type)
 
-
-
-
     @staticmethod
-    def findBounceIsVertical(ballObj, collisionObj):
+    def find_bounce_is_vertical(ballObj, collisionObj):
         """
         Returns True if the ball collides on a vertical surface
         If True, the ball's xspeed should be flipped
@@ -334,7 +326,8 @@ class CollisionHandling:
         # see this link for explanation:
         # https://gamedev.stackexchange.com/questions/61705/pygame-colliderect-but-how-do-they-collide
 
-        # phi = arctan(yspeed / xspeed)
+        # phi = arctan(yspeed / xspeed)bj
+    # GameObj = Game(
         # result is in radians, ranging from -pi to pi
         # can be flipped by adding or subtracting pi
         tau = 2 * math.pi
@@ -362,7 +355,7 @@ class CollisionHandling:
         return not (top or bottom)
 
     @staticmethod
-    def findBounceIsVertical_old(ballObj, collisionObj):
+    def find_bounce_is_vertical_old(ballObj, collisionObj):
         """
         returns True if bounce happens on a vertical surface
         This function seems to do alright, except for at large ball speeds.
@@ -457,30 +450,43 @@ class MainMenu:
 
     def handleKeys(self, keysPressed):
         if keyBindings.checkPress('exit', keysPressed):
-            pygame.quit()
+            pygame.event.post(pygame.event.Event(pygame.QUIT))
+            return
+
         if keyBindings.checkPress('left', keysPressed):
             self.menuItems[self.selectedItem] = self.writeText(self.texts[self.selectedItem], self.subFont)
             self.selectedItem = (self.selectedItem - 1) % len(self.menuItems)
             self.menuItems[self.selectedItem] = self.writeText(self.texts[self.selectedItem], self.highlight)
+
         if keyBindings.checkPress('right', keysPressed):
             self.menuItems[self.selectedItem] = self.writeText(self.texts[self.selectedItem], self.subFont)
             self.selectedItem = (self.selectedItem + 1) % len(self.menuItems)
             self.menuItems[self.selectedItem] = self.writeText(self.texts[self.selectedItem], self.highlight)
-            if keyBindings.checkPress('activate', keysPressed):
-                print('entered loop')
-                global GameState
-                if self.selectedItem == 0:
-                    GameState = GameStates.PLAYING
-                    # return
-                if self.selectedItem == 1:
-                    GameState = GameStates.HIGHSCORES
-                    # return
-                if self.selectedItem == 2:
-                    GameState = GameStates.OPTIONS
-                    # return
-                if self.selectedItem == 3:
-                    pygame.quit()
-                    # return
+
+        if keyBindings.checkPress('activate', keysPressed):
+
+            global GameState
+            global MainObj
+
+            if self.selectedItem == 0:
+                GameState = GameStates.PLAYING
+                global GameObj
+                GameObj = Game()
+                MainObj = None
+
+            elif self.selectedItem == 1:
+                GameState = GameStates.HIGHSCORES
+
+            elif self.selectedItem == 2:
+                GameState = GameStates.OPTIONS
+
+            elif self.selectedItem == 3:
+                pygame.event.post(pygame.event.Event(pygame.QUIT))
+
+    # TODO use class instances for the various screen items
+    class menuOption:
+        width = None
+        height = None
 
     def writeText(self, text, font):
         if font == self.mainFont:
@@ -504,7 +510,7 @@ class MainMenu:
         Screen.blit(self.menuItems[2], (self.optionsmenu_Width, self.optionsmenu_Height))
         Screen.blit(self.menuItems[3], (self.exitmenu_Width, self.exitmenu_Height))
 
-        time.sleep(0.3)
+        time.sleep(0.01)
 
 
 

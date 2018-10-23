@@ -21,7 +21,7 @@ class Block(pygame.sprite.Sprite):
             self.initialhp = constants.BLOCK_INITIAL_HP*2
         if type=="blue":
             color=constants.colors["BLUE"]
-            self.initialhp = constants.BLOCK_INITIAL_HP*3            
+            self.initialhp = constants.BLOCK_INITIAL_HP*3
 
         
         self.hp = self.initialhp
@@ -42,7 +42,6 @@ class Block(pygame.sprite.Sprite):
         else:
             self.hp = self.hp - abs(xspeed)
 
-
         if self.hp > 0:
             print(self.hp)
             print(self.initialhp)
@@ -53,17 +52,18 @@ class Block(pygame.sprite.Sprite):
         if self.hp <= 0:
             self.image.fill((0,0,0))
         return self.hp
-        #self.currentColor = tuple(map(lambda x:   x*(self.hp//self.initialhp), self.initialColor))
+        # self.currentColor = tuple(map(lambda x:   x*(self.hp//self.initialhp), self.initialColor))
         
-        #TODO if hp is 0, remove the object instead of letting the game crash
+        # TODO if hp is 0, remove the object instead of letting the game crash
+
 
 class Ball(pygame.sprite.Sprite):
     """
     This class represents a Ball.
     It derives from the "Sprite" class in Pygame.
     """ 
-   # xspeed = 0
-   # yspeed = 0
+    # xspeed = 0
+    # yspeed = 0
 
     maxSpeed = 50
 
@@ -210,6 +210,9 @@ class PowerUp:
                 return t
         print("getTypeInfo error!")
 
+    def activate(self):
+        pass
+
     class PowerUpSprite(pygame.sprite.Sprite):
         """
         Contains the object of a powerup that is displayed on the screen.
@@ -232,5 +235,3 @@ class PowerUp:
 
         def update(self):
             self.rect.y += 1
-
-
