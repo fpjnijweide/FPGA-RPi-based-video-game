@@ -6,15 +6,24 @@ import random
 class Block(pygame.sprite.Sprite):
     """
     """
-    def __init__(self, color, width, height):
+    def __init__(self, type, width, height):
 
         super().__init__()
-
-        # Paddle located in middle of screen
-        #self.blockWidth = constants.BLOCKWIDTH
-        #self.blockHeight = constants.BLOCKHEIGHT
         
-        self.initialhp = constants.BLOCK_INITIAL_HP
+        if type=="default":
+            color=constants.colors["WHITE"]
+            self.initialhp = constants.BLOCK_INITIAL_HP
+        if type=="red":
+            color=constants.colors["RED"]
+            self.initialhp = constants.BLOCK_INITIAL_HP*8
+        if type=="green":
+            color=constants.colors["GREEN"]
+            self.initialhp = constants.BLOCK_INITIAL_HP*2
+        if type=="blue":
+            color=constants.colors["BLUE"]
+            self.initialhp = constants.BLOCK_INITIAL_HP*3            
+
+        
         self.hp = self.initialhp
 
         self.initialColor = color

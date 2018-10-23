@@ -194,7 +194,16 @@ class Game:
         self.blocksize = (constants.WINDOW_WIDTH-(2*constants.GRIDMARGIN))//constants.GRIDX
 
     def addBlock(self):
-        newblock = objects.Block(constants.colors["WHITE"],self.blocksize-(2*constants.BLOCKMARGIN), self.blocksize-(2*constants.BLOCKMARGIN))
+        throwdice=random.randint(1,100)
+        if throwdice >= 70 and throwdice<85:
+            blocktype="green"
+        elif throwdice >= 85 and throwdice<95:
+            blocktype="blue"
+        elif throwdice >= 95:
+            blocktype="red"
+        else:
+            blocktype="default"
+        newblock = objects.Block(blocktype,self.blocksize-(2*constants.BLOCKMARGIN), self.blocksize-(2*constants.BLOCKMARGIN))
         newblock.x_on_grid=random.randint(1,constants.GRIDX)-1
         newblock.y_on_grid=random.randint(1,constants.GRIDY)-1
 

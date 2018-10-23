@@ -44,7 +44,7 @@ PADDLESPEED=6
 # Block size
 BLOCKWIDTH  = 100
 BLOCKHEIGHT = 100
-BLOCK_INITIAL_HP = 4
+BLOCK_INITIAL_HP = 2
 BLOCKMARGIN = 5 #(margin of block within grid)
 
 # Block grid size
