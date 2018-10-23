@@ -169,38 +169,12 @@ class PowerUp:
 
     """
     pass
-    # ('name', rng_chance)
-    types = [('speed', 0.7), ('rocket', 0.2)]
 
-    def generateType(self):
-        rngchoose = 0.0
-        rngtotal = 0.0
-        for type in self.types:
-            rngtotal += type[1]
-            print(rngtotal)
-        rngnum = random.uniform(0, rngtotal)
-        for type in self.types:
-            rngchoose += type[1]
-            if rngnum <= rngchoose:
-                return type[0]
-        else:
-            print("Warning, no PowerUp type was generated")
 
 
 class PowerUpSprite(pygame.sprite.Sprite):
     """
     Contains the object of a powerup that is displayed on the screen.
     """
-    width  = 10
-    height = 20
-    def __init__(self, type, x, y):
+    def __init__(self, type, location):
         super().__init__()
-
-        self.type = PowerUp.generateType()
-        print("generated %s powerup." % self.type)
-
-        self.image = pygame.Surface([self.width, self.height])
-        self.rect = self.image.get_rect()
-        self.rect.x = x
-        self.rect.y = y
-
