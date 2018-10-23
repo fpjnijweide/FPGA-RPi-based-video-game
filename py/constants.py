@@ -36,7 +36,7 @@ INITIAL_BALL_XSPEED = 7
 INITIAL_BALL_YSPEED = 5
 
 # Wall size
-WALLSIZE = 20
+WALLSIZE = 1
 
 # Paddle size
 PADDLEWIDTH  = 70
@@ -45,10 +45,10 @@ PADDLE_Y_POS = 520
 
 # Powerup chance
 # TODO change this
-POWERUP_CHANCE = 0.8
+POWERUP_CHANCE = 0.15
 
 #Paddle speed
-PADDLESPEED=6
+PADDLESPEED=7
 
 # Block size
 BLOCKWIDTH  = 100
@@ -63,8 +63,8 @@ GRIDMARGIN = 100
 
 
 # Block respawn time range
-RESPAWNDELAY = 2
-RESPAWNRANGE = 2
+RESPAWNDELAY = 1
+RESPAWNRANGE = 3
 
 # Color definitions
 colors = {

@@ -250,6 +250,10 @@ class CollisionHandling:
 
 
     def evaluate(self):
+        self.handle_ball_collisions()
+        self.handlePowerUpCollisions()
+
+    def handle_ball_collisions(self):
         """
         Detect collisions, check findBounceIsVertical and objects.Ball.bounce()
         """
@@ -274,36 +278,35 @@ class CollisionHandling:
 
             if c not in self.next_collision_exclusion:
 
+                # Collision happens with block (instead of paddle or ball)
                 if isinstance(c, objects.Block):
                     c_newhp = c.reduceHP(self.game.playerBall.xspeed, self.game.playerBall.yspeed)
                     if c_newhp <= 0:
                         GameObj.removeblock(c)
 
+                        # Randomly generate powerup
                         if random.random() < constants.POWERUP_CHANCE:
+                            # Create object and add to relevant sprite lists
                             newPowerUp = objects.PowerUp.PowerUpSprite(self.game.playerBall.rect.x, self.game.playerBall.rect.y)
                             self.game.AllSpritesList.add(newPowerUp)
                             self.game.powerUpSpritesList.add(newPowerUp)
 
-                
                 isVertical_old = CollisionHandling.findBounceIsVertical_old(self.game.playerBall, c)
                 isVertical = CollisionHandling.findBounceIsVertical(self.game.playerBall, c)
-                if (isVertical != isVertical_old):
-                    # This print statement can be used to inspect discrepancies between the two
-                    # print("old vertical %s, new vertical %s" % (isVertical_old, isVertical))
-                    pass
 
-                self.game.playerBall.bounce(isVertical_old)  # or change to the old one
+                self.game.playerBall.bounce(isVertical)  # or change to the old one
 
                 # Should be handled at the object collided with, not here
                 AudioObj.playSound('bounce')
                 self.next_collision_exclusion.append(c)
                 self.next_collision_exclusion_time.append(time.time()+0.2)
 
+    def handlePowerUpCollisions(self):
         # After checking ball collisions, check for powerups to collect
-        powerCollisions = pygame.sprite.spritecollide(self.game.paddle, self.game.powerUpSpritesList, True)
-        for c in powerCollisions:
+        powerUpCollisions = pygame.sprite.spritecollide(self.game.paddle, self.game.powerUpSpritesList, True)
+        for c in powerUpCollisions:
             self.game.readyPowerUp = c.powerUp
-            print("caught powerup", c)
+            print("caught %s powerup" % self.game.readyPowerUp.type)
 
 
 
