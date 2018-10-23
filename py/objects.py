@@ -72,8 +72,8 @@ class Ball(pygame.sprite.Sprite):
         self.rect = self.image.get_rect()
 
         #set initial speed
-        self.xspeed=2
-        self.yspeed=2
+        self.xspeed=4
+        self.yspeed=4
 
         #set position on screen
         self.rect.x = 30
@@ -200,6 +200,7 @@ class PowerUpSprite(pygame.sprite.Sprite):
         print("generated %s powerup." % self.type)
 
         self.image = pygame.Surface([self.width, self.height])
+        self.image.fill(constants.colors['CYAN'])
         self.rect = self.image.get_rect()
         self.rect.x = x
         self.rect.y = y

@@ -228,7 +228,7 @@ class CollisionHandling:
                 # print("old vertical %s, new vertical %s" % (isVertical_old, isVertical))
                 pass
 
-            ballObj.bounce(isVertical)  # or change to the old one
+            ballObj.bounce(isVertical_old)  # or change to the new one
 
             # Should be handled at the object collided with, not here
             AudioObj.playSound('bounce')
