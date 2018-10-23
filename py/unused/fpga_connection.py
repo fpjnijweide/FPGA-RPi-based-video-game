@@ -22,3 +22,10 @@ def stopConnection():
 
 
 
+def sendBounce(bounceIsVertical, xspeed, yspeed, bounceConstant):
+    """
+    should convert all values to a format specified in the fpga connection,
+    and then call the sendData() function on the converted arguments
+    """
+    return
+

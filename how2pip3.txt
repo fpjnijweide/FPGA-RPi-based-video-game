@@ -1,3 +1,7 @@
+This stuff is all not necessary for now and can be ignored
+In the future however, it could be useful to use a virtualenv for easy dependency installing.
+This is because we will need to provide exact instructions on how to get our program up and running for the final files we hand in.
+
 pip3 is used to install python packages.
 A python virtual environment can be used to keep project-related python packages in one place
 The python3-venv package can be used to manage this virtual environment

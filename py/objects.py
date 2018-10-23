@@ -14,8 +14,6 @@ class Block(pygame.sprite.Sprite): #unused as of now
         self.rect = self.image.get_rect() # lmao get rekt
         self.name = BLOCK
 
-
-
 class Ball(pygame.sprite.Sprite):
     """
     This class represents a Ball.
@@ -23,6 +21,9 @@ class Ball(pygame.sprite.Sprite):
     """ 
     xspeed = 0
     yspeed = 0
+
+    maxSpeed = 50
+
     def __init__(self, color, radius):
         # Call the parent class (Sprite) constructor
         super().__init__()
@@ -47,6 +48,34 @@ class Ball(pygame.sprite.Sprite):
         self.rect.x = constants.WINDOW_WIDTH  // 2
         self.rect.y = constants.WINDOW_HEIGHT // 2
 
+        self.xfloat = float(self.rect.x)
+        self.yfloat = float(self.rect.y)
+
+
+    def bounce(self, bounceIsVertical):
+        """
+        Used in conjunction with 
+        """
+        # This function should 
+        # but until the connection is realized this function will take care of that.
+        if constants.FPGA_ENABLED:
+            #self.rect.x, self.rect.y = fpga_connection.sendBounce(bounceIsVertical, self.xspeed, self.yspeed, bounceConstant)
+            pass
+        else:
+            if bounceIsVertical:
+                self.xspeed *= -1
+            else:
+                self.yspeed *= -1
+
+
+    def update(self):
+        """update ball location"""
+        self.xfloat += self.xspeed
+        self.yfloat += self.yspeed
+        self.rect.x = self.xfloat
+        self.rect.y = self.yfloat
+
+
 class Paddle(pygame.sprite.Sprite):
     """
     """
@@ -69,9 +98,8 @@ class Wall(pygame.sprite.Sprite):
     """
     edges of screen. Used for collision detection as well as graphical purposes
     wall is size pixels thicc
+    location is int from 0 to 3 meaning left,top,right,bottom
     """
-
-
     def __init__(self, color, size, location):
         
         super().__init__()
@@ -81,25 +109,23 @@ class Wall(pygame.sprite.Sprite):
             x,y = 0, 0
             self.name = "left_wall"
             
-            
-        elif location == 1: # tpo wall
+        elif location == 1:  # top wall
             w_h = [constants.WINDOW_WIDTH, size]
             x,y = 0, 0
             self.name = "top_wall"
 
-        elif location == 2: # right wall
+        elif location == 2:  # right wall
             w_h = [size, constants.WINDOW_HEIGHT]
             x,y = constants.WINDOW_WIDTH - size, 0
             self.name = "right_wall"
 
-        elif location == 3: # bottom wall
+        elif location == 3:  # bottom wall
             w_h = [constants.WINDOW_WIDTH, size]
             x,y = 0, (constants.WINDOW_HEIGHT - size) 
             self.name = "bottom_wall"
 
         else:
             raise IndexError('Wall location out of range (0..3)')
-
 
         self.image = pygame.Surface(w_h)
         self.image.fill(color)
