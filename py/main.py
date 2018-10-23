@@ -207,9 +207,12 @@ class CollisionHandling:
         # print(len(collisions), " collisions this frame")
         for c in collisions:
             if isinstance(c, objects.Block):
-                c_newhp = c.reduceHP(ballXspeed,ballYspeed)
+                c_newhp = c.reduceHP(ballObj.xspeed, ballObj.yspeed)
                 if c_newhp <= 0:
-                    GameObj.removesprite(c)            
+                    GameObj.removesprite(c)
+
+
+            isVertical_old = CollisionHandling.findBounceIsVertical_old(ballObj, c)
             isVertical = CollisionHandling.findBounceIsVertical(ballObj, c)
             if (isVertical != isVertical_old):
                 # This print statement can be used to inspect discrepancies between the two
