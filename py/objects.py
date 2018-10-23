@@ -18,6 +18,7 @@ class Block(pygame.sprite.Sprite):
         self.hp = self.initialhp
 
         self.initialColor = color
+        (self.initialRed, self.initialGreen, self.initialBlue) = color
         self.currentColor = self.initialColor
         self.image = pygame.Surface([width, height])
         self.image.fill(self.currentColor)
@@ -36,8 +37,10 @@ class Block(pygame.sprite.Sprite):
         if self.hp > 0:
             print(self.hp)
             print(self.initialhp)
-            redcolor= int(255*(self.hp/self.initialhp))
-            self.image.fill((    redcolor   ,0,0))
+            redcolor= int(self.initialRed*(self.hp/self.initialhp))
+            greencolor= int(self.initialGreen*(self.hp/self.initialhp))
+            bluecolor= int(self.initialBlue*(self.hp/self.initialhp))
+            self.image.fill((    redcolor   ,greencolor,bluecolor))
         if self.hp <= 0:
             self.image.fill((0,0,0))
         return self.hp
