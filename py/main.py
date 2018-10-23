@@ -39,10 +39,13 @@ def init():
     # Call Game.__init__() and set gamestate
     global GameState
     GameState = GameStates.PLAYING
+
     global GameObj
     GameObj = Game()
-    # global CollisionHandler
-    # CollisionHandler = CollisionHandling(GameObj)
+    global MenuObj
+    MenuObj = MainMenu()
+    global HighObj
+    HighObj = HighScores()
 
 
 def main():
@@ -68,12 +71,17 @@ def main():
         keysPressed = pygame.key.get_pressed()
 
         if GameState == GameStates.PLAYING:
-
             GameObj.handleKeys(keysPressed)
             GameObj.updateGame()
+        if GameState == GameStates.MAINMENU:
+            MenuObj.handleKeys(keysPressed)
+            MenuObj.updateMenu()
+        if GameState == GameStates.HIGHSCORES:
+            HighObj.handleKeys(keysPressed)
+            HighObj.updateHigh()
 
         # elif GameState == GameStates.MAINMENU:
-            # Do MainMenuObj.handleKeys and updateGame
+        # Do MainMenuObj.handleKeys and updateGame
 
         # Update entire graphical display, TODO can be heavily optimized
         # (by using display.update() and passing it only the screen area that needs to be updated)
@@ -86,7 +94,7 @@ def main():
 
         # then wait until tick has fully passed
         ClockObj.tick(constants.FPS)
-        
+
         # End of game loop.
         # Note that the game stops updating but is not quit entirely
 
@@ -98,9 +106,12 @@ class GameStates(Enum):
         it should always keep track of the screen that the player is on.
     Using this class to assign the GameState variable ensures that it is always one of the defined options.
     """
-    # MAINMENU = 0 # unused as of now
+    MAINMENU = 0
     PLAYING  = 1
     # GAMEOVER = 2 # unused as of now
+    HIGHSCORES = 2
+    OPTIONS = 3
+
 
 
 class Game:
@@ -376,6 +387,12 @@ class CollisionHandling:
         # print(not top, not bot, not rgt, not lft)
         return not rgt or not lft
 
+class HighScores:
+    def updateHigh(self):
+        pass
+    def handleKeys(self, keysPressed):
+        pass
+
 
 class MainMenu:
     """
@@ -486,6 +503,8 @@ class MainMenu:
         Screen.blit(self.menuItems[1], (self.highscoremenu_Width, self.highscoremenu_Height))
         Screen.blit(self.menuItems[2], (self.optionsmenu_Width, self.optionsmenu_Height))
         Screen.blit(self.menuItems[3], (self.exitmenu_Width, self.exitmenu_Height))
+
+        time.sleep(0.3)
 
 
 

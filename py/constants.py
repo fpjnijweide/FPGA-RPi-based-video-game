@@ -36,7 +36,7 @@ INITIAL_BALL_XSPEED = 7
 INITIAL_BALL_YSPEED = 5
 
 # Wall size
-WALLSIZE = 1
+WALLSIZE = 5
 
 # Paddle size
 PADDLEWIDTH  = 70
@@ -47,7 +47,7 @@ PADDLE_Y_POS = 520
 # TODO change this
 POWERUP_CHANCE = 0.15
 
-#Paddle speed
+# Paddle speed
 PADDLESPEED=7
 
 # Block size
