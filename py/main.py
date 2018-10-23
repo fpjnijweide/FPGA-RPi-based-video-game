@@ -36,9 +36,11 @@ def init():
 
     # Call Game.__init__() and set gamestate
     global GameState
-    GameState = GameStates.PLAYING
+    GameState = GameStates.MAINMENU
     global GameObj
     GameObj = Game()
+    global MainObj
+    MainObj = MainMenu()
 
 
 def main():
@@ -67,6 +69,9 @@ def main():
 
             GameObj.handleKeys(keysPressed)
             GameObj.updateGame()
+        if GameState == GameStates.MAINMENU:
+            MainObj.handleKeys(keysPressed)
+            MainObj.updateGame()
 
         # elif GameState == GameStates.MAINMENU:
             # Do MainMenuObj.handleKeys and updateGame
@@ -97,6 +102,9 @@ class GameStates(Enum):
     # MAINMENU = 0 # unused as of now
     PLAYING  = 1
     # GAMEOVER = 2 # unused as of now
+    HIGHSCORES = 2
+    OPTIONS = 3
+
 
 
 class Game:
