@@ -122,9 +122,12 @@ class Game:
 
         # Create paddle object
         self.paddle = objects.Paddle(constants.colors["WHITE"], constants.PADDLE_Y_POS, constants.PADDLEWIDTH, constants.PADDLEHEIGHT)
+        self.block = objects.Block(constants.colors["RED"],constants.BLOCKWIDTH, constants.BLOCKHEIGHT)
         self.AllSpritesList.add(self.paddle)
         self.CollisionSpritesList.add(self.paddle)
         
+        self.AllSpritesList.add(self.block)
+        self.CollisionSpritesList.add(self.block)
         # Play some music!
         # use one of these
         # AudioObj.playMusic('highScore')
@@ -144,14 +147,10 @@ class Game:
         if keyBindings.checkPress('exit', keysPressed):
             pygame.event.post(pygame.event.Event(pygame.QUIT))
 
-        if keyBindings.checkPress('up', keysPressed):
-            self.playerBall.yspeed -= 0.1
-        if keyBindings.checkPress('down', keysPressed):
-            self.playerBall.yspeed += 0.1
         if keyBindings.checkPress('left', keysPressed):
-            self.playerBall.xspeed -= 0.1
+            self.paddle.rect.x -= 6
         if keyBindings.checkPress('right', keysPressed):
-            self.playerBall.xspeed += 0.1
+            self.paddle.rect.x += 6
 
         # (re)set ball location when pressing K_HOME (cheat)
         if keyBindings.checkPress('restart', keysPressed):
@@ -175,6 +174,11 @@ class Game:
 
         # draw sprites
         self.AllSpritesList.draw(Screen)
+
+    def removesprite(self, obj1):
+        self.AllSpritesList.remove(obj1)
+        self.CollisionSpritesList.remove(obj1)
+        del obj1
 
 
 class CollisionHandling:
@@ -202,10 +206,10 @@ class CollisionHandling:
         # If there are collisions iterate through them
         # print(len(collisions), " collisions this frame")
         for c in collisions:
-
-            # TODO decide which algorithm is better at detecting
-            # TODO                              collision issues.
-            isVertical_old = CollisionHandling.findBounceIsVertical_old(ballObj, c)
+            if isinstance(c, objects.Block):
+                c_newhp = c.reduceHP(ballXspeed,ballYspeed)
+                if c_newhp <= 0:
+                    GameObj.removesprite(c)            
             isVertical = CollisionHandling.findBounceIsVertical(ballObj, c)
             if (isVertical != isVertical_old):
                 # This print statement can be used to inspect discrepancies between the two
