@@ -5,9 +5,9 @@ keys = {
     'right': [pygame.K_RIGHT, pygame.K_d],
     'up'   : [pygame.K_UP, pygame.K_w],
     'down' : [pygame.K_DOWN, pygame.K_s],
-    'activate' : [pygame.K_SPACE, pygame.K_RETURN],
+    'activate': [pygame.K_SPACE, pygame.K_RETURN],
     'exit' : [pygame.K_ESCAPE],
-    'restart' : [pygame.K_HOME]
+    'restart': [pygame.K_HOME]
 }
 
 def checkPress(action, keysPressed):

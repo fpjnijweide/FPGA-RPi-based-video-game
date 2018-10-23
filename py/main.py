@@ -275,7 +275,7 @@ class CollisionHandling:
                         GameObj.removeblock(c)
 
                         if random.random() < constants.POWERUP_CHANCE:
-                            newPowerUp = objects.PowerUpSprite(ballObj.rect.x, ballObj.rect.y)
+                            newPowerUp = objects.PowerUps.PowerUpSprite(ballObj.rect.x, ballObj.rect.y)
                             self.game.AllSpritesList.add(newPowerUp)
                             #self.game.CollisionSpritesList.add(newPowerUp)
 
