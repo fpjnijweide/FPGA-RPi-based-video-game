@@ -6,18 +6,28 @@ import random
 class Block(pygame.sprite.Sprite):
     """
     """
-    def __init__(self, color, width, height):
+    def __init__(self, type, width, height):
 
         super().__init__()
-
-        # Paddle located in middle of screen
-        #self.blockWidth = constants.BLOCKWIDTH
-        #self.blockHeight = constants.BLOCKHEIGHT
         
-        self.initialhp = constants.BLOCK_INITIAL_HP
+        if type=="default":
+            color=constants.colors["WHITE"]
+            self.initialhp = constants.BLOCK_INITIAL_HP
+        if type=="red":
+            color=constants.colors["RED"]
+            self.initialhp = constants.BLOCK_INITIAL_HP*8
+        if type=="green":
+            color=constants.colors["GREEN"]
+            self.initialhp = constants.BLOCK_INITIAL_HP*2
+        if type=="blue":
+            color=constants.colors["BLUE"]
+            self.initialhp = constants.BLOCK_INITIAL_HP*3            
+
+        
         self.hp = self.initialhp
 
         self.initialColor = color
+        (self.initialRed, self.initialGreen, self.initialBlue) = color
         self.currentColor = self.initialColor
         self.image = pygame.Surface([width, height])
         self.image.fill(self.currentColor)
@@ -36,8 +46,10 @@ class Block(pygame.sprite.Sprite):
         if self.hp > 0:
             print(self.hp)
             print(self.initialhp)
-            redcolor= int(255*(self.hp/self.initialhp))
-            self.image.fill((    redcolor   ,0,0))
+            redcolor= int(self.initialRed*(self.hp/self.initialhp))
+            greencolor= int(self.initialGreen*(self.hp/self.initialhp))
+            bluecolor= int(self.initialBlue*(self.hp/self.initialhp))
+            self.image.fill((    redcolor   ,greencolor,bluecolor))
         if self.hp <= 0:
             self.image.fill((0,0,0))
         return self.hp

@@ -41,6 +41,8 @@ def init():
     GameState = GameStates.PLAYING
     global GameObj
     GameObj = Game()
+    global CollisionHandler
+    CollisionHandler = CollisionHandling(GameObj)
 
 
 def main():
@@ -198,34 +200,27 @@ class Game:
         self.grid[obj1.y_on_grid,obj1.x_on_grid]=None
         del obj1
 
-    # def addBlock(self):
-
-    #     valid_block=True
-    #     newblock = objects.Block(constants.colors["RED"],constants.BLOCKWIDTH, constants.BLOCKHEIGHT)
-    #     for block in self.blocklist:
-    #         if pygame.sprite.collide_rect(newblock,block):
-    #             valid_block=False
-    #     if valid_block:
-    #         self.AllSpritesList.add(newblock)
-    #         self.CollisionSpritesList.add(newblock)
-    #         self.blocklist.append(newblock)
-    #         time_until_next_block = random.randint(5,6)
-    #         return time_until_next_block
-    #     else:
-    #         return 0
-
     def init_grid(self):
         self.grid = np.ndarray(([constants.GRIDY,constants.GRIDX]),dtype=np.object)
         self.blocksize = (constants.WINDOW_WIDTH-(2*constants.GRIDMARGIN))//constants.GRIDX
 
     def addBlock(self):
-        newblock = objects.Block(constants.colors["RED"],self.blocksize, self.blocksize)
+        throwdice=random.randint(1,100)
+        if throwdice >= 70 and throwdice<85:
+            blocktype="green"
+        elif throwdice >= 85 and throwdice<95:
+            blocktype="blue"
+        elif throwdice >= 95:
+            blocktype="red"
+        else:
+            blocktype="default"
+        newblock = objects.Block(blocktype,self.blocksize-(2*constants.BLOCKMARGIN), self.blocksize-(2*constants.BLOCKMARGIN))
         newblock.x_on_grid=random.randint(1,constants.GRIDX)-1
         newblock.y_on_grid=random.randint(1,constants.GRIDY)-1
 
         if self.grid[newblock.y_on_grid,newblock.x_on_grid] == None:
-            newblock.rect.x=constants.GRIDMARGIN + self.blocksize*newblock.x_on_grid
-            newblock.rect.y=constants.GRIDMARGIN + self.blocksize*newblock.y_on_grid
+            newblock.rect.x=constants.GRIDMARGIN + self.blocksize*newblock.x_on_grid + constants.BLOCKMARGIN
+            newblock.rect.y=constants.GRIDMARGIN + self.blocksize*newblock.y_on_grid + constants.BLOCKMARGIN
             self.AllSpritesList.add(newblock)
             self.CollisionSpritesList.add(newblock)
             self.blocklist.append(newblock)
@@ -236,6 +231,7 @@ class Game:
             return 0
 
 class CollisionHandling:
+
     """
     class containing collision handling functions
     """
@@ -245,11 +241,20 @@ class CollisionHandling:
     # The new function is bad at detecting collisions on small sides of a large rectangle.
     def __init__(self, game):
         self.game = game
+        self.next_collision_exclusion=[]
+        self.next_collision_exclusion_time=[]
 
-    def evaluate(self, ballObj, collisionSpritesList):
+    def evaluate(self,ballObj, collisionSpritesList):
         """
         Detect collisions, check findBounceIsVertical and objects.Ball.bounce()
         """
+        index=0
+        for col_timer in self.next_collision_exclusion_time:
+            if time.time()>col_timer:
+                del self.next_collision_exclusion[index]
+                del self.next_collision_exclusion_time[index]
+            index+=1
+
         collisions = pygame.sprite.spritecollide(ballObj, collisionSpritesList, False)
 
         # If no collisions happen
@@ -261,33 +266,33 @@ class CollisionHandling:
         # If there are collisions iterate through them
         # print(len(collisions), " collisions this frame")
         for c in collisions:
-            if isinstance(c, objects.Block):
-                c_newhp = c.reduceHP(ballObj.xspeed, ballObj.yspeed)
-                if c_newhp <= 0:
-                    self.game.removeblock(c)
 
-                    if random.random() < constants.POWERUP_CHANCE:
-                        newPowerUp = objects.PowerUpSprite(ballObj.rect.x, ballObj.rect.y)
-                        self.game.AllSpritesList.add(newPowerUp)
-                        #self.game.CollisionSpritesList.add(newPowerUp)
-                        print("Powerup generated")
+            if c not in self.next_collision_exclusion:
 
-            # if isinstance(c, objects.PowerUpSprite):
-            #     print("received new powerup!")
-            #     self.game.readyPowerUp = objects.readyPowerUp(c.type)
+                if isinstance(c, objects.Block):
+                    c_newhp = c.reduceHP(ballObj.xspeed, ballObj.yspeed)
+                    if c_newhp <= 0:
+                        GameObj.removeblock(c)
 
+                        if random.random() < constants.POWERUP_CHANCE:
+                            newPowerUp = objects.PowerUpSprite(ballObj.rect.x, ballObj.rect.y)
+                            self.game.AllSpritesList.add(newPowerUp)
+                            #self.game.CollisionSpritesList.add(newPowerUp)
 
-            isVertical_old = CollisionHandling.findBounceIsVertical_old(ballObj, c)
-            isVertical = CollisionHandling.findBounceIsVertical(ballObj, c)
-            if (isVertical != isVertical_old):
-                # This print statement can be used to inspect discrepancies between the two
-                # print("old vertical %s, new vertical %s" % (isVertical_old, isVertical))
-                pass
+                
+                isVertical_old = CollisionHandling.findBounceIsVertical_old(ballObj, c)
+                isVertical = CollisionHandling.findBounceIsVertical(ballObj, c)
+                if (isVertical != isVertical_old):
+                    # This print statement can be used to inspect discrepancies between the two
+                    # print("old vertical %s, new vertical %s" % (isVertical_old, isVertical))
+                    pass
 
-            ballObj.bounce(isVertical_old)  # or change to the new one
+                ballObj.bounce(isVertical)  # or change to the old one
 
-            # Should be handled at the object collided with, not here
-            AudioObj.playSound('bounce')
+                # Should be handled at the object collided with, not here
+                AudioObj.playSound('bounce')
+                self.next_collision_exclusion.append(c)
+                self.next_collision_exclusion_time.append(time.time()+0.2)
 
     @staticmethod
     def findBounceIsVertical(ballObj, collisionObj):
