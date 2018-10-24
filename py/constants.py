@@ -11,7 +11,7 @@ FPGA_ENABLED = False
 
 
 # Audio settings
-SOUND = True
+SOUND = False
 MUSIC = True
 
 # Window resolution

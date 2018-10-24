@@ -20,7 +20,7 @@ def init():
     Note: creating a multiline string using triple quotation marks is how you create python documentation
     """
     pygame.mixer.pre_init()  # TODO set right variables inside this
-    # Initialize pygame
+    # Initialize pygame  # TODO only init necessary pygame modules for efficiency
     pygame.init()
 
     # Set up screen
@@ -186,6 +186,12 @@ class Game:
         if keyBindings.checkPress('restart', keysPressed):
             self.playerBall.xfloat = constants.INITIAL_BALL_X
             self.playerBall.yfloat = constants.INITIAL_BALL_Y
+            self.playerBall.xspeed = constants.INITIAL_BALL_XSPEED
+            self.playerBall.yspeed = constants.INITIAL_BALL_YSPEED
+
+        if keyBindings.checkPress('activate', keysPressed) and self.readyPowerUp:
+            self.readyPowerUp.activate()
+            self.readyPowerUp = None
 
     def updateGame(self):
         """
@@ -246,6 +252,7 @@ class Game:
             del newblock
             return 0
 
+
 class CollisionHandling:
 
     """
@@ -259,7 +266,6 @@ class CollisionHandling:
         self.game = game
         self.next_collision_exclusion=[]
         self.next_collision_exclusion_time=[]
-
 
     def evaluate(self):
         self.handle_ball_collisions()
@@ -303,7 +309,7 @@ class CollisionHandling:
                 self.game.playerBall.bounce(isVertical)  # or change to the old one
 
                 # Should be handled at the object collided with, not here
-                AudioObj.playSound('bounce')
+                # AudioObj.playSound('bounce')
                 self.next_collision_exclusion.append(c)
                 self.next_collision_exclusion_time.append(time.time()+0.2)
 
@@ -326,8 +332,8 @@ class CollisionHandling:
         # see this link for explanation:
         # https://gamedev.stackexchange.com/questions/61705/pygame-colliderect-but-how-do-they-collide
 
-        # phi = arctan(yspeed / xspeed)bj
-    # GameObj = Game(
+        # phi = arctan(yspeed / xspeed)
+
         # result is in radians, ranging from -pi to pi
         # can be flipped by adding or subtracting pi
         tau = 2 * math.pi
@@ -339,18 +345,15 @@ class CollisionHandling:
         coll_x = collisionObj.rect.width
         coll_y = collisionObj.rect.height
 
-        topLeft  = math.atan2(-coll_y, -coll_x)
-        topRight = math.atan2(-coll_y,  coll_x)
-        botRight = math.atan2( coll_y,  coll_x)
-        botLeft  = math.atan2( coll_y, -coll_x)
+        top_left  = math.atan2(-coll_y, -coll_x)
+        top_right = math.atan2(-coll_y,  coll_x)
+        bot_right = math.atan2( coll_y,  coll_x)
+        bot_left  = math.atan2( coll_y, -coll_x)
 
-        # TODO simplify chained comparisons with a < b <= c
-        top = topLeft < ball_out_angle <= topRight
-        right = topRight < ball_out_angle <= botRight
-        bottom = botRight < ball_out_angle <= botLeft
-        # TODO surfaces hit on the left do not work.
-        # TODO detecting the top and bottom should be enough but ill leave this todo in here in case weird stuff occurs
-        left = botLeft < ball_out_angle <= topLeft
+        top = top_left < ball_out_angle <= top_right
+        bottom = bot_right < ball_out_angle <= bot_left
+        # right = top_right < ball_out_angle <= bot_right
+        # left = bot_left < ball_out_angle <= top_left
 
         return not (top or bottom)
 
@@ -448,6 +451,8 @@ class MainMenu:
         self.exitmenu_Height = self.optionsmenu_Height + constants.SUBFONT
         self.menucolor = 'RED'
 
+        AudioObj.playMusic('menu')
+
     def handleKeys(self, keysPressed):
         if keyBindings.checkPress('exit', keysPressed):
             pygame.event.post(pygame.event.Event(pygame.QUIT))
@@ -483,7 +488,7 @@ class MainMenu:
             elif self.selectedItem == 3:
                 pygame.event.post(pygame.event.Event(pygame.QUIT))
 
-    # TODO use class instances for the various screen items
+    # TODO use subclass instances for the various screen items
     class menuOption:
         width = None
         height = None
@@ -510,8 +515,7 @@ class MainMenu:
         Screen.blit(self.menuItems[2], (self.optionsmenu_Width, self.optionsmenu_Height))
         Screen.blit(self.menuItems[3], (self.exitmenu_Width, self.exitmenu_Height))
 
-        time.sleep(0.01)
-
+        # time.sleep(0.2)
 
 
 class Audio:

@@ -23,7 +23,6 @@ class Block(pygame.sprite.Sprite):
             color=constants.colors["BLUE"]
             self.initialhp = constants.BLOCK_INITIAL_HP*3
 
-        
         self.hp = self.initialhp
 
         self.initialColor = color
@@ -43,12 +42,12 @@ class Block(pygame.sprite.Sprite):
             self.hp = self.hp - abs(xspeed)
 
         if self.hp > 0:
-            print(self.hp)
-            print(self.initialhp)
-            redcolor= int(self.initialRed*(self.hp/self.initialhp))
-            greencolor= int(self.initialGreen*(self.hp/self.initialhp))
-            bluecolor= int(self.initialBlue*(self.hp/self.initialhp))
-            self.image.fill((    redcolor   ,greencolor,bluecolor))
+            # print(self.hp)
+            # print(self.initialhp)
+            redcolor = int(self.initialRed*(self.hp/self.initialhp))
+            greencolor = int(self.initialGreen*(self.hp/self.initialhp))
+            bluecolor = int(self.initialBlue*(self.hp/self.initialhp))
+            self.image.fill((redcolor, greencolor, bluecolor))
         if self.hp <= 0:
             self.image.fill((0,0,0))
         return self.hp
@@ -65,7 +64,7 @@ class Ball(pygame.sprite.Sprite):
     # xspeed = 0
     # yspeed = 0
 
-    maxSpeed = 50
+    # maxSpeed = 50
 
     def __init__(self, color, radius):
         # Call the parent class (Sprite) constructor
@@ -94,6 +93,7 @@ class Ball(pygame.sprite.Sprite):
         self.xfloat = float(self.rect.x)
         self.yfloat = float(self.rect.y)
 
+        self.col_this_frame = [False, False]
 
     def bounce(self, bounceIsVertical):
         """
@@ -105,10 +105,15 @@ class Ball(pygame.sprite.Sprite):
             #self.rect.x, self.rect.y = fpga_connection.sendBounce(bounceIsVertical, self.xspeed, self.yspeed, bounceConstant)
             pass
         else:
-            if bounceIsVertical:
+            # If collision on an axis has already happened this frame,
+            # then dont bounce
+            if bounceIsVertical and not self.col_this_frame[0]:
                 self.xspeed *= -1
-            else:
+                self.col_this_frame[0] = True
+
+            elif not self.col_this_frame[1]:
                 self.yspeed *= -1
+                self.col_this_frame[1] = True
 
 
     def update(self):
@@ -117,6 +122,10 @@ class Ball(pygame.sprite.Sprite):
         self.yfloat += self.yspeed
         self.rect.x = self.xfloat
         self.rect.y = self.yfloat
+
+
+        # Reset values so that it can bounce again next frame
+        self.col_this_frame = [False, False]
 
 
 class Paddle(pygame.sprite.Sprite):
@@ -195,7 +204,7 @@ class PowerUp:
         rngtotal = 0.0
         for t in PowerUp.types:
             rngtotal += t[1]
-            print(rngtotal)
+            # print(rngtotal)
         rngnum = random.uniform(0, rngtotal)
         for t in PowerUp.types:
             rngchoose += t[1]
@@ -211,7 +220,10 @@ class PowerUp:
         print("getTypeInfo error!")
 
     def activate(self):
-        pass
+        # Do something
+        print('activate %s' % self.type)
+
+        # After doing something, the reference to the object is removed.
 
     class PowerUpSprite(pygame.sprite.Sprite):
         """
@@ -225,7 +237,6 @@ class PowerUp:
             super().__init__()
 
             self.powerUp = PowerUp()
-            print("generated %s powerup." % self.powerUp.type)
 
             self.image = pygame.Surface([self.width, self.height])
             self.image.fill(constants.colors[self.powerUp.color])
