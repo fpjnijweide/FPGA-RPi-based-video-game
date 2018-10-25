@@ -10,7 +10,6 @@ import objects, constants, keyBindings
 from enum import Enum
 import random
 import time
-import numpy as np
 
 
 def init():
