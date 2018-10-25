@@ -53,8 +53,6 @@ class Block(pygame.sprite.Sprite):
         return self.hp
         # self.currentColor = tuple(map(lambda x:   x*(self.hp//self.initialhp), self.initialColor))
         
-        # TODO if hp is 0, remove the object instead of letting the game crash
-
 
 class Ball(pygame.sprite.Sprite):
     """
@@ -106,7 +104,7 @@ class Ball(pygame.sprite.Sprite):
             pass
         else:
             # If collision on an axis has already happened this frame,
-            # then dont bounce
+            # then don't bounce
             if bounceIsVertical and not self.col_this_frame[0]:
                 self.xspeed *= -1
                 self.col_this_frame[0] = True
@@ -115,6 +113,8 @@ class Ball(pygame.sprite.Sprite):
                 self.yspeed *= -1
                 self.col_this_frame[1] = True
 
+            else:
+                print("already bounced this axis")
 
     def update(self):
         """update ball location"""
@@ -123,8 +123,7 @@ class Ball(pygame.sprite.Sprite):
         self.rect.x = self.xfloat
         self.rect.y = self.yfloat
 
-
-        # Reset values so that it can bounce again next frame
+        # Reset this so that it can bounce again next frame
         self.col_this_frame = [False, False]
 
     def respawn(self):
@@ -132,6 +131,7 @@ class Ball(pygame.sprite.Sprite):
         self.yfloat = constants.INITIAL_BALL_Y
         self.xspeed = constants.INITIAL_BALL_XSPEED
         self.yspeed = constants.INITIAL_BALL_YSPEED
+
 
 class Paddle(pygame.sprite.Sprite):
     """
@@ -190,11 +190,12 @@ class Wall(pygame.sprite.Sprite):
         self.rect.x = x
         self.rect.y = y
 
+
 class PowerUp:
     """
 
     """
-    # ('name', rng_chance)
+    # ('name', rng_chance, color)
     types = [('speed', 0.7, 'CYAN'), ('rocket', 0.2, 'ORANGE')]
     type = None
     color = None

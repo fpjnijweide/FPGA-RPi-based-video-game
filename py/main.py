@@ -9,7 +9,7 @@ import pygame, sys, math
 import objects, constants, keyBindings
 from enum import Enum
 import random
-import time
+# import time  # TODO use pygame.time functionality instead
 
 
 def init():
@@ -18,9 +18,10 @@ def init():
     It also set some global variables used inside the pygame loop.
     Note: creating a multiline string using triple quotation marks is how you create python documentation
     """
-    pygame.mixer.pre_init()  # TODO set right variables inside this
-    # Initialize pygame  # TODO only init necessary pygame modules for efficiency
-    pygame.init()
+    # Initialize all pygame modules
+    pygame.display.init()
+    pygame.font.init()
+    pygame.mixer.init()  # TODO set right variables inside this
 
     # Set up screen
     global Screen
@@ -28,7 +29,7 @@ def init():
 
     # Set title of screen
     pygame.display.set_caption(constants.GAME_NAME) 
-    # TODO: pygame.display.set_icon(Surface icon)
+    # TODO create game icon and pygame.display.set_icon(Surface icon)
 
     global AudioObj
     AudioObj = Audio()
@@ -206,8 +207,8 @@ class Game:
         # Note: collision handling is less broken yet once again, but the ball still disappears into the walls
         #self.playerBall.update()
 
-        if time.time() >= self.last_block_time + self.time_until_next_block:
-            self.last_block_time=time.time()
+        if pygame.time.get_ticks() >= self.last_block_time + self.time_until_next_block:
+            self.last_block_time = pygame.time.get_ticks()
             self.time_until_next_block = self.addBlock()
 
         Screen.fill(constants.colors["BLACK"])
@@ -232,12 +233,14 @@ class Game:
         self.grid = []
         # grid is list of Y lists with X items (initialized to none)
         for row in range(0, constants.GRIDY):
-            # row contains list like [None, None, None, ...]
+            # each row contains list like [None, None, None, ...]
             self.grid.append([None] * constants.GRIDX)
 
         self.blocksize = (constants.WINDOW_WIDTH-(2*constants.GRIDMARGIN))//constants.GRIDX
 
     def addBlock(self):
+        # TODO this logic should be moved to an objects.Block function
+        # See objects.PowerUp.generateType()
         throwdice=random.randint(1,100)
         if throwdice >= 70 and throwdice<85:
             blocktype="green"
@@ -248,10 +251,13 @@ class Game:
         else:
             blocktype="default"
         newblock = objects.Block(blocktype,self.blocksize-(2*constants.BLOCKMARGIN), self.blocksize-(2*constants.BLOCKMARGIN))
+
+        # But maybe the grid stuff can stay here
+
         newblock.x_on_grid=random.randint(1,constants.GRIDX)-1
         newblock.y_on_grid=random.randint(1,constants.GRIDY)-1
 
-        if self.grid[newblock.y_on_grid][newblock.x_on_grid] == None:
+        if not self.grid[newblock.y_on_grid][newblock.x_on_grid]:
             newblock.rect.x=constants.GRIDMARGIN + self.blocksize*newblock.x_on_grid + constants.BLOCKMARGIN
             newblock.rect.y=constants.GRIDMARGIN + self.blocksize*newblock.y_on_grid + constants.BLOCKMARGIN
             self.AllSpritesList.add(newblock)
@@ -288,7 +294,7 @@ class CollisionHandling:
         """
         index=0
         for col_timer in self.next_collision_exclusion_time:
-            if time.time()>col_timer:
+            if pygame.time.get_ticks() > col_timer:
                 del self.next_collision_exclusion[index]
                 del self.next_collision_exclusion_time[index]
             index += 1
@@ -322,7 +328,7 @@ class CollisionHandling:
                 # Should be handled at the object collided with, not here
                 # AudioObj.playSound('bounce')
                 self.next_collision_exclusion.append(c)
-                self.next_collision_exclusion_time.append(time.time()+0.2)
+                self.next_collision_exclusion_time.append(pygame.time.get_ticks() + 200)
 
     def handle_power_up_collisions(self):
         # After checking ball collisions, check for powerups to collect
@@ -349,6 +355,7 @@ class CollisionHandling:
         # can be flipped by adding or subtracting pi
         tau = 2 * math.pi
 
+        # TODO use angle of ball centre and collision centre in lieu of speed
         ball_in_angle = math.atan2(ballObj.yspeed, ballObj.xspeed)
         # Flip angle but keep range intact.
         ball_out_angle = ((ball_in_angle + tau) % tau) - math.pi
@@ -406,7 +413,6 @@ class MainMenu:
     contains menu rendering and keyhandling specific to menu
     i mean not yet but it should
     """
-    pygame.font.init()
     mainFont = None
     subFont = None
     highlight = None
@@ -436,7 +442,7 @@ class MainMenu:
         pygame.display.set_caption(constants.GAME_NAME + ' - Main menu' )
         self.mainFont = pygame.font.SysFont('arial', 60) # 76? HEIGTH
         self.subFont = pygame.font.SysFont('arial', 50) # 58 HEIGTH
-        self.highlight = pygame.font.SysFont('arial', 50, italic=True, bold=True)
+        self.highlight = pygame.font.SysFont('arial', 50, bold=True)
         self.highlight.set_underline(True)
 
         self.texts = ['Start game','Highscores','Options', 'exit']
@@ -463,6 +469,17 @@ class MainMenu:
         self.menucolor = 'RED'
 
         AudioObj.playMusic('menu')
+
+    # TODO use subclass instances for the various screen items
+    # something like this
+    class MenuOption:
+        width = None
+        height = None
+        text = None
+
+        def __init__(self, width, height, text):
+            self.width, self.height = width, height
+            self.text = text
 
     def handleKeys(self, keysPressed):
         if keyBindings.checkPress('exit', keysPressed):
@@ -491,18 +508,15 @@ class MainMenu:
                 MainObj = None
 
             elif self.selectedItem == 1:
-                GameState = GameStates.HIGHSCORES
+                # GameState = GameStates.HIGHSCORES
+                pass
 
             elif self.selectedItem == 2:
-                GameState = GameStates.OPTIONS
+                # GameState = GameStates.OPTIONS
+                pass
 
             elif self.selectedItem == 3:
                 pygame.event.post(pygame.event.Event(pygame.QUIT))
-
-    # TODO use subclass instances for the various screen items
-    class menuOption:
-        width = None
-        height = None
 
     def writeText(self, text, font):
         if font == self.mainFont:
@@ -526,7 +540,7 @@ class MainMenu:
         Screen.blit(self.menuItems[2], (self.optionsmenu_Width, self.optionsmenu_Height))
         Screen.blit(self.menuItems[3], (self.exitmenu_Width, self.exitmenu_Height))
 
-        # time.sleep(0.2)
+        pygame.time.delay(80)
 
 
 class Audio:
@@ -570,8 +584,6 @@ class Audio:
         if not constants.SOUND:
             return
 
-        # TODO make it not create a new sound object instance every time it plays
-        #   but instead save instances to be reused.
         self.gameSounds[soundName].play(0)
 
 
