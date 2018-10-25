@@ -9,8 +9,8 @@ import pygame, sys, math
 import objects, constants, keyBindings
 from enum import Enum
 import random
-import time
-import numpy as np
+# import time  # TODO use pygame.time functionality instead
+
 
 def init():
     """
@@ -18,9 +18,10 @@ def init():
     It also set some global variables used inside the pygame loop.
     Note: creating a multiline string using triple quotation marks is how you create python documentation
     """
-    pygame.mixer.pre_init()  # TODO set right variables inside this
-    # Initialize pygame
-    pygame.init()
+    # Initialize all pygame modules
+    pygame.display.init()
+    pygame.font.init()
+    pygame.mixer.init()  # TODO set right variables inside this
 
     # Set up screen
     global Screen
@@ -28,7 +29,7 @@ def init():
 
     # Set title of screen
     pygame.display.set_caption(constants.GAME_NAME) 
-    # TODO: pygame.display.set_icon(Surface icon)
+    # TODO create game icon and pygame.display.set_icon(Surface icon)
 
     global AudioObj
     AudioObj = Audio()
@@ -38,14 +39,14 @@ def init():
 
     # Call Game.__init__() and set gamestate
     global GameState
-    GameState = GameStates.PLAYING
+    GameState = GameStates.MAINMENU
 
     global GameObj
-    GameObj = Game()
+    GameObj = None  # Game()
     global MenuObj
-    MenuObj = MainMenu()
-    global HighObj
-    HighObj = HighScores()
+    MenuObj = MainMenu()  # None
+    # global HighObj
+    # HighObj = HighScores()
 
 
 def main():
@@ -82,6 +83,13 @@ def main():
 
         # elif GameState == GameStates.MAINMENU:
         # Do MainMenuObj.handleKeys and updateGame
+
+        # Display fps in screen
+        if constants.VIEWFPS:
+            fps = pygame.font.Font(None, 30).render(str(int(ClockObj.get_fps())),
+                                                    True,
+                                                    constants.colors['WHITE'])
+            Screen.blit(fps, (50, 50))
 
         # Update entire graphical display, TODO can be heavily optimized
         # (by using display.update() and passing it only the screen area that needs to be updated)
@@ -183,26 +191,29 @@ class Game:
 
         # (re)set ball location when pressing K_HOME (cheat)
         if keyBindings.checkPress('restart', keysPressed):
-            self.playerBall.xfloat = constants.INITIAL_BALL_X
-            self.playerBall.yfloat = constants.INITIAL_BALL_Y
+            self.playerBall.respawn()
+
+        if keyBindings.checkPress('activate', keysPressed) and self.readyPowerUp:
+            self.readyPowerUp.activate()
+            self.readyPowerUp = None
 
     def updateGame(self):
         """
         Updates sprites and stuff. Called once every frame while playing game.
         """
-        
-        if time.time() >= self.last_block_time + self.time_until_next_block:
-            self.last_block_time=time.time()
-            self.time_until_next_block = self.addBlock()
-
         # Handle collisions
         self.collisionHandler.evaluate()
 
         # Note: collision handling is less broken yet once again, but the ball still disappears into the walls
         #self.playerBall.update()
 
+        if pygame.time.get_ticks() >= self.last_block_time + self.time_until_next_block:
+            self.last_block_time = pygame.time.get_ticks()
+            self.time_until_next_block = self.addBlock()
+
         Screen.fill(constants.colors["BLACK"])
 
+        # Call the update() function of all sprites
         self.AllSpritesList.update()
 
         # draw sprites
@@ -212,14 +223,24 @@ class Game:
         self.AllSpritesList.remove(obj1)
         self.CollisionSpritesList.remove(obj1)
         self.blocklist.remove(obj1)
-        self.grid[obj1.y_on_grid,obj1.x_on_grid]=None
+        self.grid[obj1.y_on_grid][obj1.x_on_grid]=None
         del obj1
 
     def init_grid(self):
-        self.grid = np.ndarray(([constants.GRIDY,constants.GRIDX]),dtype=np.object)
+        # Okay i tried to rewrite this so we dont need to install numpy for a single line of code
+        # self.grid = np.ndarray(([constants.GRIDY,constants.GRIDX]),dtype=np.object)
+
+        self.grid = []
+        # grid is list of Y lists with X items (initialized to none)
+        for row in range(0, constants.GRIDY):
+            # each row contains list like [None, None, None, ...]
+            self.grid.append([None] * constants.GRIDX)
+
         self.blocksize = (constants.WINDOW_WIDTH-(2*constants.GRIDMARGIN))//constants.GRIDX
 
     def addBlock(self):
+        # TODO this logic should be moved to an objects.Block function
+        # See objects.PowerUp.generateType()
         throwdice=random.randint(1,100)
         if throwdice >= 70 and throwdice<85:
             blocktype="green"
@@ -230,10 +251,13 @@ class Game:
         else:
             blocktype="default"
         newblock = objects.Block(blocktype,self.blocksize-(2*constants.BLOCKMARGIN), self.blocksize-(2*constants.BLOCKMARGIN))
+
+        # But maybe the grid stuff can stay here
+
         newblock.x_on_grid=random.randint(1,constants.GRIDX)-1
         newblock.y_on_grid=random.randint(1,constants.GRIDY)-1
 
-        if self.grid[newblock.y_on_grid,newblock.x_on_grid] == None:
+        if not self.grid[newblock.y_on_grid][newblock.x_on_grid]:
             newblock.rect.x=constants.GRIDMARGIN + self.blocksize*newblock.x_on_grid + constants.BLOCKMARGIN
             newblock.rect.y=constants.GRIDMARGIN + self.blocksize*newblock.y_on_grid + constants.BLOCKMARGIN
             self.AllSpritesList.add(newblock)
@@ -244,6 +268,7 @@ class Game:
         else:
             del newblock
             return 0
+
 
 class CollisionHandling:
 
@@ -259,32 +284,25 @@ class CollisionHandling:
         self.next_collision_exclusion=[]
         self.next_collision_exclusion_time=[]
 
-
     def evaluate(self):
         self.handle_ball_collisions()
-        self.handlePowerUpCollisions()
+        self.handle_power_up_collisions()
 
     def handle_ball_collisions(self):
         """
-        Detect collisions, check findBounceIsVertical and objects.Ball.bounce()
+        detect collisions, check findBounceIsVertical and objects.Ball.bounce()
         """
         index=0
         for col_timer in self.next_collision_exclusion_time:
-            if time.time()>col_timer:
+            if pygame.time.get_ticks() > col_timer:
                 del self.next_collision_exclusion[index]
                 del self.next_collision_exclusion_time[index]
             index += 1
 
         collisions = pygame.sprite.spritecollide(self.game.playerBall, self.game.CollisionSpritesList, False)
 
-        # If no collisions happen
-        if len(collisions) == 0:
-
-            # then speeds do not change and function exits
-            return
-
-        # If there are collisions iterate through them
-        # print(len(collisions), " collisions this frame")
+        if len(collisions) > 1:
+            print(collisions)
         for c in collisions:
 
             if c not in self.next_collision_exclusion:
@@ -302,28 +320,25 @@ class CollisionHandling:
                             self.game.AllSpritesList.add(newPowerUp)
                             self.game.powerUpSpritesList.add(newPowerUp)
 
-                isVertical_old = CollisionHandling.findBounceIsVertical_old(self.game.playerBall, c)
-                isVertical = CollisionHandling.findBounceIsVertical(self.game.playerBall, c)
+                isVertical_old = CollisionHandling.find_bounce_is_vertical_old(self.game.playerBall, c)
+                isVertical = CollisionHandling.find_bounce_is_vertical(self.game.playerBall, c)
 
                 self.game.playerBall.bounce(isVertical)  # or change to the old one
 
                 # Should be handled at the object collided with, not here
-                AudioObj.playSound('bounce')
+                # AudioObj.playSound('bounce')
                 self.next_collision_exclusion.append(c)
-                self.next_collision_exclusion_time.append(time.time()+0.2)
+                self.next_collision_exclusion_time.append(pygame.time.get_ticks() + 200)
 
-    def handlePowerUpCollisions(self):
+    def handle_power_up_collisions(self):
         # After checking ball collisions, check for powerups to collect
         powerUpCollisions = pygame.sprite.spritecollide(self.game.paddle, self.game.powerUpSpritesList, True)
         for c in powerUpCollisions:
             self.game.readyPowerUp = c.powerUp
             print("caught %s powerup" % self.game.readyPowerUp.type)
 
-
-
-
     @staticmethod
-    def findBounceIsVertical(ballObj, collisionObj):
+    def find_bounce_is_vertical(ballObj, collisionObj):
         """
         Returns True if the ball collides on a vertical surface
         If True, the ball's xspeed should be flipped
@@ -335,10 +350,12 @@ class CollisionHandling:
         # https://gamedev.stackexchange.com/questions/61705/pygame-colliderect-but-how-do-they-collide
 
         # phi = arctan(yspeed / xspeed)
+
         # result is in radians, ranging from -pi to pi
         # can be flipped by adding or subtracting pi
         tau = 2 * math.pi
 
+        # TODO use angle of ball centre and collision centre in lieu of speed
         ball_in_angle = math.atan2(ballObj.yspeed, ballObj.xspeed)
         # Flip angle but keep range intact.
         ball_out_angle = ((ball_in_angle + tau) % tau) - math.pi
@@ -346,23 +363,20 @@ class CollisionHandling:
         coll_x = collisionObj.rect.width
         coll_y = collisionObj.rect.height
 
-        topLeft  = math.atan2(-coll_y, -coll_x)
-        topRight = math.atan2(-coll_y,  coll_x)
-        botRight = math.atan2( coll_y,  coll_x)
-        botLeft  = math.atan2( coll_y, -coll_x)
+        top_left  = math.atan2(-coll_y, -coll_x)
+        top_right = math.atan2(-coll_y,  coll_x)
+        bot_right = math.atan2( coll_y,  coll_x)
+        bot_left  = math.atan2( coll_y, -coll_x)
 
-        # TODO simplify chained comparisons with a < b <= c
-        top = topLeft < ball_out_angle <= topRight
-        right = topRight < ball_out_angle <= botRight
-        bottom = botRight < ball_out_angle <= botLeft
-        # TODO surfaces hit on the left do not work.
-        # TODO detecting the top and bottom should be enough but ill leave this todo in here in case weird stuff occurs
-        left = botLeft < ball_out_angle <= topLeft
+        top = top_left < ball_out_angle <= top_right
+        bottom = bot_right < ball_out_angle <= bot_left
+        # right = top_right < ball_out_angle <= bot_right
+        # left = bot_left < ball_out_angle <= top_left
 
         return not (top or bottom)
 
     @staticmethod
-    def findBounceIsVertical_old(ballObj, collisionObj):
+    def find_bounce_is_vertical_old(ballObj, collisionObj):
         """
         returns True if bounce happens on a vertical surface
         This function seems to do alright, except for at large ball speeds.
@@ -399,7 +413,6 @@ class MainMenu:
     contains menu rendering and keyhandling specific to menu
     i mean not yet but it should
     """
-    pygame.font.init()
     mainFont = None
     subFont = None
     highlight = None
@@ -429,7 +442,7 @@ class MainMenu:
         pygame.display.set_caption(constants.GAME_NAME + ' - Main menu' )
         self.mainFont = pygame.font.SysFont('arial', 60) # 76? HEIGTH
         self.subFont = pygame.font.SysFont('arial', 50) # 58 HEIGTH
-        self.highlight = pygame.font.SysFont('arial', 50, italic=True, bold=True)
+        self.highlight = pygame.font.SysFont('arial', 50, bold=True)
         self.highlight.set_underline(True)
 
         self.texts = ['Start game','Highscores','Options', 'exit']
@@ -455,32 +468,55 @@ class MainMenu:
         self.exitmenu_Height = self.optionsmenu_Height + constants.SUBFONT
         self.menucolor = 'RED'
 
+        AudioObj.playMusic('menu')
+
+    # TODO use subclass instances for the various screen items
+    # something like this
+    class MenuOption:
+        width = None
+        height = None
+        text = None
+
+        def __init__(self, width, height, text):
+            self.width, self.height = width, height
+            self.text = text
+
     def handleKeys(self, keysPressed):
         if keyBindings.checkPress('exit', keysPressed):
-            pygame.quit()
+            pygame.event.post(pygame.event.Event(pygame.QUIT))
+            return
+
         if keyBindings.checkPress('left', keysPressed):
             self.menuItems[self.selectedItem] = self.writeText(self.texts[self.selectedItem], self.subFont)
             self.selectedItem = (self.selectedItem - 1) % len(self.menuItems)
             self.menuItems[self.selectedItem] = self.writeText(self.texts[self.selectedItem], self.highlight)
+
         if keyBindings.checkPress('right', keysPressed):
             self.menuItems[self.selectedItem] = self.writeText(self.texts[self.selectedItem], self.subFont)
             self.selectedItem = (self.selectedItem + 1) % len(self.menuItems)
             self.menuItems[self.selectedItem] = self.writeText(self.texts[self.selectedItem], self.highlight)
-            if keyBindings.checkPress('activate', keysPressed):
-                print('entered loop')
-                global GameState
-                if self.selectedItem == 0:
-                    GameState = GameStates.PLAYING
-                    # return
-                if self.selectedItem == 1:
-                    GameState = GameStates.HIGHSCORES
-                    # return
-                if self.selectedItem == 2:
-                    GameState = GameStates.OPTIONS
-                    # return
-                if self.selectedItem == 3:
-                    pygame.quit()
-                    # return
+
+        if keyBindings.checkPress('activate', keysPressed):
+
+            global GameState
+            global MainObj
+
+            if self.selectedItem == 0:
+                GameState = GameStates.PLAYING
+                global GameObj
+                GameObj = Game()
+                MainObj = None
+
+            elif self.selectedItem == 1:
+                # GameState = GameStates.HIGHSCORES
+                pass
+
+            elif self.selectedItem == 2:
+                # GameState = GameStates.OPTIONS
+                pass
+
+            elif self.selectedItem == 3:
+                pygame.event.post(pygame.event.Event(pygame.QUIT))
 
     def writeText(self, text, font):
         if font == self.mainFont:
@@ -504,8 +540,7 @@ class MainMenu:
         Screen.blit(self.menuItems[2], (self.optionsmenu_Width, self.optionsmenu_Height))
         Screen.blit(self.menuItems[3], (self.exitmenu_Width, self.exitmenu_Height))
 
-        time.sleep(0.3)
-
+        pygame.time.delay(80)
 
 
 class Audio:
@@ -549,8 +584,6 @@ class Audio:
         if not constants.SOUND:
             return
 
-        # TODO make it not create a new sound object instance every time it plays
-        #   but instead save instances to be reused.
         self.gameSounds[soundName].play(0)
 
 

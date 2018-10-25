@@ -254,7 +254,6 @@ pygame.quit()
 # 		#current_time = pygame.time.get_ticks()
 
 # 		#if current_time >= change_time:
-# 		#    TODO: change something
 # 		#    # change something again after 2s
 # 		#    change_time = current_time + 2000
 

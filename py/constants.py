@@ -11,7 +11,7 @@ FPGA_ENABLED = False
 
 
 # Audio settings
-SOUND = True
+SOUND = False
 MUSIC = True
 
 # Window resolution
@@ -25,6 +25,7 @@ SUBFONT = 58
 
 # Frames per second
 FPS = 60
+VIEWFPS = True
 
 # Ball size and pos
 BALLRADIUS = 10
@@ -32,19 +33,18 @@ INITIAL_BALL_X = 30
 INITIAL_BALL_Y = 30
 
 #Ball speed
-INITIAL_BALL_XSPEED = 7
+INITIAL_BALL_XSPEED = 6
 INITIAL_BALL_YSPEED = 5
 
 # Wall size
 WALLSIZE = 5
 
 # Paddle size
-PADDLEWIDTH  = 70
-PADDLEHEIGHT = 20
+PADDLEWIDTH  = 80
+PADDLEHEIGHT = 15
 PADDLE_Y_POS = 520
 
 # Powerup chance
-# TODO change this
 POWERUP_CHANCE = 0.15
 
 # Paddle speed
@@ -63,8 +63,8 @@ GRIDMARGIN = 100
 
 
 # Block respawn time range
-RESPAWNDELAY = 1
-RESPAWNRANGE = 3
+RESPAWNDELAY = 1000
+RESPAWNRANGE = 1500
 
 # Color definitions
 colors = {

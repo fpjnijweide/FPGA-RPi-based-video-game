@@ -21,9 +21,8 @@ class Block(pygame.sprite.Sprite):
             self.initialhp = constants.BLOCK_INITIAL_HP*2
         if type=="blue":
             color=constants.colors["BLUE"]
-            self.initialhp = constants.BLOCK_INITIAL_HP*3            
+            self.initialhp = constants.BLOCK_INITIAL_HP*3
 
-        
         self.hp = self.initialhp
 
         self.initialColor = color
@@ -42,30 +41,28 @@ class Block(pygame.sprite.Sprite):
         else:
             self.hp = self.hp - abs(xspeed)
 
-
         if self.hp > 0:
-            print(self.hp)
-            print(self.initialhp)
-            redcolor= int(self.initialRed*(self.hp/self.initialhp))
-            greencolor= int(self.initialGreen*(self.hp/self.initialhp))
-            bluecolor= int(self.initialBlue*(self.hp/self.initialhp))
-            self.image.fill((    redcolor   ,greencolor,bluecolor))
+            # print(self.hp)
+            # print(self.initialhp)
+            redcolor = int(self.initialRed*(self.hp/self.initialhp))
+            greencolor = int(self.initialGreen*(self.hp/self.initialhp))
+            bluecolor = int(self.initialBlue*(self.hp/self.initialhp))
+            self.image.fill((redcolor, greencolor, bluecolor))
         if self.hp <= 0:
             self.image.fill((0,0,0))
         return self.hp
-        #self.currentColor = tuple(map(lambda x:   x*(self.hp//self.initialhp), self.initialColor))
+        # self.currentColor = tuple(map(lambda x:   x*(self.hp//self.initialhp), self.initialColor))
         
-        #TODO if hp is 0, remove the object instead of letting the game crash
 
 class Ball(pygame.sprite.Sprite):
     """
     This class represents a Ball.
     It derives from the "Sprite" class in Pygame.
     """ 
-   # xspeed = 0
-   # yspeed = 0
+    # xspeed = 0
+    # yspeed = 0
 
-    maxSpeed = 50
+    # maxSpeed = 50
 
     def __init__(self, color, radius):
         # Call the parent class (Sprite) constructor
@@ -94,6 +91,7 @@ class Ball(pygame.sprite.Sprite):
         self.xfloat = float(self.rect.x)
         self.yfloat = float(self.rect.y)
 
+        self.col_this_frame = [False, False]
 
     def bounce(self, bounceIsVertical):
         """
@@ -105,11 +103,18 @@ class Ball(pygame.sprite.Sprite):
             #self.rect.x, self.rect.y = fpga_connection.sendBounce(bounceIsVertical, self.xspeed, self.yspeed, bounceConstant)
             pass
         else:
-            if bounceIsVertical:
+            # If collision on an axis has already happened this frame,
+            # then don't bounce
+            if bounceIsVertical and not self.col_this_frame[0]:
                 self.xspeed *= -1
-            else:
-                self.yspeed *= -1
+                self.col_this_frame[0] = True
 
+            elif not self.col_this_frame[1]:
+                self.yspeed *= -1
+                self.col_this_frame[1] = True
+
+            else:
+                print("already bounced this axis")
 
     def update(self):
         """update ball location"""
@@ -117,6 +122,15 @@ class Ball(pygame.sprite.Sprite):
         self.yfloat += self.yspeed
         self.rect.x = self.xfloat
         self.rect.y = self.yfloat
+
+        # Reset this so that it can bounce again next frame
+        self.col_this_frame = [False, False]
+
+    def respawn(self):
+        self.xfloat = constants.INITIAL_BALL_X
+        self.yfloat = constants.INITIAL_BALL_Y
+        self.xspeed = constants.INITIAL_BALL_XSPEED
+        self.yspeed = constants.INITIAL_BALL_YSPEED
 
 
 class Paddle(pygame.sprite.Sprite):
@@ -176,11 +190,12 @@ class Wall(pygame.sprite.Sprite):
         self.rect.x = x
         self.rect.y = y
 
+
 class PowerUp:
     """
 
     """
-    # ('name', rng_chance)
+    # ('name', rng_chance, color)
     types = [('speed', 0.7, 'CYAN'), ('rocket', 0.2, 'ORANGE')]
     type = None
     color = None
@@ -195,7 +210,7 @@ class PowerUp:
         rngtotal = 0.0
         for t in PowerUp.types:
             rngtotal += t[1]
-            print(rngtotal)
+            # print(rngtotal)
         rngnum = random.uniform(0, rngtotal)
         for t in PowerUp.types:
             rngchoose += t[1]
@@ -210,6 +225,12 @@ class PowerUp:
                 return t
         print("getTypeInfo error!")
 
+    def activate(self):
+        # Do something
+        print('activate %s' % self.type)
+
+        # After doing something, the reference to the object is removed.
+
     class PowerUpSprite(pygame.sprite.Sprite):
         """
         Contains the object of a powerup that is displayed on the screen.
@@ -222,7 +243,6 @@ class PowerUp:
             super().__init__()
 
             self.powerUp = PowerUp()
-            print("generated %s powerup." % self.powerUp.type)
 
             self.image = pygame.Surface([self.width, self.height])
             self.image.fill(constants.colors[self.powerUp.color])
@@ -232,5 +252,3 @@ class PowerUp:
 
         def update(self):
             self.rect.y += 1
-
-
