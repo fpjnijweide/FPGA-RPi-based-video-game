@@ -25,6 +25,7 @@ SUBFONT = 58
 
 # Frames per second
 FPS = 60
+VIEWFPS = True
 
 # Ball size and pos
 BALLRADIUS = 10

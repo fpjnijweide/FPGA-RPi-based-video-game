@@ -83,6 +83,13 @@ def main():
         # elif GameState == GameStates.MAINMENU:
         # Do MainMenuObj.handleKeys and updateGame
 
+        # Display fps in screen
+        if constants.VIEWFPS:
+            fps = pygame.font.Font(None, 30).render(str(int(ClockObj.get_fps())),
+                                                    True,
+                                                    constants.colors['WHITE'])
+            Screen.blit(fps, (50, 50))
+
         # Update entire graphical display, TODO can be heavily optimized
         # (by using display.update() and passing it only the screen area that needs to be updated)
         # see https://www.pygame.org/docs/tut/newbieguide.html and look for "Dirty rect animation." section
