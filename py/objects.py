@@ -127,6 +127,11 @@ class Ball(pygame.sprite.Sprite):
         # Reset values so that it can bounce again next frame
         self.col_this_frame = [False, False]
 
+    def respawn(self):
+        self.xfloat = constants.INITIAL_BALL_X
+        self.yfloat = constants.INITIAL_BALL_Y
+        self.xspeed = constants.INITIAL_BALL_XSPEED
+        self.yspeed = constants.INITIAL_BALL_YSPEED
 
 class Paddle(pygame.sprite.Sprite):
     """

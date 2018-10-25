@@ -184,10 +184,7 @@ class Game:
 
         # (re)set ball location when pressing K_HOME (cheat)
         if keyBindings.checkPress('restart', keysPressed):
-            self.playerBall.xfloat = constants.INITIAL_BALL_X
-            self.playerBall.yfloat = constants.INITIAL_BALL_Y
-            self.playerBall.xspeed = constants.INITIAL_BALL_XSPEED
-            self.playerBall.yspeed = constants.INITIAL_BALL_YSPEED
+            self.playerBall.respawn()
 
         if keyBindings.checkPress('activate', keysPressed) and self.readyPowerUp:
             self.readyPowerUp.activate()
@@ -197,19 +194,19 @@ class Game:
         """
         Updates sprites and stuff. Called once every frame while playing game.
         """
-        
-        if time.time() >= self.last_block_time + self.time_until_next_block:
-            self.last_block_time=time.time()
-            self.time_until_next_block = self.addBlock()
-
         # Handle collisions
         self.collisionHandler.evaluate()
 
         # Note: collision handling is less broken yet once again, but the ball still disappears into the walls
         #self.playerBall.update()
 
+        if time.time() >= self.last_block_time + self.time_until_next_block:
+            self.last_block_time=time.time()
+            self.time_until_next_block = self.addBlock()
+
         Screen.fill(constants.colors["BLACK"])
 
+        # Call the update() function of all sprites
         self.AllSpritesList.update()
 
         # draw sprites
@@ -219,11 +216,19 @@ class Game:
         self.AllSpritesList.remove(obj1)
         self.CollisionSpritesList.remove(obj1)
         self.blocklist.remove(obj1)
-        self.grid[obj1.y_on_grid,obj1.x_on_grid]=None
+        self.grid[obj1.y_on_grid][obj1.x_on_grid]=None
         del obj1
 
     def init_grid(self):
-        self.grid = np.ndarray(([constants.GRIDY,constants.GRIDX]),dtype=np.object)
+        # Okay i tried to rewrite this so we dont need to install numpy for a single line of code
+        # self.grid = np.ndarray(([constants.GRIDY,constants.GRIDX]),dtype=np.object)
+
+        self.grid = []
+        # grid is list of Y lists with X items (initialized to none)
+        for row in range(0, constants.GRIDY):
+            # row contains list like [None, None, None, ...]
+            self.grid.append([None] * constants.GRIDX)
+
         self.blocksize = (constants.WINDOW_WIDTH-(2*constants.GRIDMARGIN))//constants.GRIDX
 
     def addBlock(self):
@@ -240,7 +245,7 @@ class Game:
         newblock.x_on_grid=random.randint(1,constants.GRIDX)-1
         newblock.y_on_grid=random.randint(1,constants.GRIDY)-1
 
-        if self.grid[newblock.y_on_grid,newblock.x_on_grid] == None:
+        if self.grid[newblock.y_on_grid][newblock.x_on_grid] == None:
             newblock.rect.x=constants.GRIDMARGIN + self.blocksize*newblock.x_on_grid + constants.BLOCKMARGIN
             newblock.rect.y=constants.GRIDMARGIN + self.blocksize*newblock.y_on_grid + constants.BLOCKMARGIN
             self.AllSpritesList.add(newblock)
