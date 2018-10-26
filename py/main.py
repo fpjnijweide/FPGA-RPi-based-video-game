@@ -117,9 +117,8 @@ class GameStates(Enum):
     MAINMENU = 0
     PLAYING  = 1
     # GAMEOVER = 2 # unused as of now
-    HIGHSCORES = 2
-    OPTIONS = 3
-
+    HIGHSCORES = 3
+    OPTIONS = 4
 
 
 class Game:
@@ -274,8 +273,6 @@ class CollisionHandling:
     """
     def __init__(self, game):
         self.game = game
-        self.next_collision_exclusion=[]
-        self.next_collision_exclusion_time=[]
 
     def evaluate(self):
         self.handle_ball_collisions()
@@ -285,42 +282,33 @@ class CollisionHandling:
         """
         detect collisions, check findBounceIsVertical and objects.Ball.bounce()
         """
-        index=0
-        for col_timer in self.next_collision_exclusion_time:
-            if pygame.time.get_ticks() > col_timer:
-                del self.next_collision_exclusion[index]
-                del self.next_collision_exclusion_time[index]
-            index += 1
 
         collisions = pygame.sprite.spritecollide(self.game.playerBall, self.game.CollisionSpritesList, False)
 
+        # TODO fix multiple blocks spawning on same place
         if len(collisions) > 1:
             print("multiple collisions,", collisions)
+
         for c in collisions:
+            # Collision happens with block (instead of paddle or ball)
+            if isinstance(c, objects.Block):
+                c_newhp = c.reduceHP(self.game.playerBall.xspeed, self.game.playerBall.yspeed)
+                if c_newhp <= 0:
+                    GameObj.removeblock(c)
 
-            if c not in self.next_collision_exclusion:
+                    # Randomly generate powerup
+                    if random.random() < constants.POWERUP_CHANCE:
+                        # Create object and add to relevant sprite lists
+                        newPowerUp = objects.PowerUp.PowerUpSprite(self.game.playerBall.rect.x, self.game.playerBall.rect.y)
+                        self.game.AllSpritesList.add(newPowerUp)
+                        self.game.powerUpSpritesList.add(newPowerUp)
 
-                # Collision happens with block (instead of paddle or ball)
-                if isinstance(c, objects.Block):
-                    c_newhp = c.reduceHP(self.game.playerBall.xspeed, self.game.playerBall.yspeed)
-                    if c_newhp <= 0:
-                        GameObj.removeblock(c)
+            isVertical = CollisionHandling.find_bounce_is_vertical(self.game.playerBall, c)
 
-                        # Randomly generate powerup
-                        if random.random() < constants.POWERUP_CHANCE:
-                            # Create object and add to relevant sprite lists
-                            newPowerUp = objects.PowerUp.PowerUpSprite(self.game.playerBall.rect.x, self.game.playerBall.rect.y)
-                            self.game.AllSpritesList.add(newPowerUp)
-                            self.game.powerUpSpritesList.add(newPowerUp)
+            self.game.playerBall.bounce(isVertical)
 
-                isVertical = CollisionHandling.find_bounce_is_vertical(self.game.playerBall, c)
-
-                self.game.playerBall.bounce(isVertical)
-
-                # Should be handled at the object collided with, not here
-                # AudioObj.playSound('bounce')
-                self.next_collision_exclusion.append(c)
-                self.next_collision_exclusion_time.append(pygame.time.get_ticks() + 200)
+            # Should be handled at the object collided with, not here
+            # AudioObj.playSound('bounce')
 
     def handle_power_up_collisions(self):
         # After checking ball collisions, check for powerups to collect

@@ -196,7 +196,9 @@ class PowerUp:
 
     """
     # ('name', rng_chance, color)
-    types = [('speed', 0.7, 'CYAN'), ('rocket', 0.2, 'ORANGE')]
+    types = [('speed', 8, 'CYAN'),
+             ('rocket', 1, 'ORANGE'),
+             ('laser', 3, 'RED')]
     type = None
     color = None
 
