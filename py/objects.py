@@ -91,7 +91,7 @@ class Ball(pygame.sprite.Sprite):
         self.xfloat = float(self.rect.x)
         self.yfloat = float(self.rect.y)
 
-        self.col_this_frame = [False, False]
+        self.col_this_frame = [False, False]  # [x, y]
 
     def bounce(self, bounceIsVertical):
         """
@@ -109,7 +109,7 @@ class Ball(pygame.sprite.Sprite):
                 self.xspeed *= -1
                 self.col_this_frame[0] = True
 
-            elif not self.col_this_frame[1]:
+            elif not (bounceIsVertical or self.col_this_frame[1]):
                 self.yspeed *= -1
                 self.col_this_frame[1] = True
 
