@@ -204,9 +204,6 @@ class Game:
         # Handle collisions
         self.collisionHandler.evaluate()
 
-        # Note: collision handling is less broken yet once again, but the ball still disappears into the walls
-        #self.playerBall.update()
-
         if pygame.time.get_ticks() >= self.last_block_time + self.time_until_next_block:
             self.last_block_time = pygame.time.get_ticks()
             self.time_until_next_block = self.addBlock()
@@ -275,10 +272,6 @@ class CollisionHandling:
     """
     class containing collision handling functions
     """
-    # README CollisionHandling:
-    # Both verticality-detecting methods have some problems.
-    # The old function will behave unpredictably when the ball's speed is high
-    # The new function is bad at detecting collisions on small sides of a large rectangle.
     def __init__(self, game):
         self.game = game
         self.next_collision_exclusion=[]
@@ -302,7 +295,7 @@ class CollisionHandling:
         collisions = pygame.sprite.spritecollide(self.game.playerBall, self.game.CollisionSpritesList, False)
 
         if len(collisions) > 1:
-            print(collisions)
+            print("multiple collisions,", collisions)
         for c in collisions:
 
             if c not in self.next_collision_exclusion:
@@ -320,10 +313,9 @@ class CollisionHandling:
                             self.game.AllSpritesList.add(newPowerUp)
                             self.game.powerUpSpritesList.add(newPowerUp)
 
-                isVertical_old = CollisionHandling.find_bounce_is_vertical_old(self.game.playerBall, c)
                 isVertical = CollisionHandling.find_bounce_is_vertical(self.game.playerBall, c)
 
-                self.game.playerBall.bounce(isVertical)  # or change to the old one
+                self.game.playerBall.bounce(isVertical)
 
                 # Should be handled at the object collided with, not here
                 # AudioObj.playSound('bounce')
@@ -352,13 +344,8 @@ class CollisionHandling:
         # phi = arctan(yspeed / xspeed)
 
         # result is in radians, ranging from -pi to pi
-        # can be flipped by adding or subtracting pi
-        tau = 2 * math.pi
-
-        # TODO use angle of ball centre and collision centre in lieu of speed
-        ball_in_angle = math.atan2(ballObj.yspeed, ballObj.xspeed)
-        # Flip angle but keep range intact.
-        ball_out_angle = ((ball_in_angle + tau) % tau) - math.pi
+        ball_in_angle = math.atan2(ballObj.rect.centery - collisionObj.rect.centery,
+                                   ballObj.rect.centerx - collisionObj.rect.centerx)
 
         coll_x = collisionObj.rect.width
         coll_y = collisionObj.rect.height
@@ -368,38 +355,11 @@ class CollisionHandling:
         bot_right = math.atan2( coll_y,  coll_x)
         bot_left  = math.atan2( coll_y, -coll_x)
 
-        top = top_left < ball_out_angle <= top_right
-        bottom = bot_right < ball_out_angle <= bot_left
-        # right = top_right < ball_out_angle <= bot_right
-        # left = bot_left < ball_out_angle <= top_left
+        top = top_left < ball_in_angle <= top_right
+        bottom = bot_right < ball_in_angle <= bot_left
 
         return not (top or bottom)
 
-    @staticmethod
-    def find_bounce_is_vertical_old(ballObj, collisionObj):
-        """
-        returns True if bounce happens on a vertical surface
-        This function seems to do alright, except for at large ball speeds.
-        """
-        # i copied this monster from stackoverflow so be warned
-        ball_top = ballObj.rect.top
-        ball_bot = ballObj.rect.bottom
-        ball_rgt = ballObj.rect.right
-        ball_lft = ballObj.rect.left
-
-        coll_top = collisionObj.rect.top
-        coll_bot = collisionObj.rect.bottom
-        coll_rgt = collisionObj.rect.right
-        coll_lft = collisionObj.rect.left
-
-        # all booleans are reversed for some reason
-        top = ball_top <= coll_bot and ball_top >= coll_top
-        bot = ball_bot >= coll_top and ball_bot <= coll_bot
-        rgt = ball_rgt >= coll_lft and ball_rgt <= coll_rgt
-        lft = ball_lft <= coll_rgt and ball_lft >= coll_lft
-        # so unreverse in the return statement
-        # print(not top, not bot, not rgt, not lft)
-        return not rgt or not lft
 
 class HighScores:
     def updateHigh(self):
@@ -438,6 +398,7 @@ class MainMenu:
     # menuItems = [mainmenu, optionsmenu, highscoremenu, startgamemenu]
     menuItems = None
     menucolor = None
+
     def __init__(self):
         pygame.display.set_caption(constants.GAME_NAME + ' - Main menu' )
         self.mainFont = pygame.font.SysFont('arial', 60) # 76? HEIGTH
