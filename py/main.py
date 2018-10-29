@@ -19,6 +19,7 @@ def init():
     Note: creating a multiline string using triple quotation marks is how you create python documentation
     """
     # Initialize all pygame modules
+    pygame.mixer.pre_init()
     pygame.display.init()
     pygame.font.init()
     pygame.mixer.init()  # TODO set right variables inside this
@@ -126,6 +127,9 @@ class Game:
     main.Game class contains game generation and handling functionality.
     """
     # define variables to be initialized
+    score = None
+    scoreMult = None
+
     playerBall = None
     paddle = None
     AllSpritesList = None
@@ -149,7 +153,8 @@ class Game:
         self.AllSpritesList.add(self.playerBall)
 
         # Create paddle object
-        self.paddle = objects.Paddle(constants.colors["WHITE"], constants.PADDLE_Y_POS, constants.PADDLEWIDTH, constants.PADDLEHEIGHT)
+        self.paddle = objects.Paddle(constants.colors["WHITE"], constants.PADDLE_Y_POS,
+                                     constants.PADDLEWIDTH, constants.PADDLEHEIGHT)
         self.AllSpritesList.add(self.paddle)
         self.CollisionSpritesList.add(self.paddle)
 
@@ -175,6 +180,10 @@ class Game:
             self.walls[i] = objects.Wall(constants.colors["GRAY"], constants.WALLSIZE, i)
             self.AllSpritesList.add(self.walls[i])
             self.CollisionSpritesList.add(self.walls[i])
+
+        # Initialize score
+        self.score = 0
+        self.scoreMult = 1.0
 
     def handleKeys(self, keysPressed):
         """

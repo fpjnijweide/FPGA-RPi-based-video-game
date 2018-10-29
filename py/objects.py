@@ -113,9 +113,6 @@ class Ball(pygame.sprite.Sprite):
                 self.yspeed *= -1
                 self.col_this_frame[1] = True
 
-            else:
-                print("already bounced this axis")
-
     def update(self):
         """update ball location"""
         self.xfloat += self.xspeed
@@ -208,11 +205,13 @@ class PowerUp:
 
     @staticmethod
     def generateType():
+        """choose random poweruptype"""
         rngchoose = 0.0
         rngtotal = 0.0
+
         for t in PowerUp.types:
             rngtotal += t[1]
-            # print(rngtotal)
+
         rngnum = random.uniform(0, rngtotal)
         for t in PowerUp.types:
             rngchoose += t[1]
@@ -222,15 +221,16 @@ class PowerUp:
             print("Warning, no PowerUp type was generated")
 
     def getTypeInfo(self):
+        """return tuple from self.types"""
         for t in self.types:
             if t[0] == self.type:
                 return t
         print("getTypeInfo error!")
 
     def activate(self):
-        # Do something
         print('activate %s' % self.type)
 
+        del self
         # After doing something, the reference to the object is removed.
 
     class PowerUpSprite(pygame.sprite.Sprite):
