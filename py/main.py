@@ -192,9 +192,9 @@ class Game:
         if keyBindings.checkPress('exit', keysPressed):
             pygame.event.post(pygame.event.Event(pygame.QUIT))
 
-        if keyBindings.checkPress('left', keysPressed) and (self.paddle.rect.x > (constants.PADDLEWIDTH//2)):
+        if keyBindings.checkPress('left', keysPressed) and (self.paddle.rect.x > (constants.WALLSIZE)):
             self.paddle.rect.x -= constants.PADDLESPEED
-        if keyBindings.checkPress('right', keysPressed) and (self.paddle.rect.x < (constants.WINDOW_WIDTH - constants.PADDLEWIDTH*1.5)):
+        if keyBindings.checkPress('right', keysPressed) and (self.paddle.rect.x + constants.PADDLEWIDTH< (constants.WINDOW_WIDTH - constants.WALLSIZE)):
             self.paddle.rect.x += constants.PADDLESPEED
 
         # (re)set ball location when pressing K_HOME (cheat)
