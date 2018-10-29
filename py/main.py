@@ -9,7 +9,7 @@ import pygame, sys, math
 import objects, constants, keyBindings
 from enum import Enum
 import random
-# import time  # TODO use pygame.time functionality instead
+import time # TODO use pygame.time functionality instead
 
 
 def init():
@@ -133,7 +133,7 @@ class Game:
     walls = [None, None, None, None]
     PowerUps = None
     readyPowerUp = None
-
+    currentPowerUps = None
     # self.collisionHandler
 
     def __init__(self):
@@ -163,7 +163,7 @@ class Game:
         self.time_until_next_block = 0
         self.last_block_time = 0
         self.blocklist=[]
-
+        self.currentPowerUps=[]
         # Play some music!
         # use one of these
         # AudioObj.playMusic('highScore')
@@ -193,8 +193,19 @@ class Game:
             self.playerBall.respawn()
 
         if keyBindings.checkPress('activate', keysPressed) and self.readyPowerUp:
-            self.readyPowerUp.activate()
-            self.readyPowerUp = None
+            pass
+
+    def check_powerup_status(self):
+        for p in self.currentPowerUps:
+            if p[0] < time.time():
+                print("removed powerup")
+                print(p[1])
+                self.paddle.color=constants.colors["WHITE"]
+                self.paddle.update()
+                self.playerBall.color=constants.colors["WHITE"]
+                #self.ballObj.updateproperties()
+                self.currentPowerUps.remove(p)
+                #TODO actually deactive powerup
 
     def updateGame(self):
         """
@@ -202,6 +213,7 @@ class Game:
         """
         # Handle collisions
         self.collisionHandler.evaluate()
+        self.check_powerup_status()
 
         if pygame.time.get_ticks() >= self.last_block_time + self.time_until_next_block:
             self.last_block_time = pygame.time.get_ticks()
@@ -294,14 +306,28 @@ class CollisionHandling:
             if isinstance(c, objects.Block):
                 c_newhp = c.reduceHP(self.game.playerBall.xspeed, self.game.playerBall.yspeed)
                 if c_newhp <= 0:
-                    GameObj.removeblock(c)
+                    
 
-                    # Randomly generate powerup
-                    if random.random() < constants.POWERUP_CHANCE:
-                        # Create object and add to relevant sprite lists
-                        newPowerUp = objects.PowerUp.PowerUpSprite(self.game.playerBall.rect.x, self.game.playerBall.rect.y)
+                    if c.type=="red":
+                        newPowerUp = objects.PowerUp.PowerUpSprite(self.game.playerBall.rect.x, self.game.playerBall.rect.y, "red")
+                        self.game.AllSpritesList.add(newPowerUp)
+                        self.game.powerUpSpritesList.add(newPowerUp)                        
+                    elif c.type=="blue":
+                        newPowerUp = objects.PowerUp.PowerUpSprite(self.game.playerBall.rect.x, self.game.playerBall.rect.y, "blue")
                         self.game.AllSpritesList.add(newPowerUp)
                         self.game.powerUpSpritesList.add(newPowerUp)
+                    elif c.type=="green":
+                        newPowerUp = objects.PowerUp.PowerUpSprite(self.game.playerBall.rect.x, self.game.playerBall.rect.y, "green")
+                        self.game.AllSpritesList.add(newPowerUp)
+                        self.game.powerUpSpritesList.add(newPowerUp)                                
+                    # Randomly generate powerup
+                    elif random.random() < constants.POWERUP_CHANCE:
+                        # Create object and add to relevant sprite lists
+                        newPowerUp = objects.PowerUp.PowerUpSprite(self.game.playerBall.rect.x, self.game.playerBall.rect.y, "random")
+                        self.game.AllSpritesList.add(newPowerUp)
+                        self.game.powerUpSpritesList.add(newPowerUp)
+
+                    GameObj.removeblock(c)
 
             isVertical = CollisionHandling.find_bounce_is_vertical(self.game.playerBall, c)
 
@@ -316,6 +342,51 @@ class CollisionHandling:
         for c in powerUpCollisions:
             self.game.readyPowerUp = c.powerUp
             print("caught %s powerup" % self.game.readyPowerUp.type)
+
+
+
+            (powerup_entry,powerup_properties) = self.game.readyPowerUp.activate()
+            self.game.currentPowerUps.append(powerup_entry) #TODO actually activate powerup
+
+            powerup_color=constants.colors[  powerup_properties[1]  ]
+            value = powerup_properties[5]
+
+
+            if powerup_properties[3]=="ball":
+                powerup_object=self.game.playerBall
+            elif powerup_properties[3]=="paddle":
+                powerup_object=self.game.paddle
+            
+            if powerup_properties[4]=="radius":
+                powerup_object.radius=value
+            elif powerup_properties[4]=="speed":
+                powerup_object.xspeed=value
+                powerup_object.yspeed=value
+            elif powerup_properties[4]=="width":
+                powerup_object.width=value
+
+            print("powerup_object")
+            print(powerup_properties[4])
+
+            print("attribute")
+            print(powerup_properties[5])
+
+            print("value")
+            print(value)
+            #TODO update paddle size, ball size, ball speed
+            #TODO unset powerups
+
+            powerup_object.color=powerup_color
+            powerup_object.update_bonus()
+
+            #self.game.AllSpritesList.remove(powerup_object)
+            #self.game.CollisionSpritesList.remove(powerup_object)
+            #self.game.AllSpritesList.add(powerup_object)
+            #self.game.CollisionSpritesList.add(powerup_object)
+
+
+            #self.paddle.update()
+            self.game.readyPowerUp = None
 
     @staticmethod
     def find_bounce_is_vertical(ballObj, collisionObj):
