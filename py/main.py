@@ -224,6 +224,11 @@ class Game:
         # draw sprites
         self.AllSpritesList.draw(Screen)
 
+        score_view = pygame.font.Font(None, 30).render(str(self.score),
+                                                    True,
+                                                    constants.colors['WHITE'])
+        Screen.blit(score_view, (constants.WINDOW_WIDTH - 50, 50))
+
     def removeblock(self, obj1):
         self.AllSpritesList.remove(obj1)
         self.CollisionSpritesList.remove(obj1)
@@ -274,6 +279,11 @@ class Game:
             del newblock
             return 0
 
+    def inc_score(self, points):
+        self.score += int(points * self.scoreMult)
+
+
+
 
 class CollisionHandling:
 
@@ -305,12 +315,15 @@ class CollisionHandling:
                 if c_newhp <= 0:
                     GameObj.removeblock(c)
 
+                    self.game.inc_score(c.score)
+
                     # Randomly generate powerup
                     if random.random() < constants.POWERUP_CHANCE:
                         # Create object and add to relevant sprite lists
                         newPowerUp = objects.PowerUp.PowerUpSprite(self.game.playerBall.rect.x, self.game.playerBall.rect.y)
                         self.game.AllSpritesList.add(newPowerUp)
                         self.game.powerUpSpritesList.add(newPowerUp)
+
 
             isVertical = CollisionHandling.find_bounce_is_vertical(self.game.playerBall, c)
 

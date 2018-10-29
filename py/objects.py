@@ -3,6 +3,7 @@ from pygame.locals import *
 import constants
 import random
 
+
 class Block(pygame.sprite.Sprite):
     """
     """
@@ -13,15 +14,19 @@ class Block(pygame.sprite.Sprite):
         if type=="default":
             color=constants.colors["WHITE"]
             self.initialhp = constants.BLOCK_INITIAL_HP
+            self.score = 10
         if type=="red":
             color=constants.colors["RED"]
             self.initialhp = constants.BLOCK_INITIAL_HP*8
+            self.score = 50
         if type=="green":
             color=constants.colors["GREEN"]
             self.initialhp = constants.BLOCK_INITIAL_HP*2
+            self.score = 20
         if type=="blue":
             color=constants.colors["BLUE"]
             self.initialhp = constants.BLOCK_INITIAL_HP*3
+            self.score = 30
 
         self.hp = self.initialhp
 
