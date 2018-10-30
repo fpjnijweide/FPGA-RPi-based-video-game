@@ -188,14 +188,12 @@ class Paddle(pygame.sprite.Sprite):
         self.bounciness = 1
  
     def update_bonus(self):
-        #self.image=pygame.Surface([self.width, self.height]) #TODO check if this works
         self.image = pygame.Surface([self.width, self.height])
         self.image.fill(self.color)
         pre_x, pre_y = self.rect.x, self.rect.y
         self.rect = self.image.get_rect()
         self.rect.x, self.rect.y = pre_x, pre_y
-        #   self.rect = self.image.get_rect()
-        
+
 class Wall(pygame.sprite.Sprite):
     """
     edges of screen. Used for collision detection as well as graphical purposes

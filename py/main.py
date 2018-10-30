@@ -7,7 +7,8 @@ Sensor Pong
 """
 import pygame, sys, math
 import objects, constants, keyBindings
-from enum import Enum
+import sensordb
+# from enum import Enum
 import random
 # import time # TODO use pygame.time functionality instead
 # Okay so instead of time.time()  (s)
@@ -24,7 +25,7 @@ def init():
     pygame.mixer.pre_init()
     pygame.display.init()
     pygame.font.init()
-    pygame.mixer.init()  # TODO set right variables inside this
+    pygame.mixer.init()
 
     # Set up screen
     global Screen
@@ -40,16 +41,8 @@ def init():
     global ClockObj
     ClockObj = pygame.time.Clock()  # create game clock
 
-    # Call Game.__init__() and set gamestate
-    global GameState
-    GameState = GameStates.MAINMENU
-
-    global GameObj
-    GameObj = None  # Game()
-    global MenuObj
-    MenuObj = MainMenu()  # None
-    # global HighObj
-    # HighObj = HighScores()
+    global GameStateObj
+    GameStateObj = MainMenu()
 
 
 def main():
@@ -74,19 +67,8 @@ def main():
         # TODO use events to handle presses (maybe)
         keysPressed = pygame.key.get_pressed()
 
-        if GameState == GameStates.PLAYING:
-            GameObj.handleKeys(keysPressed)
-            GameObj.updateGame()
-        if GameState == GameStates.MAINMENU:
-            MenuObj.handleKeys(keysPressed)
-            MenuObj.updateMenu()
-        if GameState == GameStates.HIGHSCORES:
-            # HighObj.handleKeys(keysPressed)
-            # HighObj.updateHigh()
-            pass
-
-        # elif GameState == GameStates.MAINMENU:
-        # Do MainMenuObj.handleKeys and updateGame
+        global GameStateObj
+        GameStateObj = GameStateObj.update(keysPressed)
 
         # Display fps in screen
         if constants.VIEWFPS:
@@ -111,20 +93,6 @@ def main():
         # Note that the game stops updating but is not quit entirely
 
 
-class GameStates(Enum):
-    """
-    An Enum links names to integer, accessible with e.g. GameStates.MAINMENU
-    GameState is a global variable within main.py,
-        it should always keep track of the screen that the player is on.
-    Using this class to assign the GameState variable ensures that it is always one of the defined options.
-    """
-    MAINMENU = 0
-    PLAYING  = 1
-    # GAMEOVER = 2 # unused as of now
-    HIGHSCORES = 3
-    OPTIONS = 4
-
-
 class Game:
     """
     main.Game class contains game generation and handling functionality.
@@ -140,14 +108,15 @@ class Game:
     walls = [None, None, None, None]
     PowerUps = None
     currentPowerUps = None
-    # self.collisionHandler
+    nextGameState = None
 
     def __init__(self):
         # Create two empty sprite groups.
         # One for sprites to render, another for sprites to collision detect
+        pygame.display.set_caption(constants.GAME_NAME + ' - Now Playing')
+
         self.AllSpritesList = pygame.sprite.Group()
         self.CollisionSpritesList = pygame.sprite.Group()
-        # also one for powerups
         self.powerUpSpritesList = pygame.sprite.Group()
 
         # Create Ball object
@@ -163,14 +132,12 @@ class Game:
         # Create collision handling object
         self.collisionHandler = CollisionHandling(self)
 
-        # Create object for powerup handling and (empty) sprite list
-        # self.powerUps = objects.PowerUp(self)
-
         self.init_grid()
         self.time_until_next_block = 0
         self.last_block_time = 0
         self.blocklist=[]
         self.currentPowerUps=[]
+
         # Play some music!
         # use one of these
         # AudioObj.playMusic('highScore')
@@ -192,7 +159,11 @@ class Game:
         Calls keyBindings.checkPress and responds accordingly
         """
         if keyBindings.checkPress('exit', keysPressed):
-            pygame.event.post(pygame.event.Event(pygame.QUIT))
+            # pygame.event.post(pygame.event.Event(pygame.QUIT))
+            # TODO find some other way of delaying input
+            pygame.time.delay(1000)
+            self.gameover()
+            return
 
         if keyBindings.checkPress('left', keysPressed) and (self.paddle.rect.x > (constants.WALLSIZE)):
             self.paddle.rect.x -= constants.PADDLESPEED
@@ -218,11 +189,12 @@ class Game:
                 self.currentPowerUps.remove(p)
                 #TODO actually deactive powerup
 
-    def updateGame(self):
+    def update(self, keystohandle):
         """
         Updates sprites and stuff. Called once every frame while playing game.
         """
         # Handle collisions
+        self.handleKeys(keystohandle)
         self.collisionHandler.evaluate()
         self.check_powerup_status()
 
@@ -248,6 +220,11 @@ class Game:
         score_rect.y = 50
         Screen.blit(score_view, score_rect)
 
+        if self.nextGameState:
+            return self.nextGameState
+
+        return self
+
     def removeblock(self, obj1):
         self.AllSpritesList.remove(obj1)
         self.CollisionSpritesList.remove(obj1)
@@ -269,8 +246,6 @@ class Game:
 
     def addBlock(self):
 
-        throwdice=random.randint(1,100)
-
         newblock = objects.Block(self.blocksize-(2*constants.BLOCKMARGIN), self.blocksize-(2*constants.BLOCKMARGIN))
 
         # But maybe the grid stuff can stay here
@@ -288,6 +263,11 @@ class Game:
 
     def inc_score(self, points):
         self.score += int(points * self.scoreMult)
+
+    def gameover(self):
+        sensordb.insertscore('unknown name', self.score)
+        # TODO exit to gameover menu
+        self.nextGameState = MainMenu()
 
 
 class CollisionHandling:
@@ -336,7 +316,7 @@ class CollisionHandling:
                         self.game.AllSpritesList.add(newPowerUp)
                         self.game.powerUpSpritesList.add(newPowerUp)
 
-                    GameObj.removeblock(c)
+                    self.game.removeblock(c)
             isVertical = CollisionHandling.find_bounce_is_vertical(self.game.playerBall, c)
 
             self.game.playerBall.bounce(isVertical)
@@ -348,15 +328,13 @@ class CollisionHandling:
         # After checking ball collisions, check for powerups to collect
         powerUpCollisions = pygame.sprite.spritecollide(self.game.paddle, self.game.powerUpSpritesList, True)
         for c in powerUpCollisions:
-            # self.game.readyPowerUp = c.powerUp
-            # print("caught %s powerup" % self.game.readyPowerUp.type)
 
             (powerup_entry,powerup_properties) = c.powerUp.activate()
-            self.game.currentPowerUps.append(powerup_entry) #TODO actually activate powerup
+            self.game.currentPowerUps.append(powerup_entry)
+            # TODO actually activate powerup
 
             powerup_color=constants.colors[  powerup_properties[1]  ]
             value = powerup_properties[5]
-
 
             if powerup_properties[3]=="ball":
                 powerup_object=self.game.playerBall
@@ -371,29 +349,14 @@ class CollisionHandling:
             elif powerup_properties[4]=="width":
                 powerup_object.width=value
 
-            # print("powerup_object")
-            # print(powerup_properties[4])
-
-            # print("attribute")
-            # print(powerup_properties[5])
-
-            # print("value")
-            # print(value)
-            #TODO update paddle size, ball size, ball speed
-            #TODO unset powerups
+            # TODO update paddle size, ball size, ball speed
+            # TODO unset powerups
 
             powerup_object.color=powerup_color
             powerup_object.update_bonus()
 
             self.game.AllSpritesList.remove(c)
             self.game.powerUpSpritesList.remove(c)
-            #self.game.CollisionSpritesList.remove(powerup_object)
-            #self.game.AllSpritesList.add(powerup_object)
-            #self.game.CollisionSpritesList.add(powerup_object)
-
-
-            #self.paddle.update()
-            self.game.readyPowerUp = None
 
     @staticmethod
     def find_bounce_is_vertical(ballObj, collisionObj):
@@ -465,6 +428,8 @@ class MainMenu:
     menuItems = None
     menucolor = None
 
+    nextGameState = None
+
     def __init__(self):
         pygame.display.set_caption(constants.GAME_NAME + ' - Main menu' )
         self.mainFont = pygame.font.SysFont('arial', 60) # 76? HEIGTH
@@ -482,7 +447,7 @@ class MainMenu:
         self.selectedItem = 0
         # for x in range(0, len(self.menuItems)):
         #     print(self.menuItems[x].get_size())# width, height
-        self.mainmenu_Width = constants.WINDOW_HW - self.mainmenu.get_width()//2
+        self.mainmenu_Width = constants.WINDOW_WIDTH // 2 - self.mainmenu.get_width()//2
         self.startgamemenu_Width = 30 #constants.WINDOW_WIDTH/1000 # + self.startgamemenu.get_width()//2
         self.highscoremenu_Width = self.startgamemenu_Width + self.startgamemenu.get_width()
         self.optionsmenu_Width = self.highscoremenu_Width + self.highscoremenu.get_width()
@@ -526,20 +491,15 @@ class MainMenu:
         if keyBindings.checkPress('activate', keysPressed):
 
             global GameState
-            global MainObj
+            global GameStateObj
 
             if self.selectedItem == 0:
-                GameState = GameStates.PLAYING
-                global GameObj
-                GameObj = Game()
-                MainObj = None
+                self.nextGameState = Game()
 
             elif self.selectedItem == 1:
-                # GameState = GameStates.HIGHSCORES
                 pass
 
             elif self.selectedItem == 2:
-                # GameState = GameStates.OPTIONS
                 pass
 
             elif self.selectedItem == 3:
@@ -553,7 +513,9 @@ class MainMenu:
         if font == self.highlight:
             return self.highlight.render(text, False, constants.colors['RED'])
 
-    def updateMenu(self):
+    def update(self, keystohandle):
+        self.handleKeys(keystohandle)
+
         Screen.fill(constants.colors["BLACK"])
 
         Screen.blit(self.mainmenu, (self.mainmenu_Width, self.mainmenu_Height))
@@ -563,6 +525,11 @@ class MainMenu:
         Screen.blit(self.menuItems[3], (self.exitmenu_Width, self.exitmenu_Height))
 
         pygame.time.delay(80)
+
+        if self.nextGameState:
+            return self.nextGameState
+
+        return self
 
 
 class Audio:
