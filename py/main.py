@@ -10,6 +10,8 @@ import objects, constants, keyBindings
 from enum import Enum
 import random
 # import time # TODO use pygame.time functionality instead
+# Okay so instead of time.time()  (s)
+#    Use pygame.time.get_ticks() (ms)
 
 
 def init():
@@ -137,7 +139,6 @@ class Game:
     CollisionSpritesList = None
     walls = [None, None, None, None]
     PowerUps = None
-    readyPowerUp = None
     currentPowerUps = None
     # self.collisionHandler
 
@@ -163,7 +164,7 @@ class Game:
         self.collisionHandler = CollisionHandling(self)
 
         # Create object for powerup handling and (empty) sprite list
-        self.powerUps = objects.PowerUp()
+        # self.powerUps = objects.PowerUp(self)
 
         self.init_grid()
         self.time_until_next_block = 0
@@ -202,17 +203,17 @@ class Game:
         if keyBindings.checkPress('restart', keysPressed):
             self.playerBall.respawn()
 
-        if keyBindings.checkPress('activate', keysPressed) and self.readyPowerUp:
+        if keyBindings.checkPress('activate', keysPressed):
             pass
 
     def check_powerup_status(self):
         for p in self.currentPowerUps:
             if p[0] < pygame.time.get_ticks():
-                print("REMOVED POWERUP")
-                print(p[1])
+                print("REMOVED POWERUP", p[1])
                 self.paddle.color=constants.colors["WHITE"]
-                self.paddle.update()
+                self.paddle.update_bonus()
                 self.playerBall.color=constants.colors["WHITE"]
+                self.playerBall.update_bonus()
                 #self.ballObj.updateproperties()
                 self.currentPowerUps.remove(p)
                 #TODO actually deactive powerup
@@ -227,7 +228,8 @@ class Game:
 
         if pygame.time.get_ticks() >= self.last_block_time + self.time_until_next_block:
             self.last_block_time = pygame.time.get_ticks()
-            self.time_until_next_block = self.addBlock()
+            self.addBlock()
+            self.time_until_next_block = random.randint(constants.RESPAWNDELAY,constants.RESPAWNDELAY+constants.RESPAWNRANGE)
 
         Screen.fill(constants.colors["BLACK"])
 
@@ -266,18 +268,10 @@ class Game:
         self.blocksize = (constants.WINDOW_WIDTH-(2*constants.GRIDMARGIN))//constants.GRIDX
 
     def addBlock(self):
-        # TODO this logic should be moved to an objects.Block function
-        # See objects.PowerUp.generateType()
+
         throwdice=random.randint(1,100)
-        if throwdice >= 70 and throwdice<85:
-            blocktype="green"
-        elif throwdice >= 85 and throwdice<95:
-            blocktype="blue"
-        elif throwdice >= 95:
-            blocktype="red"
-        else:
-            blocktype="default"
-        newblock = objects.Block(blocktype,self.blocksize-(2*constants.BLOCKMARGIN), self.blocksize-(2*constants.BLOCKMARGIN))
+
+        newblock = objects.Block(self.blocksize-(2*constants.BLOCKMARGIN), self.blocksize-(2*constants.BLOCKMARGIN))
 
         # But maybe the grid stuff can stay here
 
@@ -290,11 +284,7 @@ class Game:
             self.AllSpritesList.add(newblock)
             self.CollisionSpritesList.add(newblock)
             self.blocklist.append(newblock)
-            time_until_next_block = random.randint(constants.RESPAWNDELAY,constants.RESPAWNDELAY+constants.RESPAWNRANGE)
-            return time_until_next_block
-        else:
-            del newblock
-            return 0
+            self.grid[newblock.y_on_grid][newblock.x_on_grid] = newblock
 
     def inc_score(self, points):
         self.score += int(points * self.scoreMult)
@@ -319,35 +309,30 @@ class CollisionHandling:
 
         collisions = pygame.sprite.spritecollide(self.game.playerBall, self.game.CollisionSpritesList, False)
 
-        # TODO fix multiple blocks spawning on same place
-        if len(collisions) > 1:
-            print("multiple collisions,")
-
         for c in collisions:
             # Collision happens with block (instead of paddle or ball)
             if isinstance(c, objects.Block):
                 c_newhp = c.reduceHP(self.game.playerBall.xspeed, self.game.playerBall.yspeed)
                 if c_newhp <= 0:
                     
-
                     self.game.inc_score(c.score)
 
                     if c.type=="red":
-                        newPowerUp = objects.PowerUp.PowerUpSprite(self.game.playerBall.rect.x, self.game.playerBall.rect.y, "red")
+                        newPowerUp = objects.PowerUp.PowerUpSprite(self.game.playerBall.rect.x, self.game.playerBall.rect.y, "red", self.game)
                         self.game.AllSpritesList.add(newPowerUp)
                         self.game.powerUpSpritesList.add(newPowerUp)                        
                     elif c.type=="blue":
-                        newPowerUp = objects.PowerUp.PowerUpSprite(self.game.playerBall.rect.x, self.game.playerBall.rect.y, "blue")
+                        newPowerUp = objects.PowerUp.PowerUpSprite(self.game.playerBall.rect.x, self.game.playerBall.rect.y, "blue", self.game)
                         self.game.AllSpritesList.add(newPowerUp)
                         self.game.powerUpSpritesList.add(newPowerUp)
                     elif c.type=="green":
-                        newPowerUp = objects.PowerUp.PowerUpSprite(self.game.playerBall.rect.x, self.game.playerBall.rect.y, "green")
+                        newPowerUp = objects.PowerUp.PowerUpSprite(self.game.playerBall.rect.x, self.game.playerBall.rect.y, "green", self.game)
                         self.game.AllSpritesList.add(newPowerUp)
                         self.game.powerUpSpritesList.add(newPowerUp)                                
                     # Randomly generate powerup
                     elif random.random() < constants.POWERUP_CHANCE:
                         # Create object and add to relevant sprite lists
-                        newPowerUp = objects.PowerUp.PowerUpSprite(self.game.playerBall.rect.x, self.game.playerBall.rect.y, "random")
+                        newPowerUp = objects.PowerUp.PowerUpSprite(self.game.playerBall.rect.x, self.game.playerBall.rect.y, "random", self.game)
                         self.game.AllSpritesList.add(newPowerUp)
                         self.game.powerUpSpritesList.add(newPowerUp)
 
@@ -363,12 +348,10 @@ class CollisionHandling:
         # After checking ball collisions, check for powerups to collect
         powerUpCollisions = pygame.sprite.spritecollide(self.game.paddle, self.game.powerUpSpritesList, True)
         for c in powerUpCollisions:
-            self.game.readyPowerUp = c.powerUp
-            print("caught %s powerup" % self.game.readyPowerUp.type)
+            # self.game.readyPowerUp = c.powerUp
+            # print("caught %s powerup" % self.game.readyPowerUp.type)
 
-
-
-            (powerup_entry,powerup_properties) = self.game.readyPowerUp.activate()
+            (powerup_entry,powerup_properties) = c.powerUp.activate()
             self.game.currentPowerUps.append(powerup_entry) #TODO actually activate powerup
 
             powerup_color=constants.colors[  powerup_properties[1]  ]
@@ -388,21 +371,22 @@ class CollisionHandling:
             elif powerup_properties[4]=="width":
                 powerup_object.width=value
 
-            print("powerup_object")
-            print(powerup_properties[4])
+            # print("powerup_object")
+            # print(powerup_properties[4])
 
-            print("attribute")
-            print(powerup_properties[5])
+            # print("attribute")
+            # print(powerup_properties[5])
 
-            print("value")
-            print(value)
+            # print("value")
+            # print(value)
             #TODO update paddle size, ball size, ball speed
             #TODO unset powerups
 
             powerup_object.color=powerup_color
             powerup_object.update_bonus()
 
-            #self.game.AllSpritesList.remove(powerup_object)
+            self.game.AllSpritesList.remove(c)
+            self.game.powerUpSpritesList.remove(c)
             #self.game.CollisionSpritesList.remove(powerup_object)
             #self.game.AllSpritesList.add(powerup_object)
             #self.game.CollisionSpritesList.add(powerup_object)
@@ -571,11 +555,6 @@ class MainMenu:
 
     def updateMenu(self):
         Screen.fill(constants.colors["BLACK"])
-        # Screen.blit(self.mainmenu, (self.mainmenu_Width, self.mainmenu_Height))
-        # Screen.blit(self.startgamemenu, (self.startgamemenu_Width, self.startgamemenu_Height))
-        # Screen.blit(self.highscoremenu, (self.highscoremenu_Width, self.highscoremenu_Height))
-        # Screen.blit(self.optionsmenu, (self.optionsmenu_Width, self.optionsmenu_Height))
-        # Screen.blit(self.exitmenu, (self.exitmenu_Width, self.exitmenu_Height))
 
         Screen.blit(self.mainmenu, (self.mainmenu_Width, self.mainmenu_Height))
         Screen.blit(self.menuItems[0], (self.startgamemenu_Width, self.startgamemenu_Height))
