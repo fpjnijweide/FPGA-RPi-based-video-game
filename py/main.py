@@ -162,7 +162,7 @@ class Game:
             # pygame.event.post(pygame.event.Event(pygame.QUIT))
             # TODO find some other way of delaying input
             # TODO -- OR use keyevents to handle inputs
-            pygame.time.delay(1000)
+            pygame.time.delay(500)
             self.gameover()
             return
 
@@ -181,14 +181,18 @@ class Game:
     def check_powerup_status(self):
         for p in self.currentPowerUps:
             if p[0] < pygame.time.get_ticks():
+
                 print("REMOVED POWERUP", p[1])
+
                 self.paddle.color=constants.colors["WHITE"]
+                self.paddle.width=constants.PADDLEWIDTH
                 self.paddle.update_bonus()
+
                 self.playerBall.color=constants.colors["WHITE"]
                 self.playerBall.update_bonus()
-                #self.ballObj.updateproperties()
+
                 self.currentPowerUps.remove(p)
-                #TODO actually deactive powerup
+                # TODO actually deactive powerup
 
     def update(self, keystohandle):
         """
