@@ -208,11 +208,11 @@ class Game:
     def check_powerup_status(self):
         for p in self.currentPowerUps:
             if p[0] < pygame.time.get_ticks():
-                print("REMOVED POWERUP")
-                print(p[1])
+                print("REMOVED POWERUP", p[1])
                 self.paddle.color=constants.colors["WHITE"]
-                self.paddle.update()
+                self.paddle.update_bonus()
                 self.playerBall.color=constants.colors["WHITE"]
+                self.playerBall.update_bonus()
                 #self.ballObj.updateproperties()
                 self.currentPowerUps.remove(p)
                 #TODO actually deactive powerup
@@ -266,18 +266,10 @@ class Game:
         self.blocksize = (constants.WINDOW_WIDTH-(2*constants.GRIDMARGIN))//constants.GRIDX
 
     def addBlock(self):
-        # TODO this logic should be moved to an objects.Block function
-        # See objects.PowerUp.generateType()
+
         throwdice=random.randint(1,100)
-        if throwdice >= 70 and throwdice<85:
-            blocktype="green"
-        elif throwdice >= 85 and throwdice<95:
-            blocktype="blue"
-        elif throwdice >= 95:
-            blocktype="red"
-        else:
-            blocktype="default"
-        newblock = objects.Block(blocktype,self.blocksize-(2*constants.BLOCKMARGIN), self.blocksize-(2*constants.BLOCKMARGIN))
+
+        newblock = objects.Block(self.blocksize-(2*constants.BLOCKMARGIN), self.blocksize-(2*constants.BLOCKMARGIN))
 
         # But maybe the grid stuff can stay here
 
@@ -320,8 +312,6 @@ class CollisionHandling:
         collisions = pygame.sprite.spritecollide(self.game.playerBall, self.game.CollisionSpritesList, False)
 
         # TODO fix multiple blocks spawning on same place
-        if len(collisions) > 1:
-            print("multiple collisions,")
 
         for c in collisions:
             # Collision happens with block (instead of paddle or ball)
@@ -329,7 +319,6 @@ class CollisionHandling:
                 c_newhp = c.reduceHP(self.game.playerBall.xspeed, self.game.playerBall.yspeed)
                 if c_newhp <= 0:
                     
-
                     self.game.inc_score(c.score)
 
                     if c.type=="red":
@@ -364,7 +353,7 @@ class CollisionHandling:
         powerUpCollisions = pygame.sprite.spritecollide(self.game.paddle, self.game.powerUpSpritesList, True)
         for c in powerUpCollisions:
             self.game.readyPowerUp = c.powerUp
-            print("caught %s powerup" % self.game.readyPowerUp.type)
+            # print("caught %s powerup" % self.game.readyPowerUp.type)
 
 
 
@@ -388,21 +377,22 @@ class CollisionHandling:
             elif powerup_properties[4]=="width":
                 powerup_object.width=value
 
-            print("powerup_object")
-            print(powerup_properties[4])
+            # print("powerup_object")
+            # print(powerup_properties[4])
 
-            print("attribute")
-            print(powerup_properties[5])
+            # print("attribute")
+            # print(powerup_properties[5])
 
-            print("value")
-            print(value)
+            # print("value")
+            # print(value)
             #TODO update paddle size, ball size, ball speed
             #TODO unset powerups
 
             powerup_object.color=powerup_color
             powerup_object.update_bonus()
 
-            #self.game.AllSpritesList.remove(powerup_object)
+            self.game.AllSpritesList.remove(c)
+            self.game.powerUpSpritesList.remove(c)
             #self.game.CollisionSpritesList.remove(powerup_object)
             #self.game.AllSpritesList.add(powerup_object)
             #self.game.CollisionSpritesList.add(powerup_object)

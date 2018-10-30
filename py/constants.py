@@ -1,6 +1,4 @@
 # ==== Global variables should be defined here
-# Note: User-Customizable variables (settings) should be defined in a different,
-# not-yet created .txt or .conf or whatever file [TODO]
 # Game name string
 GAME_NAME = "Sensor Pong" # use this when referencing the game name so that we can easily change it
 # GAME_VERSION = '0.0.1' # not used currently but might be nice eventually

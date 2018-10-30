@@ -2,18 +2,31 @@ import pygame, sys
 from pygame.locals import *
 import constants
 import random
-import time
+# import time
 
 
 class Block(pygame.sprite.Sprite):
     """
     """
 
-    #type=None
-    def __init__(self, type, width, height):
+    @staticmethod
+    def generateType():
+        throwdice = random.randint(1, 100)
+        if throwdice >= 70 and throwdice<85:
+            return "green"
+        elif throwdice >= 85 and throwdice<95:
+            return "blue"
+        elif throwdice >= 95:
+            return "red"
+        else:
+            return "default"
+
+    def __init__(self, width, height):
 
         super().__init__()
-        
+
+        type = Block.generateType()
+
         if type=="default":
             color=constants.colors["WHITE"]
             self.initialhp = constants.BLOCK_INITIAL_HP
@@ -111,11 +124,9 @@ class Ball(pygame.sprite.Sprite):
 
     def update_bonus(self):
         #pass
-        #self.image = pygame.Surface([self.radius*2, self.radius*2])
         self.image = pygame.transform.scale(self.image, (self.radius*2, self.radius*2))
         pygame.draw.circle(self.image, self.color, [self.radius,self.radius], self.radius)
         self.rect = self.image.get_rect()
-        #self.image.fill(self.color)
 
     def bounce(self, bounceIsVertical):
         """
