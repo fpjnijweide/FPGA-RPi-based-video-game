@@ -1,5 +1,4 @@
-import pygame, sys
-from pygame.locals import *
+import pygame
 import constants
 import random
 # import time
@@ -295,16 +294,15 @@ class PowerUp:
         height = 20
         powerUp = None
 
-        def __init__(self, x, y, power_type):
+        def __init__(self, x, y, power_type, game):
             super().__init__()
             self.powerUp = PowerUp()
+            self.game = game
 
             self.powerUp.type = PowerUp.generateType(power_type)
 
-
             self.powerUp.properties = PowerUp.type_properties[self.powerUp.type]
             self.powerUp.color = self.powerUp.properties[1]         
-
 
             self.image = pygame.Surface([self.width, self.height])
             self.image.fill(constants.colors[self.powerUp.color])
@@ -314,3 +312,10 @@ class PowerUp:
 
         def update(self):
             self.rect.y += 1
+            if self.rect.y > constants.WINDOW_HEIGHT:
+                self.game.powerUpSpritesList.remove(self)
+                self.game.AllSpritesList.remove(self)
+
+                # git commit suicide
+                self.kill()
+                del self

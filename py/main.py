@@ -10,6 +10,8 @@ import objects, constants, keyBindings
 from enum import Enum
 import random
 # import time # TODO use pygame.time functionality instead
+# Okay so instead of time.time()  (s)
+#    Use pygame.time.get_ticks() (ms)
 
 
 def init():
@@ -137,7 +139,6 @@ class Game:
     CollisionSpritesList = None
     walls = [None, None, None, None]
     PowerUps = None
-    readyPowerUp = None
     currentPowerUps = None
     # self.collisionHandler
 
@@ -163,7 +164,7 @@ class Game:
         self.collisionHandler = CollisionHandling(self)
 
         # Create object for powerup handling and (empty) sprite list
-        self.powerUps = objects.PowerUp()
+        # self.powerUps = objects.PowerUp(self)
 
         self.init_grid()
         self.time_until_next_block = 0
@@ -202,7 +203,7 @@ class Game:
         if keyBindings.checkPress('restart', keysPressed):
             self.playerBall.respawn()
 
-        if keyBindings.checkPress('activate', keysPressed) and self.readyPowerUp:
+        if keyBindings.checkPress('activate', keysPressed):
             pass
 
     def check_powerup_status(self):
@@ -322,21 +323,21 @@ class CollisionHandling:
                     self.game.inc_score(c.score)
 
                     if c.type=="red":
-                        newPowerUp = objects.PowerUp.PowerUpSprite(self.game.playerBall.rect.x, self.game.playerBall.rect.y, "red")
+                        newPowerUp = objects.PowerUp.PowerUpSprite(self.game.playerBall.rect.x, self.game.playerBall.rect.y, "red", self.game)
                         self.game.AllSpritesList.add(newPowerUp)
                         self.game.powerUpSpritesList.add(newPowerUp)                        
                     elif c.type=="blue":
-                        newPowerUp = objects.PowerUp.PowerUpSprite(self.game.playerBall.rect.x, self.game.playerBall.rect.y, "blue")
+                        newPowerUp = objects.PowerUp.PowerUpSprite(self.game.playerBall.rect.x, self.game.playerBall.rect.y, "blue", self.game)
                         self.game.AllSpritesList.add(newPowerUp)
                         self.game.powerUpSpritesList.add(newPowerUp)
                     elif c.type=="green":
-                        newPowerUp = objects.PowerUp.PowerUpSprite(self.game.playerBall.rect.x, self.game.playerBall.rect.y, "green")
+                        newPowerUp = objects.PowerUp.PowerUpSprite(self.game.playerBall.rect.x, self.game.playerBall.rect.y, "green", self.game)
                         self.game.AllSpritesList.add(newPowerUp)
                         self.game.powerUpSpritesList.add(newPowerUp)                                
                     # Randomly generate powerup
                     elif random.random() < constants.POWERUP_CHANCE:
                         # Create object and add to relevant sprite lists
-                        newPowerUp = objects.PowerUp.PowerUpSprite(self.game.playerBall.rect.x, self.game.playerBall.rect.y, "random")
+                        newPowerUp = objects.PowerUp.PowerUpSprite(self.game.playerBall.rect.x, self.game.playerBall.rect.y, "random", self.game)
                         self.game.AllSpritesList.add(newPowerUp)
                         self.game.powerUpSpritesList.add(newPowerUp)
 
@@ -352,12 +353,10 @@ class CollisionHandling:
         # After checking ball collisions, check for powerups to collect
         powerUpCollisions = pygame.sprite.spritecollide(self.game.paddle, self.game.powerUpSpritesList, True)
         for c in powerUpCollisions:
-            self.game.readyPowerUp = c.powerUp
+            # self.game.readyPowerUp = c.powerUp
             # print("caught %s powerup" % self.game.readyPowerUp.type)
 
-
-
-            (powerup_entry,powerup_properties) = self.game.readyPowerUp.activate()
+            (powerup_entry,powerup_properties) = c.powerUp.activate()
             self.game.currentPowerUps.append(powerup_entry) #TODO actually activate powerup
 
             powerup_color=constants.colors[  powerup_properties[1]  ]
