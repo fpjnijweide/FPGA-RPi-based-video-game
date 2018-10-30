@@ -1,40 +1,18 @@
 from time import sleep
-#import RPi.GPIO as GPIO
 import psutil, os
 import pigpio
 
-p = psutil.Process(os.getpid())
-p.nice(-19)
-
-pi = pigpio.pi('Dragon47')
-
-
-
-pi.set_PWM_frequency(11, 1000)
-pi.set_PWM_dutycycle(11,127)
-
+def initialise():
+    p = psutil.Process(os.getpid())
+    p.nice(-19)
+    pi = pigpio.pi('Dragon47')
+    pi.set_PWM_frequency(11, 1000)
+    pi.set_PWM_dutycycle(11,128)
 
 pi.write(10, 1)
 
-
-
-
-
-
 #WRITE THE VALUE YOU WANT TO SEND HERE
 send_value=9
-
-
-
-
-
-
-
-
-
-
-
-
 
 send_value_bin=bin(send_value)[2:]
 
@@ -47,16 +25,11 @@ if len(send_value_bin)<8:
     zerostring=''.join(zerolist)
     send_value_bin=zerostring+send_value_bin
 
-def readinfo(pin,i):
+def readinfo(pin):
     res = []
     cycles = 0
     #TODO find out if there is a neater way to detect clock than read pin 11
-
-    clock_value_previous = pi.read(11) #GPIO.input(23)
-    
-
-
-    print(send_value_bin)
+    clock_value_previous = pi.read(11)
     while True:
         clock_value_now = pi.read(11) #GPIO.input(23)
         if (clock_value_now != clock_value_previous and clock_value_now == 1):
@@ -71,21 +44,15 @@ def readinfo(pin,i):
             #pi.write(23, 0)
 
             cycles += 1
-            
         if (len(res) == 9):
             pi.write(10, 1)
-            
-
             break
         clock_value_previous = clock_value_now
     return res
-    
 
+initialise()
 for i in range(60):
-    print(readinfo(16,i))
-
-    #select += 1
-    #sleep(0.1)
+    print(readinfo(16))
 print("DONE")
 pi.write(25,0)
 pi.stop()
