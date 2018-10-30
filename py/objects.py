@@ -120,6 +120,8 @@ class Ball(pygame.sprite.Sprite):
 
     def update(self):
         """update ball location"""
+        # For gravity do something like:
+        # self.yspeed += 0.16
         self.xfloat += self.xspeed
         self.yfloat += self.yspeed
         self.rect.x = self.xfloat

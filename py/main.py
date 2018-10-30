@@ -224,10 +224,14 @@ class Game:
         # draw sprites
         self.AllSpritesList.draw(Screen)
 
-        score_view = pygame.font.Font(None, 30).render(str(self.score),
+        ui_font = pygame.font.SysFont('arial', 30)
+        score_view = ui_font.render(str(self.score),
                                                     True,
                                                     constants.colors['WHITE'])
-        Screen.blit(score_view, (constants.WINDOW_WIDTH - 50, 50))
+        score_rect = score_view.get_rect()
+        score_rect.right = constants.WINDOW_WIDTH - constants.WALLSIZE - 20
+        score_rect.y = 50
+        Screen.blit(score_view, score_rect)
 
     def removeblock(self, obj1):
         self.AllSpritesList.remove(obj1)
@@ -283,8 +287,6 @@ class Game:
         self.score += int(points * self.scoreMult)
 
 
-
-
 class CollisionHandling:
 
     """
@@ -323,7 +325,6 @@ class CollisionHandling:
                         newPowerUp = objects.PowerUp.PowerUpSprite(self.game.playerBall.rect.x, self.game.playerBall.rect.y)
                         self.game.AllSpritesList.add(newPowerUp)
                         self.game.powerUpSpritesList.add(newPowerUp)
-
 
             isVertical = CollisionHandling.find_bounce_is_vertical(self.game.playerBall, c)
 
