@@ -228,7 +228,8 @@ class Game:
 
         if pygame.time.get_ticks() >= self.last_block_time + self.time_until_next_block:
             self.last_block_time = pygame.time.get_ticks()
-            self.time_until_next_block = self.addBlock()
+            self.addBlock()
+            self.time_until_next_block = random.randint(constants.RESPAWNDELAY,constants.RESPAWNDELAY+constants.RESPAWNRANGE)
 
         Screen.fill(constants.colors["BLACK"])
 
@@ -283,11 +284,7 @@ class Game:
             self.AllSpritesList.add(newblock)
             self.CollisionSpritesList.add(newblock)
             self.blocklist.append(newblock)
-            time_until_next_block = random.randint(constants.RESPAWNDELAY,constants.RESPAWNDELAY+constants.RESPAWNRANGE)
-            return time_until_next_block
-        else:
-            del newblock
-            return 0
+            self.grid[newblock.y_on_grid][newblock.x_on_grid] = newblock
 
     def inc_score(self, points):
         self.score += int(points * self.scoreMult)
@@ -311,8 +308,6 @@ class CollisionHandling:
         """
 
         collisions = pygame.sprite.spritecollide(self.game.playerBall, self.game.CollisionSpritesList, False)
-
-        # TODO fix multiple blocks spawning on same place
 
         for c in collisions:
             # Collision happens with block (instead of paddle or ball)
@@ -560,11 +555,6 @@ class MainMenu:
 
     def updateMenu(self):
         Screen.fill(constants.colors["BLACK"])
-        # Screen.blit(self.mainmenu, (self.mainmenu_Width, self.mainmenu_Height))
-        # Screen.blit(self.startgamemenu, (self.startgamemenu_Width, self.startgamemenu_Height))
-        # Screen.blit(self.highscoremenu, (self.highscoremenu_Width, self.highscoremenu_Height))
-        # Screen.blit(self.optionsmenu, (self.optionsmenu_Width, self.optionsmenu_Height))
-        # Screen.blit(self.exitmenu, (self.exitmenu_Width, self.exitmenu_Height))
 
         Screen.blit(self.mainmenu, (self.mainmenu_Width, self.mainmenu_Height))
         Screen.blit(self.menuItems[0], (self.startgamemenu_Width, self.startgamemenu_Height))
