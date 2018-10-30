@@ -161,6 +161,7 @@ class Game:
         if keyBindings.checkPress('exit', keysPressed):
             # pygame.event.post(pygame.event.Event(pygame.QUIT))
             # TODO find some other way of delaying input
+            # TODO -- OR use keyevents to handle inputs
             pygame.time.delay(1000)
             self.gameover()
             return
@@ -266,6 +267,7 @@ class Game:
 
     def gameover(self):
         sensordb.insertscore('unknown name', self.score)
+        print(sensordb.get_scores())
         # TODO exit to gameover menu
         self.nextGameState = MainMenu()
 

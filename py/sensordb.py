@@ -17,6 +17,7 @@ def insertscore(name, score):
                        # 'values(?,?)',
                        # (name, score)
                      )
+
 # returns the 7 highest scores
 def get_scores():
     c.execute('select * from highscores order by score DESC')
@@ -29,9 +30,16 @@ def clear_table(*remain):
         conn.execute('delete * from highscores')
 create_table()
 
-insertscore('gibson', 200)
-insertscore('gibson', 2300)
-insertscore('gibson', 2100)
-print(get_scores())
-# for row in get_scores():
-#     print(row)
+
+def test():
+    for i in range(0, 10):
+        name = ''
+        for char in range(0, 4):
+            name += random.choice(string.ascii_lowercase)
+        insertscore(name, random.randint(-10, 9999))
+    print(get_scores())
+
+
+if __name__ == '__main__':
+    import random, string
+    test()
