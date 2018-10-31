@@ -337,7 +337,7 @@ class CollisionHandling:
             self.game.playerBall.bounce(isVertical)
 
             # Should be handled at the object collided with, not here
-            # AudioObj.playSound('bounce')
+            AudioObj.playSound('bounce')
 
     def handle_power_up_collisions(self):
         # After checking ball collisions, check for powerups to collect
@@ -567,7 +567,8 @@ class Audio:
     def __init__(self):
         # Create gameSounds dictionary from the constants.sounds dictionary containing Sound objects
         for key in constants.sounds.keys():
-            self.gameSounds[key] = pygame.mixer.Sound(constants.sounds[key])
+            self.gameSounds[key] = pygame.mixer.Sound(constants.sounds[key][0])
+            self.gameSounds[key].set_volume(constants.sounds[key][1])
 
     def playMusic(self, musicName):
 

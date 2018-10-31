@@ -85,9 +85,9 @@ colors = {
 }
 
 # Audio track mapping
-# 'audioName':'relative/path/to/file'
+# 'audioName':('relative/path/to/file', volume)
 sounds = {
-        'bounce': '../resources/audio/bounce.ogg'
+        'bounce': ('../resources/audio/bounce.ogg', 0.3)
 #        'wallCollision':'../resources/audio/bounce.wav',
 #        'blockbreak':'../resources/sound/bounce2.wav'
 }
