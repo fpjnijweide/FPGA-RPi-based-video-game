@@ -21,7 +21,8 @@ FULLSCREEN = False
 
 MAINFONT = 70
 SUBFONT = 58
-
+#db
+SHOW = 7
 
 # Frames per second
 FPS = 60
