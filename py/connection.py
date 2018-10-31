@@ -28,25 +28,33 @@ def readBit(readPin):
         bitList.append(pi.read(currentPin))
     return bitList
 
-def rwByte(xspeed,yspeed,bounciness,isvertical):
+def connect(xspeed,yspeed,bounciness,isvertical):
     # Converting data to binary
     data = list(map(chewnumber.decToFixedPoint, [xspeed, yspeed, bounciness, isvertical]))
 
+    if constants.GPIO_SEND_RECEIVE_AT_ONCE: #send and receive at same time
+        rwByteParallel(data)
+    else:
+        rwByteSequence(data)
+
+    #TODO Print sent and received data (xspeed,yspeed etc) in readable formats
+
+
+def rwByteParallel(data):
     receivedData = []
     currentCycle = 0
-
     previousClock = pi.read(constants.CLOCK_PIN)
 
-    while len(res) < 9:
+    while len(receivedData) < 9:
         currentClock = pi.read(constants.CLOCK_PIN)
         if (currentClock != previousClock and currentClock == 1):
-            #TODO check if sleeps are needed to allow for game rendering, higher fps
-            if currentCycle==0:
+            # TODO check if sleeps are needed to allow for game rendering, higher fps
+            if currentCycle == 0:
                 readyToReceive()
             if currentCycle <= 7:
-                writeBit(currentCycle,data)
-            if currentCycle>=1
-                receivedBits=readBit()
+                writeBit(currentCycle, data)
+            if currentCycle >= 1:
+                receivedBits = readBit()
                 receivedData.append(receivedBits)
             currentCycle += 1
 
@@ -54,7 +62,34 @@ def rwByte(xspeed,yspeed,bounciness,isvertical):
 
     notReadyToReceive()
     return receivedData
-    
+
+def rwByteSequence(data):
+    receivedData = []
+    currentCycle = 0
+    previousClock = pi.read(constants.CLOCK_PIN)
+
+    while len(receivedData)<9:
+        currentClock = pi.read(constants.CLOCK_PIN)
+        if (currentClock != previousClock and currentClock == 1):
+            # TODO check if sleeps are needed to allow for game rendering, higher fps
+            if currentCycle == 0:
+                readyToReceive()
+            if currentCycle <= 7:
+                writeBit(currentCycle, data)
+            if currentCycle ==9:
+                notReadyToReceive()
+            if currentCycle==10:
+                readyToReceive()
+            if currentCycle >= 9+1 and currentCycle <= 9+8
+                receivedBits = readBit()
+                receivedData.append(receivedBits)
+            currentCycle += 1
+
+        previousClock = currentClock
+
+    notReadyToReceive()
+    return receivedData
+
 def initConnection():
     #START DAEMON
     call(["sudo", "pigpiod"])
@@ -79,7 +114,7 @@ def main():
     isvertical = True
 
     for i in range(60):
-        returnval=rwByte(xspeed,yspeed,bounciness,isvertical)
+        returnval=connect(xspeed,yspeed,bounciness,isvertical)
         print(returnval)
     print("DONE")
     pi.stop()

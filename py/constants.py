@@ -22,6 +22,8 @@ DUTYCYCLE=127
 # Offload functions to FPGA and receive from FPGA
 FPGA_ENABLED = False
 
+# Do we send and receive data over GPIO at same time, or wait?
+GPIO_SEND_RECEIVE_AT_ONCE=True
 
 # Audio settings
 SOUND = False
