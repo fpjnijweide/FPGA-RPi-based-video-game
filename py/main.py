@@ -11,8 +11,8 @@ import sensordb
 # from enum import Enum
 import random
 # import time # TODO use pygame.time functionality instead
-# Okay so instead of time.time()  (s)
-#    Use pygame.time.get_ticks() (ms)
+# Ok so instead of time.time()  (s)
+# It's pygame.time.get_ticks() (ms)
 
 
 def init():
@@ -218,8 +218,8 @@ class Game:
 
         ui_font = pygame.font.SysFont('arial', 30)
         score_view = ui_font.render(str(self.score),
-                                                    True,
-                                                    constants.colors['WHITE'])
+                                        True,
+                                        constants.colors['WHITE'])
         score_rect = score_view.get_rect()
         score_rect.right = constants.WINDOW_WIDTH - constants.WALLSIZE - 20
         score_rect.y = 50
@@ -434,16 +434,19 @@ class MainMenu:
     menuItems = None
     menucolor = None
 
+    ## revamp ##
+    entries = None
+
     nextGameState = None
 
     def __init__(self):
         pygame.display.set_caption(constants.GAME_NAME + ' - Main menu' )
+        self.texts = ['Start game', 'Highscores', 'Options', 'Exit']
         self.mainFont = pygame.font.SysFont('arial', 60) # 76? HEIGTH
         self.subFont = pygame.font.SysFont('arial', 50) # 58 HEIGTH
         self.highlight = pygame.font.SysFont('arial', 50, bold=True)
         self.highlight.set_underline(True)
 
-        self.texts = ['Start game','Highscores','Options', 'exit']
         self.mainmenu = self.writeText('Main Menu', self.mainFont)
         self.startgamemenu = self.writeText('Start game', self.highlight)
         self.highscoremenu = self.writeText('Highscores', self.subFont)
@@ -466,18 +469,25 @@ class MainMenu:
         self.exitmenu_Height = self.optionsmenu_Height + constants.SUBFONT
         self.menucolor = 'RED'
 
+
+
         AudioObj.playMusic('menu')
 
     # TODO use subclass instances for the various screen items
     # something like this
     class MenuOption:
+        text = None
         width = None
         height = None
-        text = None
 
         def __init__(self, width, height, text):
             self.width, self.height = width, height
             self.text = text
+
+            self.mainFont = pygame.font.SysFont('arial', 60)
+            self.subFont = pygame.font.SysFont('arial', 50)
+            self.highlight = pygame.font.SysFont('arial', 50, bold=True)
+            self.highlight.set_underline(True)
 
     def handleKeys(self, keysPressed):
         if keyBindings.checkPress('exit', keysPressed):

@@ -194,6 +194,7 @@ class Paddle(pygame.sprite.Sprite):
         self.rect = self.image.get_rect()
         self.rect.x, self.rect.y = pre_x, pre_y
 
+
 class Wall(pygame.sprite.Sprite):
     """
     edges of screen. Used for collision detection as well as graphical purposes

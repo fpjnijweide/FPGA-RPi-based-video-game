@@ -1,13 +1,12 @@
 import sqlite3
 
 # conn = sqlite3.connect('highscores.db')
-conn = sqlite3.connect(':memory:')
-c = conn.cursor()
 
 
 def create_table():
     c.execute('create table highscores('
           'name text, score integer)')
+
 
 def insertscore(name, score):
     with conn:
@@ -18,17 +17,20 @@ def insertscore(name, score):
                        # (name, score)
                      )
 
-# returns the 7 highest scores
-def get_scores():
+def get_scores(n=7):
+    """returns n highest scores
+    or pass 0 to get all"""
     c.execute('select * from highscores order by score DESC')
-    return c.fetchmany(7)
+    if n < 1:
+        return c.fetchall()
+    return c.fetchmany(n)
+
 
 def clear_table(*remain):
     with conn:
         if remain != None:
             conn.execute('delete ')
         conn.execute('delete * from highscores')
-create_table()
 
 
 def test():
@@ -40,6 +42,10 @@ def test():
     print(get_scores())
 
 
+# Initialization
+conn = sqlite3.connect(':memory:')
+c = conn.cursor()
+create_table()
 if __name__ == '__main__':
     import random, string
     test()
