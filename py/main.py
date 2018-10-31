@@ -22,7 +22,7 @@ def init():
     Note: creating a multiline string using triple quotation marks is how you create python documentation
     """
     # Initialize all pygame modules
-    pygame.mixer.pre_init()
+    pygame.mixer.pre_init(buffer=1024)
     pygame.display.init()
     pygame.font.init()
     pygame.mixer.init()
@@ -46,6 +46,10 @@ def init():
 
     global GameStateObj
     GameStateObj = MainMenu()
+
+    # Avoid cluttering the pygame event queue
+    pygame.event.set_allowed(None)
+    pygame.event.set_allowed([pygame.QUIT, pygame.KEYDOWN, pygame.KEYUP])
 
 
 def main():
@@ -559,7 +563,6 @@ class Audio:
     Handles playing music and sound effects. Uses sound mapping from constants.sounds and constants.music
     """
 
-    fadeoutTime = 1500  # ms
     trackPlaying = None
     trackToPlay = None
     gameSounds = dict()
@@ -569,6 +572,8 @@ class Audio:
         for key in constants.sounds.keys():
             self.gameSounds[key] = pygame.mixer.Sound(constants.sounds[key][0])
             self.gameSounds[key].set_volume(constants.sounds[key][1])
+
+        self.fadeoutTime = constants.MUSICFADE
 
     def playMusic(self, musicName):
 
