@@ -1,7 +1,7 @@
-from time import sleep
-#import RPi.GPIO as GPIO
 import psutil, os
 import pigpio
+import constants
+import time
 
 p = psutil.Process(os.getpid())
 p.nice(-19)
@@ -17,7 +17,7 @@ pi.set_PWM_dutycycle(11,127)
 pi.write(10, 1)
 
 send_value=n*[0]
-send_value_bin=n*[0]
+data=n*[0]
 diff=n*[0]
 zerolist=n*[0]
 zerostring=n*[0]
@@ -36,63 +36,55 @@ send_value[2]=7
 
 
 
-
-
-
-
-
 for i in range(0,3):
-    send_value_bin[i]=bin(send_value[i])[2:]
+    data[i]=bin(send_value[i])[2:]
 
-    if len(send_value_bin[i]) > 8:
+    if len(data[i]) > 8:
         print("overflow")
 
-    if len(send_value_bin[i])<8:
-        diff[i]=8-len(send_value_bin[i])
+    if len(data[i])<8:
+        diff[i]=8-len(data[i])
         zerolist[i]=(diff[i])*['0']
         zerostring[i]=''.join(zerolist[i])
-        send_value_bin[i]=zerostring[i]+send_value_bin[i]
+        data[i]=zerostring[i]+data[i]
 
-def readinfo(pin):
+def writeCycle(cycles,data):
+    for i in range(0,len(data)):
+        if cycles <=7:
+            writecycle=data[i][cycles]
+            pi.write(23+i, int(writecycle))
+
+def rwbyte(pin):
     res = []
     cycles = 0
-    #TODO find out if there is a neater way to detect clock than read pin 11
+    #TODO switch to threads instead of writing/reading sequentially
 
-    clock_value_previous = pi.read(11) #GPIO.input(23)
-    
+    clock_value_previous = pi.read(11)
 
-
-    #print(send_value_bin)
     while True:
-        clock_value_now = pi.read(11) #GPIO.input(23)
+        clock_value_now = pi.read(11)
         if (clock_value_now != clock_value_previous and clock_value_now == 1):
+            if cycles==0:
+                pi.write(10, 0)
+
+            writeCycle(cycles,data)
 
 
-            # for i in range(0,3):
-            #     if cycles <=7:
-            #         writecycle=send_value_bin[i][cycles]
-            #         pi.write(23+i, int(writecycle))
-
-
-
-            pi.write(10, 0)
+            # starttime=time.time()
             res.append(pi.read(pin))
-            #pi.write(24, 0)
-            #pi.write(23, 0)
-
+            # endtime=time.time()
+            # print(starttime-endtime)
             cycles += 1
             
-        if (len(res) == 9):
-            pi.write(10, 1)
-            
-
-            break
+            if (len(res) == 9):
+                pi.write(10, 1)
+                break
         clock_value_previous = clock_value_now
     return res
     
 
 for i in range(60):
-    print(readinfo(16))
+    print(rwbyte(16))
 
     #select += 1
     #sleep(0.1)

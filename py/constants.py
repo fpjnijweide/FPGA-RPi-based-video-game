@@ -5,6 +5,17 @@
 GAME_NAME = "Sensor Pong" # use this when referencing the game name so that we can easily change it
 # GAME_VERSION = '0.0.1' # not used currently but might be nice eventually
 
+# GPIO pin definitions
+READ_PINS={"XSPEED":23,
+           "YSPEED":24,
+           "PADDLESPEED":25,
+           "BUTTONS":26}
+WRITE_PINS={"XSPEED":17,
+            "YSPEED":18,
+            "BOUNCINESS":27,
+            "IS_VERTICAL":22}
+CLOCK_PIN=11
+MOSI_PIN=10
 
 # Offload functions to FPGA and receive from FPGA
 FPGA_ENABLED = False

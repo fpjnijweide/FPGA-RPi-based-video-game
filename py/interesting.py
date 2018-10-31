@@ -46,6 +46,7 @@ def readinfo():
     return res
 
 initialise(1000)
+readinfo()
 print("DONE")
 pi.stop()
 
