@@ -19,7 +19,8 @@ WINDOW_HW = WINDOW_WIDTH//2
 WINDOW_HH = WINDOW_HEIGHT//2
 MAINFONT = 70
 SUBFONT = 58
-
+#db
+SHOW = 7
 
 # Frames per second
 FPS = 60
