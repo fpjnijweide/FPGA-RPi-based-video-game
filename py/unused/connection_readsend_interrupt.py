@@ -1,32 +1,31 @@
-from subprocess import call
+#Is slower and works worse than just polling the clock
 
+
+# Initialize pigpio daemon
+from subprocess import call
 call(["sudo", "pigpiod"])
 
-from time import sleep
-
-#import RPi.GPIO as GPIO
+#Importing libraries
 import psutil, os
 import pigpio
 import chewnumber
-import time
 from threading import Event
 global exit
+
+#Setting variables
 exit = Event()
-
-
 p = psutil.Process(os.getpid())
 p.nice(-19)
-
 pi = pigpio.pi('Dragon47')
+n=3
 
 
-
-pi.set_PWM_frequency(11, 1000)
+pi.set_PWM_frequency(11, 2000)
 pi.set_PWM_dutycycle(11,100)
 
 
 pi.write(10, 1)
-n=3
+
 
 global send_value_bin
 send_value=[0]*n
@@ -48,58 +47,49 @@ global cycles
 cycles=0
 global res
 res=[]
-
-
-
+global totalattempts
+totalattempts=10
 
 
 for i in range(0,3):
     send_value_bin[i]=chewnumber.decToInt(send_value[i])
 
-class InterruptExecution (Exception):
-    pass
+
 
 def clockcycler(gpio, level, tick):
 
     #TODO call functions from here
-    #TODO use less global variables
+    #TODO use less global variables,transfer to class
     global res
-    global cycles
     global pin
     global send_value_bin
-    global cb1
-    global attempt
+    global cb2
     global running
+    global totalattempts
 
-    for i in range(0, 3):
-        if cycles <= 7:
-            writecycle = send_value_bin[i][cycles]
-            pi.write(23 + i, int(writecycle))
+    tally=cb2.tally()
+    cycle=tally%9
 
-    pi.write(10, 0)
+    if cycle==0:
+        pi.write(10, 0)
+
     pinout=pi.read(pin)
     res.append(pinout)
-    if (len(res) == 9):
 
-        attempt+=1
+    if (cycle == 8):
         pi.write(10, 1)
-        if attempt >= 0:
-            returnvaldec = chewnumber.intToDec(''.join(list(map(str, res[1:]))))
-            print(res, '=', returnvaldec)
+        print(res)
 
         res=[]
-        cycles=0
-        if attempt>=50:
-            cb1.cancel()
+        if tally/9>=totalattempts-1:
             print("DONE")
-            pi.write(25, 0)
 
             cb1.cancel()
             running=False
             exit.set()
 
 
-    cycles += 1
+
 
 global pin
 global attempt
@@ -113,6 +103,9 @@ running=True
 
 
 cb1 = pi.callback(11, pigpio.RISING_EDGE, clockcycler) #this should go outside  while loop, why is it so slow?
+
+global cb2
+cb2 = pi.callback(11, pigpio.RISING_EDGE)
 
 #TODO fix this
 while not exit.is_set():

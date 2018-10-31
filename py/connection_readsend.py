@@ -7,7 +7,7 @@ p = psutil.Process(os.getpid())
 p.nice(-19)
 
 pi = pigpio.pi('Dragon47')
-
+n=3
 
 
 pi.set_PWM_frequency(11, 1000)
@@ -16,6 +16,11 @@ pi.set_PWM_dutycycle(11,127)
 
 pi.write(10, 1)
 
+send_value=n*[0]
+send_value_bin=n*[0]
+diff=n*[0]
+zerolist=n*[0]
+zerostring=n*[0]
 
 
 
@@ -48,7 +53,7 @@ for i in range(0,3):
         zerostring[i]=''.join(zerolist[i])
         send_value_bin[i]=zerostring[i]+send_value_bin[i]
 
-def readinfo(pin,i):
+def readinfo(pin):
     res = []
     cycles = 0
     #TODO find out if there is a neater way to detect clock than read pin 11
@@ -57,17 +62,17 @@ def readinfo(pin,i):
     
 
 
-    print(send_value_bin)
+    #print(send_value_bin)
     while True:
         clock_value_now = pi.read(11) #GPIO.input(23)
         if (clock_value_now != clock_value_previous and clock_value_now == 1):
 
 
-            for i in range(0,3)
-            if cycles <=7:
-                writecycle=send_value_bin[i][cycles]
-                pi.write(23+i, int(writecycle))
-            else:
+            # for i in range(0,3):
+            #     if cycles <=7:
+            #         writecycle=send_value_bin[i][cycles]
+            #         pi.write(23+i, int(writecycle))
+
 
 
             pi.write(10, 0)
