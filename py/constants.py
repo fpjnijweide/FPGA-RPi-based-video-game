@@ -23,7 +23,7 @@ DUTYCYCLE=127
 FPGA_ENABLED = False
 
 # Do we send and receive data over GPIO at same time, or wait?
-GPIO_SEND_RECEIVE_AT_ONCE=True
+GPIO_SEND_RECEIVE_AT_ONCE=False
 
 # Audio settings
 SOUND = False

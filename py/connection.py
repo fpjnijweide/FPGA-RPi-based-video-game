@@ -15,32 +15,48 @@ def notReadyToReceive():
 def writeBit(cycles,data):
     # TODO switch to threads instead of writing/reading sequentially
     i=0
-    for key,currentPin in constants.WRITE_PINS.items():
-
+    for currentTuple in list(constants.WRITE_PINS.items()):
+        currentPin=currentTuple[1]
+        key=currentTuple[0]
+        print("writing to current pin",currentPin,key,"data",data[i],"currently at bit",cycles,"which is",data[i][cycles])
         currentBit=data[i][cycles]
         pi.write(currentPin, int(currentBit))
         i+=1
 
-def readBit(readPin):
+def readBit():
     # TODO switch to threads instead of writing/reading sequentially
     bitList=[]
-    for key, currentPin in constants.READ_PINS.items():
-        bitList.append(pi.read(currentPin))
+    for currentTuple in list(constants.READ_PINS.items()):
+        currentPin=currentTuple[1]
+        key=currentTuple[0]
+        currentData=pi.read(currentPin)
+        print("writing to current pin", currentPin, key, "data", currentData)
+        bitList.append(currentData)
+
     return bitList
 
 def connect(xspeed,yspeed,bounciness,isvertical):
     # Converting data to binary
-    data = list(map(chewnumber.decToFixedPoint, [xspeed, yspeed, bounciness, isvertical]))
+    data = list(map(chewnumber.decToFixedPoint, [xspeed, yspeed, bounciness]))
+
+    if isvertical:
+        data.append("11111111")
+    else:
+        data.append("00000000")
 
     if constants.GPIO_SEND_RECEIVE_AT_ONCE: #send and receive at same time
-        rwByteParallel(data)
+        return rwByteParallel(data)
     else:
-        rwByteSequence(data)
+        print("running rwbytesequence")
+        print("data")
+        print(data)
+        return rwByteSequence(data)
 
     #TODO Print sent and received data (xspeed,yspeed etc) in readable formats
 
 
 def rwByteParallel(data):
+    data=data[:]
     receivedData = []
     currentCycle = 0
     previousClock = pi.read(constants.CLOCK_PIN)
@@ -64,6 +80,7 @@ def rwByteParallel(data):
     return receivedData
 
 def rwByteSequence(data):
+    data=data[:]
     receivedData = []
     currentCycle = 0
     previousClock = pi.read(constants.CLOCK_PIN)
@@ -80,7 +97,7 @@ def rwByteSequence(data):
                 notReadyToReceive()
             if currentCycle==10:
                 readyToReceive()
-            if currentCycle >= 9+1 and currentCycle <= 9+8
+            if currentCycle >= 9+1 and currentCycle <= 9+8:
                 receivedBits = readBit()
                 receivedData.append(receivedBits)
             currentCycle += 1
@@ -91,6 +108,7 @@ def rwByteSequence(data):
     return receivedData
 
 def initConnection():
+    global pi
     #START DAEMON
     call(["sudo", "pigpiod"])
 
@@ -108,8 +126,8 @@ def initConnection():
 def main():
     initConnection()
     # WRITE THE VALUES YOU WANT TO SEND HERE
-    xspeed = 2
-    yspeed = 3
+    xspeed = 14
+    yspeed = 0
     bounciness = 1.125
     isvertical = True
 
