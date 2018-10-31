@@ -1,16 +1,59 @@
 # Input: decimal number
 # Output: 8 bit binary representation of the input number
-def digestDecimal(send_value):
+def decToInt(send_value):
     send_value_bin=bin(send_value)[2:]
     if len(send_value_bin) > 8:
         print("overflow")
-        return -1
+        return "overflow"
     if len(send_value_bin)<8:
         diff=8-len(send_value_bin)
         zerolist=diff*['0']
         zerostring=''.join(zerolist)
         send_value_bin=zerostring+send_value_bin
     return send_value_bin
+
+def intToDec(integer):
+    return int(integer,2)
+
+def decToFixedPoint(decimal):
+    decimal=int(decimal*8)
+    orginal_binary=bin(decimal)
+    if orginal_binary[0]=='-':
+        # TODO fix for negative vals
+        binary=orginal_binary[3:]
+    else:
+        binary=orginal_binary[2:]
+
+
+    if len(binary) > 7:
+        print("overflow")
+        return "overflow"
+
+    if len(binary) < 7:
+        diff = 7 - len(binary)
+        zerostring="0"*diff
+        binary = zerostring+ binary
+
+    if orginal_binary[0]=='-':
+        binary="1"+binary
+    else:
+        binary="0"+binary
+
+    return binary
+
+def fixedPointToDec(fixedpoint):
+    if fixedpoint[0]=='1':
+        isnegative=True
+    else:
+        isnegative=False
+
+    decimal=int(fixedpoint[1:],2)
+    decimal=decimal/8
+
+    if isnegative:
+        decimal=decimal*(-1)
+    return decimal
+
 
 # Input: binary representation of a minifloat
 # Output: decimal value of the minifloat
