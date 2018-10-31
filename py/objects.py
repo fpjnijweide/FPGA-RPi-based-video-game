@@ -188,14 +188,13 @@ class Paddle(pygame.sprite.Sprite):
         self.bounciness = 1
  
     def update_bonus(self):
-        #self.image=pygame.Surface([self.width, self.height]) #TODO check if this works
         self.image = pygame.Surface([self.width, self.height])
         self.image.fill(self.color)
         pre_x, pre_y = self.rect.x, self.rect.y
         self.rect = self.image.get_rect()
         self.rect.x, self.rect.y = pre_x, pre_y
-        #   self.rect = self.image.get_rect()
-        
+
+
 class Wall(pygame.sprite.Sprite):
     """
     edges of screen. Used for collision detection as well as graphical purposes
@@ -279,14 +278,14 @@ class PowerUp:
     def activate(self):
         # print('activate %s' % self.type)
         # print(self.properties[2])
-        list_entry = ( ((pygame.time.get_ticks()+self.properties[2]),self.type  ) )
+        list_entry = ( ((pygame.time.get_ticks()+self.properties[2]),self.type ) )
         return (list_entry,self.properties)
 
         del self
         # After doing something, the reference to the object is removed.
 
     class PowerUpSprite(pygame.sprite.Sprite):
-        #TODO fix why are red power ups bugged?
+        # TODO fix why are red power ups bugged?
         """
         Contains the object of a powerup that is displayed on the screen.
         """
