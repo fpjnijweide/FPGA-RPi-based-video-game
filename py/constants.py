@@ -11,7 +11,7 @@ FPGA_ENABLED = False
 GODMODE = True
 
 # Audio settings
-SOUND = False
+SOUND = True
 MUSIC = True
 
 # Window resolution
@@ -87,7 +87,7 @@ colors = {
 # Audio track mapping
 # 'audioName':('relative/path/to/file', volume)
 sounds = {
-        'bounce': ('../resources/audio/bounce.ogg', 0.3)
+        'bounce': ('../resources/audio/bounce.ogg', 0.07)
 #        'wallCollision':'../resources/audio/bounce.wav',
 #        'blockbreak':'../resources/sound/bounce2.wav'
 }
