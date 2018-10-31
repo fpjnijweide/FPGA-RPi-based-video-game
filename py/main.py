@@ -6,7 +6,7 @@ Sensor Pong
 
 """
 import pygame, sys, math
-import objects, constants, keyBindings
+import objects, constants, keyBindings, sensordb
 from enum import Enum
 import random
 # import time  # TODO use pygame.time functionality instead
@@ -39,14 +39,14 @@ def init():
 
     # Call Game.__init__() and set gamestate
     global GameState
-    GameState = GameStates.MAINMENU
+    GameState = GameStates.HIGHSCORES
 
     global GameObj
     GameObj = None  # Game()
     global MenuObj
     MenuObj = MainMenu()  # None
-    # global HighObj
-    # HighObj = HighScores()
+    global HighObj
+    HighObj = HighScores()
 
 
 def main():
@@ -349,12 +349,6 @@ class CollisionHandling:
         return not (top or bottom)
 
 
-class HighScores:
-    def updateHigh(self):
-        pass
-    def handleKeys(self, keysPressed):
-        pass
-
 
 class MainMenu:
     """
@@ -491,6 +485,111 @@ class MainMenu:
 
         pygame.time.delay(80)
 
+class HighScores:
+    pygame.font.init()
+    # print(pygame.font.get_fonts())
+    pygame.display.set_caption(constants.GAME_NAME + ' - HighScores')
+    mainFont = pygame.font.SysFont('informalroman', 60)  # 76? HEIGTH
+    subFont = pygame.font.SysFont('couriernew', 50)  # 58 HEIGTH
+    mainFont.set_underline(True)
+    highlight = pygame.font.SysFont('couriernew', 50, bold=True)
+    highlight.set_underline(True)
+    highMenu = None
+    rows = None
+    window = 0
+    pages = 0
+    def __init__(self):
+        self.highMenu = self.highField('HIGHSCORES', self, chosenfont=self.mainFont)
+        scores = sensordb.get_scores()
+        # self.window = 0
+        self.pages = sensordb.get_pages()
+        print('number of pages:' + str(self.pages) )
+        self.rows = [None]*constants.SHOW
+        for x in range(0, len(scores)):
+            print('concat is: '+ scores[x][0] + ' ' + str(scores[x][1]))
+            self.rows[x] = self.highField('{:<9.9s}   {:>4d}'
+                                          .format(scores[x][0],  scores[x][1]), self)
+
+    class highField():
+        # mainFont = pygame.font.SysFont('couriernew', 60)  # 76? HEIGTH
+        # subFont = pygame.font.SysFont('arial', 50)  # 58 HEIGTH
+        # highlight = pygame.font.SysFont('arial', 50, bold=True)
+        # highlight.set_underline(True)
+        # mainFont = None
+        # subFont = None
+        # highlight = None
+        parent = None
+        width = None
+        height = None
+        text = None
+
+        def __init__(self, text, parent, chosenfont=None):
+            self.parent = parent
+            if chosenfont == None:
+                print('none')
+                self.text = self.parent.subFont.render(text, False, constants.colors['GREEN'])
+            elif chosenfont == self.parent.mainFont:
+                print('main')
+                self.text = self.parent.mainFont.render(text, False, constants.colors['WHITE'])
+            else:
+                print('high')
+                self.text = self.parent.highlight.render(text, False, constants.colors['RED'])
+
+            self.width = self.text.get_width()
+            self.height = self.text.get_height()
+
+        # def settext(self, text, selectedfont=parent.subFont):
+        #     self.text = self.writeText(self, text, self.parent.selectedfont)
+
+    def handleKeys(self, keysPressed):
+
+        if keyBindings.checkPress('exit', keysPressed):
+            pygame.event.post(pygame.event.Event(pygame.QUIT))
+            return
+
+        if keyBindings.checkPress('left', keysPressed) and self.window:
+            global HighScores
+            global MainObj
+            global GameState
+            if self.window == 0:
+                MainObj = MainMenu()
+                GameState = GameStates.MAINMENU
+                HighScores = None
+
+        if keyBindings.checkPress('right', keysPressed):
+            self.window = self.window + 1
+            scores = sensordb.get_scores(constants.SHOW*self.window)
+            print('new set:' + str(scores))
+            self.rows = [None] * constants.SHOW
+            for x in range(0, len(scores)):
+                # print('concat is: ' + scores[x][0] + ' ' + str(scores[x][1]))
+                self.rows[x] = self.highField('{:<9.9s}   {:>4d}'
+                                              .format(scores[x][0], scores[x][1]), self)
+
+    def updateHigh(self):
+        Screen.fill(constants.colors["BLACK"])
+        Screen.blit(self.highMenu.text, (constants.WINDOW_HW - self.highMenu.width//2, self.highMenu.height))
+        i = 0
+        for x in self.rows:
+            if type(x) is self.highField:
+                if i == 0:
+                    Screen.blit(x.text, (constants.WINDOW_HW -
+                                         self.highMenu.width*0.70, (self.highMenu.height + constants.MAINFONT)))
+                else:
+                    pass
+                    Screen.blit(x.text, (constants.WINDOW_HW -
+                                         self.highMenu.width*0.70, (constants.SUBFONT*0.9*i +
+                                                                    self.highMenu.height + constants.MAINFONT)))
+                i = i + 1
+        pygame.time.delay(150)
+
+    # def writeText(self, text, font, background=None):
+    #     if font == self.mainFont:
+    #         return self.mainFont.render(text, False, constants.colors['YELLOW'])
+    #     if font == self.subFont:
+    #         return self.subFont.render(text, False, constants.colors['YELLOW'])
+    #     if font == self.highlight:
+    #         return self.highlight.render(text, False, constants.colors['RED'])
 
 class Audio:
     """
