@@ -16,6 +16,8 @@ WRITE_PINS={"XSPEED":17,
             "IS_VERTICAL":22}
 CLOCK_PIN=11
 MOSI_PIN=10
+CLOCKSPEED=1000
+DUTYCYCLE=127
 
 # Offload functions to FPGA and receive from FPGA
 FPGA_ENABLED = False

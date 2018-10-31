@@ -1,7 +1,5 @@
 import psutil, os
 import pigpio
-import constants
-import time
 
 p = psutil.Process(os.getpid())
 p.nice(-19)
@@ -23,16 +21,10 @@ zerolist=n*[0]
 zerostring=n*[0]
 
 
-
-
-
 #WRITE THE VALUE YOU WANT TO SEND HERE
-send_value[0]=9
-send_value[1]=8
-send_value[2]=7
-
-
-
+send_value[0]=0xAB
+send_value[1]=0xCD
+send_value[2]=0xEF
 
 
 
@@ -69,11 +61,7 @@ def rwbyte(pin):
 
             writeCycle(cycles,data)
 
-
-            # starttime=time.time()
             res.append(pi.read(pin))
-            # endtime=time.time()
-            # print(starttime-endtime)
             cycles += 1
             
             if (len(res) == 9):
