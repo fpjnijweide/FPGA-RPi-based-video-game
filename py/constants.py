@@ -7,6 +7,8 @@ GAME_NAME = "Sensor Pong" # use this when referencing the game name so that we c
 # Offload functions to FPGA and receive from FPGA
 FPGA_ENABLED = False
 
+# Prevent losing the game
+GODMODE = True
 
 # Audio settings
 SOUND = False
@@ -15,6 +17,7 @@ MUSIC = True
 # Window resolution
 WINDOW_WIDTH = 800
 WINDOW_HEIGHT = 600
+FULLSCREEN = False
 
 MAINFONT = 70
 SUBFONT = 58
@@ -37,7 +40,7 @@ INITIAL_BALL_YSPEED = INITIAL_BALL_XSPEED
 WALLSIZE = 20
 
 # Paddle size
-PADDLEWIDTH  = 90
+PADDLEWIDTH  = 113
 PADDLEHEIGHT = 13
 PADDLE_Y_POS = 520
 PADDLEBOUNCINESS=1
@@ -47,7 +50,7 @@ PADDLEBOUNCINESS=1
 POWERUP_CHANCE = 0.9
 
 # Paddle speed
-PADDLESPEED = 8
+PADDLESPEED = 10
 
 # Block size
 BLOCKWIDTH  = 100

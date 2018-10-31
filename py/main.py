@@ -29,7 +29,10 @@ def init():
 
     # Set up screen
     global Screen
-    Screen = pygame.display.set_mode((constants.WINDOW_WIDTH, constants.WINDOW_HEIGHT))
+    Screen = pygame.display.set_mode((constants.WINDOW_WIDTH,
+                                      constants.WINDOW_HEIGHT),
+                                     pygame.FULLSCREEN if constants.FULLSCREEN
+                                     else 0)
 
     # Set title of screen
     pygame.display.set_caption(constants.GAME_NAME) 
@@ -162,11 +165,10 @@ class Game:
             # pygame.event.post(pygame.event.Event(pygame.QUIT))
             # TODO find some other way of delaying input
             # TODO -- OR use keyevents to handle inputs
-            pygame.time.delay(500)
             self.gameover()
             return
 
-        if keyBindings.checkPress('left', keysPressed) and (self.paddle.rect.x > (constants.WALLSIZE)):
+        if keyBindings.checkPress('left', keysPressed) and (self.paddle.rect.x > constants.WALLSIZE):
             self.paddle.rect.x -= constants.PADDLESPEED
         if keyBindings.checkPress('right', keysPressed) and (self.paddle.rect.x + self.paddle.width < (constants.WINDOW_WIDTH - constants.WALLSIZE)):
             self.paddle.rect.x += constants.PADDLESPEED
@@ -272,12 +274,14 @@ class Game:
     def gameover(self):
         sensordb.insertscore('unknown name', self.score)
         print(sensordb.get_scores())
-        # TODO exit to gameover menu
-        self.nextGameState = MainMenu()
+        pygame.time.delay(500)
+        self.exit(MainMenu())
+
+    def exit(self, to_gamestate):
+        self.nextGameState = to_gamestate
 
 
 class CollisionHandling:
-
     """
     class containing collision handling functions
     """
@@ -323,6 +327,11 @@ class CollisionHandling:
                         self.game.powerUpSpritesList.add(newPowerUp)
 
                     self.game.removeblock(c)
+
+            elif isinstance(c, objects.Wall) and c.name == 'bottom_wall':
+                if not constants.GODMODE:
+                    self.game.gameover()
+
             isVertical = CollisionHandling.find_bounce_is_vertical(self.game.playerBall, c)
 
             self.game.playerBall.bounce(isVertical)
@@ -469,8 +478,6 @@ class MainMenu:
         self.exitmenu_Height = self.optionsmenu_Height + constants.SUBFONT
         self.menucolor = 'RED'
 
-
-
         AudioObj.playMusic('menu')
 
     # TODO use subclass instances for the various screen items
@@ -506,7 +513,6 @@ class MainMenu:
 
         if keyBindings.checkPress('activate', keysPressed):
 
-            global GameState
             global GameStateObj
 
             if self.selectedItem == 0:

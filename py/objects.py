@@ -278,14 +278,14 @@ class PowerUp:
     def activate(self):
         # print('activate %s' % self.type)
         # print(self.properties[2])
-        list_entry = ( ((pygame.time.get_ticks()+self.properties[2]),self.type  ) )
+        list_entry = ( ((pygame.time.get_ticks()+self.properties[2]),self.type ) )
         return (list_entry,self.properties)
 
         del self
         # After doing something, the reference to the object is removed.
 
     class PowerUpSprite(pygame.sprite.Sprite):
-        #TODO fix why are red power ups bugged?
+        # TODO fix why are red power ups bugged?
         """
         Contains the object of a powerup that is displayed on the screen.
         """
