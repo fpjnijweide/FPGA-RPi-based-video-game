@@ -311,9 +311,8 @@ class PowerUp:
         # print('activate %s' % self.type)
         # print(self.properties[2])
         list_entry = [(pygame.time.get_ticks() + self.properties[2]), self.type ]
-        return (list_entry,self.properties)
+        return list_entry, self.properties
 
-        del self
         # After doing something, the reference to the object is removed.
 
     class PowerUpSprite(pygame.sprite.Sprite):

@@ -700,7 +700,8 @@ class Audio:
 
         # Checks if music track has ended and track exists in queue
         if not pygame.mixer.music.get_busy() and self.trackToPlay:
-            pygame.mixer.music.load(self.trackToPlay)
+            pygame.mixer.music.load(self.trackToPlay[0])
+            pygame.mixer.music.set_volume(self.trackToPlay[1])
             pygame.mixer.music.play(0)
             self.trackPlaying = self.trackToPlay
         # TODO use pygame.mixer.music.set_endevent() for optimization

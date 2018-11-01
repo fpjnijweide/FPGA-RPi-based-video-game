@@ -70,18 +70,18 @@ RESPAWNRANGE = 2069
 
 # Color definitions
 colors = {
-        "GRAY"     : (100, 100, 100),
-        "NAVYBLUE" : ( 60,  60, 100),
-        "WHITE"    : (255, 255, 255),
-        "RED"      : (255,   0,   0),
-        "GREEN"    : (  0, 255,   0),
-        "BLUE"     : (  0,   0, 255),
-        "YELLOW"   : (255, 255,   0),
-        "ORANGE"   : (255, 128,   0),
-        "PURPLE"   : (255,   0, 255),
-        "CYAN"     : (  0, 255, 255),
-        "BLACK"    : (  0,   0,   0),
-        "COMBLUE"  : (233, 232, 255)
+        "GRAY"    : (100, 100, 100),
+        "NAVYBLUE": ( 60,  60, 100),
+        "WHITE"   : (255, 255, 255),
+        "RED"     : (255,   0,   0),
+        "GREEN"   : (  0, 255,   0),
+        "BLUE"    : (  0,   0, 255),
+        "YELLOW"  : (255, 255,   0),
+        "ORANGE"  : (255, 128,   0),
+        "PURPLE"  : (255,   0, 255),
+        "CYAN"    : (  0, 255, 255),
+        "BLACK"   : (  0,   0,   0),
+        "COMBLUE" : (233, 232, 255)
 }
 
 # Audio track mapping
@@ -92,9 +92,9 @@ sounds = {
 #        'blockbreak':'../resources/sound/bounce2.wav'
 }
 music  = {
-        'main': '../resources/audio/main.ogg',
-        'menu': '../resources/audio/menu.ogg',
-        'highScore': '../resources/audio/hiscore.ogg'
+        'main': ('../resources/audio/main.ogg', 1.0),
+        'menu': ('../resources/audio/menu.ogg', 0.6),
+        'highScore': ('../resources/audio/hiscore.ogg', 0.4)
 #        'newGame': '../resources/audio/<file>.ogg',
 #        'gameOver': '../resources/audio/<file>.ogg',
 }
