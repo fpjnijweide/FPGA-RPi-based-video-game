@@ -89,6 +89,7 @@ class Ball(pygame.sprite.Sprite):
     # yspeed = 0
 
     # maxSpeed = 50
+    active_power = []
 
     def __init__(self, color, radius):
         # Call the parent class (Sprite) constructor
@@ -122,8 +123,26 @@ class Ball(pygame.sprite.Sprite):
         self.col_this_frame = [False, False]  # [x, y]
 
     def update_bonus(self):
-        #pass
-        self.image = pygame.transform.scale(self.image, (self.radius*2, self.radius*2))
+        for p in self.active_power:
+            for otherp in self.active_power:
+                if p[1] == otherp[1] and p is not otherp:
+                    self.active_power.remove(p)
+
+            if pygame.time.get_ticks() > p[0]:
+                if p[1] == 'blue':
+                    # print('removing blu')
+                    self.color = constants.colors['WHITE']
+                    self.radius = constants.BALLRADIUS
+
+                    self.active_power.remove(p)
+
+                elif p[1] == 'red':
+                    # print('removing red')
+                    self.color = constants.colors['WHITE']
+                    self.xspeed = constants.INITIAL_BALL_XSPEED
+                    self.yspeed = constants.INITIAL_BALL_YSPEED
+                    self.active_power.remove(p)
+        self.image = pygame.transform.smoothscale(self.image, (self.radius*2, self.radius*2))
         pygame.draw.circle(self.image, self.color, [self.radius,self.radius], self.radius)
         self.rect = self.image.get_rect()
 
@@ -187,8 +206,20 @@ class Paddle(pygame.sprite.Sprite):
         self.rect.x = left
         self.rect.y = y_position
         self.bounciness = 1
+
+        self.active_power = []
  
     def update_bonus(self):
+        for p in self.active_power:
+            for otherp in self.active_power:
+                if p[1] == otherp[1] and p is not otherp:
+                    self.active_power.remove(p)
+            if pygame.time.get_ticks() > p[0]:
+                if p[1] == 'green':
+                    self.width = constants.PADDLEWIDTH
+                    self.active_power.remove(p)
+                    self.color = constants.colors['WHITE']
+
         self.image = pygame.Surface([self.width, self.height])
         self.image.fill(self.color)
         pre_x, pre_y = self.rect.x, self.rect.y
@@ -242,10 +273,10 @@ class PowerUp:
     """
 
     types = ["blue","red","green"]
-                    # ('name', rng_chance, color, duration, object, attribute, new_value)
-    type_properties= {"blue"  :( 8, "BLUE",  8000, "ball",   "radius", constants.BALLRADIUS*2 ),
-                      "red"   :( 1, "RED",   7000, "ball",   "speed",  constants.INITIAL_BALL_XSPEED*2),
-                      "green" :( 3, "GREEN", 5000, "paddle", "width",  constants.PADDLEWIDTH*2)}
+                    # ('name', rng_chance, color, duration, object, attribute, new_value factor)
+    type_properties= {"blue"  :( 8, "BLUE",  3000, "ball",   "radius", 2.8 ),
+                      "red"   :( 1, "RED",   2000, "ball",   "speed",  1.7),
+                      "green" :( 3, "GREEN", 4000, "paddle", "width",  2)}
     type = None
     color = None
 
@@ -279,7 +310,7 @@ class PowerUp:
     def activate(self):
         # print('activate %s' % self.type)
         # print(self.properties[2])
-        list_entry = ( ((pygame.time.get_ticks()+self.properties[2]),self.type ) )
+        list_entry = [(pygame.time.get_ticks() + self.properties[2]), self.type ]
         return (list_entry,self.properties)
 
         del self

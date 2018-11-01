@@ -188,14 +188,8 @@ class Game:
     def check_powerup_status(self):
         for p in self.currentPowerUps:
             if p[0] < pygame.time.get_ticks():
-
-                print("REMOVED POWERUP", p[1])
-
-                self.paddle.color=constants.colors["WHITE"]
-                self.paddle.width=constants.PADDLEWIDTH
                 self.paddle.update_bonus()
 
-                self.playerBall.color=constants.colors["WHITE"]
                 self.playerBall.update_bonus()
 
                 self.currentPowerUps.remove(p)
@@ -342,27 +336,37 @@ class CollisionHandling:
         for c in powerUpCollisions:
 
             (powerup_entry,powerup_properties) = c.powerUp.activate()
-            self.game.currentPowerUps.append(powerup_entry)
             # TODO actually activate powerup
 
             powerup_color=constants.colors[  powerup_properties[1]  ]
-            value = powerup_properties[5]
+            factor = powerup_properties[5]
 
             if powerup_properties[3]=="ball":
                 powerup_object=self.game.playerBall
             elif powerup_properties[3]=="paddle":
                 powerup_object=self.game.paddle
-            
-            if powerup_properties[4]=="radius":
-                powerup_object.radius=value
-            elif powerup_properties[4]=="speed":
-                powerup_object.xspeed=value
-                powerup_object.yspeed=value
-            elif powerup_properties[4]=="width":
-                powerup_object.width=value
+
+            powerup_entry.append(powerup_object)
+            skip = False
+            for entry in self.game.currentPowerUps:
+                if powerup_entry[1] == entry [1] and powerup_entry is not entry:
+                    skip = True
+            if not skip:
+                if powerup_properties[4]=="radius":
+                    powerup_object.radius = int(factor * powerup_object.radius)
+
+                elif powerup_properties[4]=="speed":
+                    powerup_object.xspeed = int(factor * powerup_object.xspeed)
+                    powerup_object.yspeed = int(factor * powerup_object.yspeed)
+
+                elif powerup_properties[4]=="width":
+                    powerup_object.width = int(factor * powerup_object.width)
 
             # TODO update paddle size, ball size, ball speed
             # TODO unset powerups
+
+            powerup_object.active_power.append(powerup_entry)
+            self.game.currentPowerUps.append(powerup_entry)
 
             powerup_object.color=powerup_color
             powerup_object.update_bonus()
@@ -565,7 +569,7 @@ class HighScores:
             # print('concat is: '+ scores[x][0] + ' ' + str(scores[x][1]))
             self.rows[x] = self.highField('{:<9.9s}   {:>4d}'
                                           .format(scores[x][0],  scores[x][1]), self)
-
+        AudioObj.playMusic('highScore')
         self.nextGameState = self
 
     class highField():
@@ -663,13 +667,6 @@ class HighScores:
         Screen.blit(pagecount.text, (constants.WINDOW_WIDTH - pagecount.width - 20, constants.WINDOW_HEIGHT - pagecount.height - 20))
         pygame.time.delay(250)
 
-    # def writeText(self, text, font, background=None):
-    #     if font == self.mainFont:
-    #         return self.mainFont.render(text, False, constants.colors['YELLOW'])
-    #     if font == self.subFont:
-    #         return self.subFont.render(text, False, constants.colors['YELLOW'])
-    #     if font == self.highlight:
-    #         return self.highlight.render(text, False, constants.colors['RED'])
 
 class Audio:
     """

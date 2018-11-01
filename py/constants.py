@@ -1,7 +1,6 @@
 # ==== Global variables should be defined here
 # Game name string
 GAME_NAME = "Sensor Pong" # use this when referencing the game name so that we can easily change it
-# GAME_VERSION = '0.0.1' # not used currently but might be nice eventually
 
 
 # Offload functions to FPGA and receive from FPGA
@@ -17,7 +16,7 @@ MUSIC = True
 # Window resolution
 WINDOW_WIDTH = 800
 WINDOW_HEIGHT = 600
-FULLSCREEN = True
+FULLSCREEN = False
 
 MAINFONT = 70
 SUBFONT = 58
