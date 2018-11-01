@@ -553,11 +553,11 @@ class HighScores:
         self.mainFont = pygame.font.SysFont('informalroman', 60)  # 76? HEIGTH
         self.subFont = pygame.font.SysFont('couriernew', 50)  # 58 HEIGTH
         self.mainFont.set_underline(True)
+        self.pageFont = pygame.font.SysFont('courgiernew', 60)
         self.highlight = pygame.font.SysFont('couriernew', 50, bold=True)
         self.highlight.set_underline(True)
         self.highMenu = self.highField('HIGHSCORES', self, chosenfont=self.mainFont)
         scores = sensordb.get_scores()
-        # self.window = 0
         self.pages = sensordb.get_pages()
         print('number of pages:' + str(self.pages) )
         self.rows = [None]*constants.SHOW
@@ -584,13 +584,16 @@ class HighScores:
         def __init__(self, text, parent, chosenfont=None):
             self.parent = parent
             if chosenfont == None:
-                print('none')
+                # print('none')
                 self.text = self.parent.subFont.render(text, False, constants.colors['GREEN'])
             elif chosenfont == self.parent.mainFont:
-                print('main')
+                # print('main')
                 self.text = self.parent.mainFont.render(text, False, constants.colors['WHITE'])
+            elif chosenfont == self.parent.pageFont:
+                # print('pagefont')
+                self.text = self.parent.pageFont.render(text, False, constants.colors['WHITE'])
             else:
-                print('high')
+                # print('high')
                 self.text = self.parent.highlight.render(text, False, constants.colors['RED'])
 
             self.width = self.text.get_width()
@@ -607,19 +610,36 @@ class HighScores:
             return
 
         if keyBindings.checkPress('left', keysPressed) and self.window:
-            global GameStateObj
+            print('entered with window:', self.window)
             if self.window == 0:
+                print('should start mainmenu...')
                 self.nextGameState = MainMenu()
+            else:
+                self.window = self.window - 1
+                scores = sensordb.get_scores(offset=(constants.SHOW * self.window))
+                print('new set:' + str(scores))
+                self.rows = [None] * constants.SHOW
+                for x in range(0, len(scores)):
+                    # print('concat is: ' + scores[x][0] + ' ' + str(scores[x][1]))
+                    self.rows[x] = self.highField('{:<9.9s}   {:>4d}'
+                                                  .format(scores[x][0], scores[x][1]), self)
+            print('current:' + str(self.window))
 
         if keyBindings.checkPress('right', keysPressed):
-            self.window = self.window + 1
-            scores = sensordb.get_scores(constants.SHOW*self.window)
-            print('new set:' + str(scores))
-            self.rows = [None] * constants.SHOW
-            for x in range(0, len(scores)):
-                # print('concat is: ' + scores[x][0] + ' ' + str(scores[x][1]))
-                self.rows[x] = self.highField('{:<9.9s}   {:>4d}'
-                                              .format(scores[x][0], scores[x][1]), self)
+            sumNone = sum(x is None for x in self.rows)
+            print('entered with window:', self.window)
+            if sumNone != 0:
+                pass
+            else:
+                self.window = self.window + 1
+                scores = sensordb.get_scores(constants.SHOW*self.window)
+                print('new set:' + str(scores))
+                self.rows = [None] * constants.SHOW
+                for x in range(0, len(scores)):
+                    # print('concat is: ' + scores[x][0] + ' ' + str(scores[x][1]))
+                    self.rows[x] = self.highField('{:<9.9s}   {:>4d}'
+                                                  .format(scores[x][0], scores[x][1]), self)
+        print('current:' + str(self.window))
 
     def update(self, keysPressed):
         self.handleKeys(keysPressed)
@@ -639,8 +659,9 @@ class HighScores:
                                          self.highMenu.width*0.70, (constants.SUBFONT*0.9*i +
                                                                     self.highMenu.height + constants.MAINFONT)))
                 i = i + 1
-
-        pygame.time.delay(90)
+        pagecount = self.highField(str(self.window) + '/' + str(self.pages), self, self.pageFont)
+        Screen.blit(pagecount.text, (constants.WINDOW_WIDTH - pagecount.width - 20, constants.WINDOW_HEIGHT - pagecount.height - 20))
+        pygame.time.delay(250)
 
     # def writeText(self, text, font, background=None):
     #     if font == self.mainFont:
