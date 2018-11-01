@@ -13,8 +13,8 @@ GAME_NAME = "Sensor Pong" # use this when referencing the game name so that we c
 #             "YSPEED":18,
 #             "BOUNCINESS":27,
 #             "IS_VERTICAL":22}
-READ_PINS=[("XSPEED",23,4),("YSPEED",24,5),("PADDLESPEED",25,6),("BUTTONS",26,25)] #name, BCM, wiringpi
-WRITE_PINS=[("XSPEED",17,0),("YSPEED",18,1),("BOUNCINESS",27,2),("IS_VERTICAL",22,3)]#name, BCM, wiringpi
+READ_PINS=[("XSPEED",16),("YSPEED",17),("PADDLESPEED",18),("BUTTONS",19)] #name, BCM, wiringpi
+WRITE_PINS=[("XSPEED",23),("YSPEED",24),("BOUNCINESS",25),("IS_VERTICAL",26)]#name, BCM, wiringpi
 CLOCK_PIN=20
 MOSI_PIN=10
 CLOCKSPEED=1000

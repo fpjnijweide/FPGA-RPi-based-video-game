@@ -12,42 +12,11 @@ def readyToReceive():
 def notReadyToReceive():
     pi.write(constants.MOSI_PIN, 1)
 
-def writeBank(cycles,data):
-    # TODO check performance
-    # TODO check if result is even same
-    xspeedbit=data[0][cycles] #xspeed
-    yspeedbit=data[1][cycles]#yspeed
-    bouncinessbit=data[2][cycles]#bouciness
-    is_verticalbit=data[3][cycles]#isvertical
 
-
-    xspeedpin=constants.WRITE_PINS[0][2]
-    yspeedpin = constants.WRITE_PINS[1][2]
-    bouncinesspin = constants.WRITE_PINS[0][2]
-    is_verticalpin=constants.WRITE_PINS[0][2]
-
-    bitstring=['0']*32
-    bitstring[xspeedpin]=str(xspeedbit)
-    bitstring[yspeedpin]=str(yspeedbit)
-    bitstring[bouncinesspin]=str(bouncinessbit)
-    bitstring[is_verticalpin]=str(is_verticalbit)
-
-    pi.set_bank_1(int(''.join(bitstring),2))
-
-def readBank():
-    # TODO check performance
-    # TODO check if result is even same
-    bankdata=bin(pi.read_bank_1())[2:]
-    pin1=constants.READ_PINS[0][2]
-    pin2=constants.READ_PINS[1][2]
-    pin3=constants.READ_PINS[2][2]
-    pin4=constants.READ_PINS[3][2]
-
-    return list(map(int, [bankdata[pin1],bankdata[pin2],bankdata[pin3],bankdata[pin4]]))
 
 def writeBit(cycles,data):
     # TODO switch to threads instead of writing/reading sequentially
-
+    global pi
 
     i=0
     for currentTuple in constants.WRITE_PINS:
@@ -61,7 +30,7 @@ def writeBit(cycles,data):
         i+=1
 
 def readBit():
-
+    global pi
     # TODO switch to threads instead of writing/reading sequentially
     bitList=[]
     for currentTuple in constants.READ_PINS:
@@ -72,6 +41,7 @@ def readBit():
         global debug
         if debug:
             print("reading current pin", currentPin, key, "data", currentData)
+
         bitList.append(currentData)
 
     return bitList
@@ -99,17 +69,31 @@ def connect(xspeed,yspeed,bounciness,isvertical):
     print("received data")
     print(returndata)
 
-    #TODO print in readable formats
-    # print("formatted data")
-    # xspeed1=[]
-    #
-    # for i in range(0,8):
-    #     xspeed
+    formatdata=[[],[],[],[]]
+    for i in range(0,8):
+        formatdata[0].append(str(returndata[i][0]))
+        formatdata[1].append(str(returndata[i][1]))
+        formatdata[2].append(str(returndata[i][2]))
+        formatdata[3].append(str(returndata[i][3]))
 
-    newxspeed=0
-    newyspeed=0
-    paddlespeed=0
-    buttons=0
+    newxspeed=chewnumber.fixedPointToDec(''.join(formatdata[0]))
+    newyspeed=chewnumber.fixedPointToDec(''.join(formatdata[1]))
+    paddlespeed=chewnumber.fixedPointToDec(''.join(formatdata[2]))
+    buttondata=''.join(formatdata[3])
+
+    if buttondata=="11111111":
+        buttons=(True,True)
+    elif buttondata=="11110000":
+        buttons=(True,False)
+    elif buttondata=="00001111":
+        buttons=(False,True)
+    elif buttondata=="00000000":
+        buttons=(False,False)
+    else:
+        print("invalid button data")
+        print(buttondata)
+        buttons = (False, False)
+
     return (newxspeed,newyspeed,paddlespeed,buttons)
 
 
@@ -160,6 +144,8 @@ def rwByteSequence(data):
                 receivedBits = readBit()
                 if currentCycle >= 11:
                     receivedData.append(receivedBits)
+            if currentCycle>=19:
+                notReadyToReceive()
             currentCycle += 1
 
         previousClock = currentClock
@@ -169,8 +155,6 @@ def rwByteSequence(data):
 
 def initConnection():
     global pi
-    global debug
-    debug=True
     #START DAEMON
     call(["sudo", "pigpiod"])
 
@@ -179,27 +163,82 @@ def initConnection():
     p.nice(-19)
     pi = pigpio.pi('Dragon47')
 
+    # #Init pins
+    # for readpin in constants.READ_PINS:
+    #     pi.set_mode(readpin[1], pigpio.INPUT)
+    #
+    # for writepin in constants.WRITE_PINS:
+    #     pi.set_mode(writepin[1], pigpio.OUTPUT)
+    # pi.set_mode(constants.CLOCK_PIN, pigpio.OUTPUT)
+    # pi.set_mode(constants.MOSI_PIN, pigpio.OUTPUT)
+
+
     # Starting clock
     pi.set_PWM_frequency(constants.CLOCK_PIN, constants.CLOCKSPEED)
     pi.set_PWM_dutycycle(constants.CLOCK_PIN, constants.DUTYCYCLE)
 
     pi.write(constants.MOSI_PIN, 1)  # make sure no data is sent yet
 
+def closeConnection():
+    global pi
+    pi.stop()
+
 def main():
+    global debug
+    debug=True
     initConnection()
     # WRITE THE VALUES YOU WANT TO SEND HERE
-    xspeed =  -8.875
-    yspeed = -4.875
-    bounciness = 0.875
-    isvertical = False
+    xspeed = 0.125
+    yspeed = 0.125
+    bounciness = 0.125
+    isvertical = True
 
+    print("(xspeed,yspeed,bounciness,isvertical)")
+    print(xspeed,yspeed,bounciness,isvertical)
     returnval=connect(xspeed,yspeed,bounciness,isvertical)
 
+
     print("DONE")
-    pi.stop()
+    print("(xspeed,yspeed,bounciness,isvertical)")
+    print(xspeed,yspeed,bounciness,isvertical)
+    print("(newxspeed,newyspeed,paddlespeed,buttons)")
+    print(returnval)
+    closeConnection()
 
 if __name__ == "__main__":
     main()
+
+#banks do not work
+
+
+# def writeBank(cycles,data):
+#     xspeedbit=data[0][cycles] #xspeed
+#     yspeedbit=data[1][cycles]#yspeed
+#     bouncinessbit=data[2][cycles]#bouciness
+#     is_verticalbit=data[3][cycles]#isvertical
+#
+#
+#     xspeedpin=constants.WRITE_PINS[0][2]
+#     yspeedpin = constants.WRITE_PINS[1][2]
+#     bouncinesspin = constants.WRITE_PINS[0][2]
+#     is_verticalpin=constants.WRITE_PINS[0][2]
+#
+#     bitstring=['0']*32
+#     bitstring[xspeedpin]=str(xspeedbit)
+#     bitstring[yspeedpin]=str(yspeedbit)
+#     bitstring[bouncinesspin]=str(bouncinessbit)
+#     bitstring[is_verticalpin]=str(is_verticalbit)
+#
+#     pi.set_bank_1(int(''.join(bitstring),2))
+#
+# def readBank():
+#     bankdata=bin(pi.read_bank_1())[2:]
+#     pin1=constants.READ_PINS[0][2]
+#     pin2=constants.READ_PINS[1][2]
+#     pin3=constants.READ_PINS[2][2]
+#     pin4=constants.READ_PINS[3][2]
+#
+#     return list(map(int, [bankdata[pin1],bankdata[pin2],bankdata[pin3],bankdata[pin4]]))
 
 
 
