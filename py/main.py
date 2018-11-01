@@ -7,9 +7,10 @@ Sensor Pong
 """
 import pygame, sys, math
 import objects, constants, keyBindings, sensordb
-from enum import Enum
 import random
-# import time  # TODO use pygame.time functionality instead
+# import time # TODO use pygame.time functionality instead
+# Ok so instead of time.time()  (s)
+# It's pygame.time.get_ticks() (ms)
 
 
 def init():
@@ -19,13 +20,17 @@ def init():
     Note: creating a multiline string using triple quotation marks is how you create python documentation
     """
     # Initialize all pygame modules
+    pygame.mixer.pre_init(buffer=1024)
     pygame.display.init()
     pygame.font.init()
-    pygame.mixer.init()  # TODO set right variables inside this
+    pygame.mixer.init()
 
     # Set up screen
     global Screen
-    Screen = pygame.display.set_mode((constants.WINDOW_WIDTH, constants.WINDOW_HEIGHT))
+    Screen = pygame.display.set_mode((constants.WINDOW_WIDTH,
+                                      constants.WINDOW_HEIGHT),
+                                     pygame.FULLSCREEN if constants.FULLSCREEN
+                                     else 0)
 
     # Set title of screen
     pygame.display.set_caption(constants.GAME_NAME) 
@@ -37,16 +42,12 @@ def init():
     global ClockObj
     ClockObj = pygame.time.Clock()  # create game clock
 
-    # Call Game.__init__() and set gamestate
-    global GameState
-    GameState = GameStates.HIGHSCORES
+    global GameStateObj
+    GameStateObj = MainMenu()
 
-    global GameObj
-    GameObj = None  # Game()
-    global MenuObj
-    MenuObj = MainMenu()  # None
-    global HighObj
-    HighObj = HighScores()
+    # Avoid cluttering the pygame event queue
+    pygame.event.set_allowed(None)
+    pygame.event.set_allowed([pygame.QUIT, pygame.KEYDOWN, pygame.KEYUP])
 
 
 def main():
@@ -71,18 +72,8 @@ def main():
         # TODO use events to handle presses (maybe)
         keysPressed = pygame.key.get_pressed()
 
-        if GameState == GameStates.PLAYING:
-            GameObj.handleKeys(keysPressed)
-            GameObj.updateGame()
-        if GameState == GameStates.MAINMENU:
-            MenuObj.handleKeys(keysPressed)
-            MenuObj.updateMenu()
-        if GameState == GameStates.HIGHSCORES:
-            HighObj.handleKeys(keysPressed)
-            HighObj.updateHigh()
-
-        # elif GameState == GameStates.MAINMENU:
-        # Do MainMenuObj.handleKeys and updateGame
+        global GameStateObj
+        GameStateObj = GameStateObj.update(keysPressed)
 
         # Display fps in screen
         if constants.VIEWFPS:
@@ -107,41 +98,30 @@ def main():
         # Note that the game stops updating but is not quit entirely
 
 
-class GameStates(Enum):
-    """
-    An Enum links names to integer, accessible with e.g. GameStates.MAINMENU
-    GameState is a global variable within main.py,
-        it should always keep track of the screen that the player is on.
-    Using this class to assign the GameState variable ensures that it is always one of the defined options.
-    """
-    MAINMENU = 0
-    PLAYING  = 1
-    # GAMEOVER = 2 # unused as of now
-    HIGHSCORES = 3
-    OPTIONS = 4
-
-
 class Game:
     """
     main.Game class contains game generation and handling functionality.
     """
     # define variables to be initialized
+    score = None
+    scoreMult = None
+
     playerBall = None
     paddle = None
     AllSpritesList = None
     CollisionSpritesList = None
     walls = [None, None, None, None]
     PowerUps = None
-    readyPowerUp = None
-
-    # self.collisionHandler
+    currentPowerUps = None
+    nextGameState = None
 
     def __init__(self):
         # Create two empty sprite groups.
         # One for sprites to render, another for sprites to collision detect
+        pygame.display.set_caption(constants.GAME_NAME + ' - Now Playing')
+
         self.AllSpritesList = pygame.sprite.Group()
         self.CollisionSpritesList = pygame.sprite.Group()
-        # also one for powerups
         self.powerUpSpritesList = pygame.sprite.Group()
 
         # Create Ball object
@@ -149,20 +129,19 @@ class Game:
         self.AllSpritesList.add(self.playerBall)
 
         # Create paddle object
-        self.paddle = objects.Paddle(constants.colors["WHITE"], constants.PADDLE_Y_POS, constants.PADDLEWIDTH, constants.PADDLEHEIGHT)
+        self.paddle = objects.Paddle(constants.colors["WHITE"], constants.PADDLE_Y_POS,
+                                     constants.PADDLEWIDTH, constants.PADDLEHEIGHT)
         self.AllSpritesList.add(self.paddle)
         self.CollisionSpritesList.add(self.paddle)
 
         # Create collision handling object
         self.collisionHandler = CollisionHandling(self)
 
-        # Create object for powerup handling and (empty) sprite list
-        self.powerUps = objects.PowerUp()
-
         self.init_grid()
         self.time_until_next_block = 0
         self.last_block_time = 0
         self.blocklist=[]
+        self.currentPowerUps=[]
 
         # Play some music!
         # use one of these
@@ -176,36 +155,62 @@ class Game:
             self.AllSpritesList.add(self.walls[i])
             self.CollisionSpritesList.add(self.walls[i])
 
+        # Initialize score
+        self.score = 0
+        self.scoreMult = 1.0
+
     def handleKeys(self, keysPressed):
         """
         Calls keyBindings.checkPress and responds accordingly
         """
         if keyBindings.checkPress('exit', keysPressed):
-            pygame.event.post(pygame.event.Event(pygame.QUIT))
+            # pygame.event.post(pygame.event.Event(pygame.QUIT))
+            # TODO find some other way of delaying input
+            # TODO -- OR use keyevents to handle inputs
+            self.gameover()
+            return
 
-        if keyBindings.checkPress('left', keysPressed) and (self.paddle.rect.x > (constants.PADDLEWIDTH//2)):
+        if keyBindings.checkPress('left', keysPressed) and (self.paddle.rect.x > constants.WALLSIZE):
             self.paddle.rect.x -= constants.PADDLESPEED
-        if keyBindings.checkPress('right', keysPressed) and (self.paddle.rect.x < (constants.WINDOW_WIDTH - constants.PADDLEWIDTH*1.5)):
+        if keyBindings.checkPress('right', keysPressed) and (self.paddle.rect.x + self.paddle.width < (constants.WINDOW_WIDTH - constants.WALLSIZE)):
             self.paddle.rect.x += constants.PADDLESPEED
 
         # (re)set ball location when pressing K_HOME (cheat)
         if keyBindings.checkPress('restart', keysPressed):
             self.playerBall.respawn()
 
-        if keyBindings.checkPress('activate', keysPressed) and self.readyPowerUp:
-            self.readyPowerUp.activate()
-            self.readyPowerUp = None
+        if keyBindings.checkPress('activate', keysPressed):
+            pass
 
-    def updateGame(self):
+    def check_powerup_status(self):
+        for p in self.currentPowerUps:
+            if p[0] < pygame.time.get_ticks():
+
+                print("REMOVED POWERUP", p[1])
+
+                self.paddle.color=constants.colors["WHITE"]
+                self.paddle.width=constants.PADDLEWIDTH
+                self.paddle.update_bonus()
+
+                self.playerBall.color=constants.colors["WHITE"]
+                self.playerBall.update_bonus()
+
+                self.currentPowerUps.remove(p)
+                # TODO actually deactive powerup
+
+    def update(self, keystohandle):
         """
         Updates sprites and stuff. Called once every frame while playing game.
         """
         # Handle collisions
+        self.handleKeys(keystohandle)
         self.collisionHandler.evaluate()
+        self.check_powerup_status()
 
         if pygame.time.get_ticks() >= self.last_block_time + self.time_until_next_block:
             self.last_block_time = pygame.time.get_ticks()
-            self.time_until_next_block = self.addBlock()
+            self.addBlock()
+            self.time_until_next_block = random.randint(constants.RESPAWNDELAY,constants.RESPAWNDELAY+constants.RESPAWNRANGE)
 
         Screen.fill(constants.colors["BLACK"])
 
@@ -214,6 +219,20 @@ class Game:
 
         # draw sprites
         self.AllSpritesList.draw(Screen)
+
+        ui_font = pygame.font.SysFont('arial', 30)
+        score_view = ui_font.render(str(self.score),
+                                        True,
+                                        constants.colors['WHITE'])
+        score_rect = score_view.get_rect()
+        score_rect.right = constants.WINDOW_WIDTH - constants.WALLSIZE - 20
+        score_rect.y = 50
+        Screen.blit(score_view, score_rect)
+
+        if self.nextGameState:
+            return self.nextGameState
+
+        return self
 
     def removeblock(self, obj1):
         self.AllSpritesList.remove(obj1)
@@ -235,18 +254,8 @@ class Game:
         self.blocksize = (constants.WINDOW_WIDTH-(2*constants.GRIDMARGIN))//constants.GRIDX
 
     def addBlock(self):
-        # TODO this logic should be moved to an objects.Block function
-        # See objects.PowerUp.generateType()
-        throwdice=random.randint(1,100)
-        if throwdice >= 70 and throwdice<85:
-            blocktype="green"
-        elif throwdice >= 85 and throwdice<95:
-            blocktype="blue"
-        elif throwdice >= 95:
-            blocktype="red"
-        else:
-            blocktype="default"
-        newblock = objects.Block(blocktype,self.blocksize-(2*constants.BLOCKMARGIN), self.blocksize-(2*constants.BLOCKMARGIN))
+
+        newblock = objects.Block(self.blocksize-(2*constants.BLOCKMARGIN), self.blocksize-(2*constants.BLOCKMARGIN))
 
         # But maybe the grid stuff can stay here
 
@@ -259,15 +268,22 @@ class Game:
             self.AllSpritesList.add(newblock)
             self.CollisionSpritesList.add(newblock)
             self.blocklist.append(newblock)
-            time_until_next_block = random.randint(constants.RESPAWNDELAY,constants.RESPAWNDELAY+constants.RESPAWNRANGE)
-            return time_until_next_block
-        else:
-            del newblock
-            return 0
+            self.grid[newblock.y_on_grid][newblock.x_on_grid] = newblock
+
+    def inc_score(self, points):
+        self.score += int(points * self.scoreMult)
+
+    def gameover(self):
+        sensordb.insertscore('jemoeder', self.score)
+        print(sensordb.get_scores())
+        pygame.time.delay(500)
+        self.exit(MainMenu())
+
+    def exit(self, to_gamestate):
+        self.nextGameState = to_gamestate
 
 
 class CollisionHandling:
-
     """
     class containing collision handling functions
     """
@@ -285,37 +301,79 @@ class CollisionHandling:
 
         collisions = pygame.sprite.spritecollide(self.game.playerBall, self.game.CollisionSpritesList, False)
 
-        # TODO fix multiple blocks spawning on same place
-        if len(collisions) > 1:
-            print("multiple collisions,", collisions)
-
         for c in collisions:
             # Collision happens with block (instead of paddle or ball)
             if isinstance(c, objects.Block):
                 c_newhp = c.reduceHP(self.game.playerBall.xspeed, self.game.playerBall.yspeed)
                 if c_newhp <= 0:
-                    GameObj.removeblock(c)
+                    
+                    self.game.inc_score(c.score)
 
-                    # Randomly generate powerup
-                    if random.random() < constants.POWERUP_CHANCE:
-                        # Create object and add to relevant sprite lists
-                        newPowerUp = objects.PowerUp.PowerUpSprite(self.game.playerBall.rect.x, self.game.playerBall.rect.y)
+                    if c.type=="red":
+                        newPowerUp = objects.PowerUp.PowerUpSprite(self.game.playerBall.rect.x, self.game.playerBall.rect.y, "red", self.game)
+                        self.game.AllSpritesList.add(newPowerUp)
+                        self.game.powerUpSpritesList.add(newPowerUp)                        
+                    elif c.type=="blue":
+                        newPowerUp = objects.PowerUp.PowerUpSprite(self.game.playerBall.rect.x, self.game.playerBall.rect.y, "blue", self.game)
                         self.game.AllSpritesList.add(newPowerUp)
                         self.game.powerUpSpritesList.add(newPowerUp)
+                    elif c.type=="green":
+                        newPowerUp = objects.PowerUp.PowerUpSprite(self.game.playerBall.rect.x, self.game.playerBall.rect.y, "green", self.game)
+                        self.game.AllSpritesList.add(newPowerUp)
+                        self.game.powerUpSpritesList.add(newPowerUp)                                
+                    # Randomly generate powerup
+                    elif random.random() < constants.POWERUP_CHANCE:
+                        # Create object and add to relevant sprite lists
+                        newPowerUp = objects.PowerUp.PowerUpSprite(self.game.playerBall.rect.x, self.game.playerBall.rect.y, "random", self.game)
+                        self.game.AllSpritesList.add(newPowerUp)
+                        self.game.powerUpSpritesList.add(newPowerUp)
+
+                    self.game.removeblock(c)
+
+            elif isinstance(c, objects.Wall) and c.name == 'bottom_wall':
+                if not constants.GODMODE:
+                    self.game.gameover()
 
             isVertical = CollisionHandling.find_bounce_is_vertical(self.game.playerBall, c)
 
             self.game.playerBall.bounce(isVertical)
 
             # Should be handled at the object collided with, not here
-            # AudioObj.playSound('bounce')
+            AudioObj.playSound('bounce')
 
     def handle_power_up_collisions(self):
         # After checking ball collisions, check for powerups to collect
         powerUpCollisions = pygame.sprite.spritecollide(self.game.paddle, self.game.powerUpSpritesList, True)
         for c in powerUpCollisions:
-            self.game.readyPowerUp = c.powerUp
-            print("caught %s powerup" % self.game.readyPowerUp.type)
+
+            (powerup_entry,powerup_properties) = c.powerUp.activate()
+            self.game.currentPowerUps.append(powerup_entry)
+            # TODO actually activate powerup
+
+            powerup_color=constants.colors[  powerup_properties[1]  ]
+            value = powerup_properties[5]
+
+            if powerup_properties[3]=="ball":
+                powerup_object=self.game.playerBall
+            elif powerup_properties[3]=="paddle":
+                powerup_object=self.game.paddle
+            
+            if powerup_properties[4]=="radius":
+                powerup_object.radius=value
+            elif powerup_properties[4]=="speed":
+                powerup_object.xspeed=value
+                powerup_object.yspeed=value
+            elif powerup_properties[4]=="width":
+                powerup_object.width=value
+
+            # TODO update paddle size, ball size, ball speed
+            # TODO unset powerups
+
+            powerup_object.color=powerup_color
+            powerup_object.update_bonus()
+
+            self.game.AllSpritesList.remove(c)
+            self.game.powerUpSpritesList.remove(c)
 
     @staticmethod
     def find_bounce_is_vertical(ballObj, collisionObj):
@@ -381,14 +439,19 @@ class MainMenu:
     menuItems = None
     menucolor = None
 
+    ## revamp ##
+    entries = None
+
+    nextGameState = None
+
     def __init__(self):
         pygame.display.set_caption(constants.GAME_NAME + ' - Main menu' )
+        self.texts = ['Start game', 'Highscores', 'Options', 'Exit']
         self.mainFont = pygame.font.SysFont('arial', 60) # 76? HEIGTH
         self.subFont = pygame.font.SysFont('arial', 50) # 58 HEIGTH
         self.highlight = pygame.font.SysFont('arial', 50, bold=True)
         self.highlight.set_underline(True)
 
-        self.texts = ['Start game','Highscores','Options', 'exit']
         self.mainmenu = self.writeText('Main Menu', self.mainFont)
         self.startgamemenu = self.writeText('Start game', self.highlight)
         self.highscoremenu = self.writeText('Highscores', self.subFont)
@@ -398,7 +461,7 @@ class MainMenu:
         self.selectedItem = 0
         # for x in range(0, len(self.menuItems)):
         #     print(self.menuItems[x].get_size())# width, height
-        self.mainmenu_Width = constants.WINDOW_HW - self.mainmenu.get_width()//2
+        self.mainmenu_Width = constants.WINDOW_WIDTH // 2 - self.mainmenu.get_width()//2
         self.startgamemenu_Width = 30 #constants.WINDOW_WIDTH/1000 # + self.startgamemenu.get_width()//2
         self.highscoremenu_Width = self.startgamemenu_Width + self.startgamemenu.get_width()
         self.optionsmenu_Width = self.highscoremenu_Width + self.highscoremenu.get_width()
@@ -416,13 +479,18 @@ class MainMenu:
     # TODO use subclass instances for the various screen items
     # something like this
     class MenuOption:
+        text = None
         width = None
         height = None
-        text = None
 
         def __init__(self, width, height, text):
             self.width, self.height = width, height
             self.text = text
+
+            self.mainFont = pygame.font.SysFont('arial', 60)
+            self.subFont = pygame.font.SysFont('arial', 50)
+            self.highlight = pygame.font.SysFont('arial', 50, bold=True)
+            self.highlight.set_underline(True)
 
     def handleKeys(self, keysPressed):
         if keyBindings.checkPress('exit', keysPressed):
@@ -441,21 +509,15 @@ class MainMenu:
 
         if keyBindings.checkPress('activate', keysPressed):
 
-            global GameState
-            global MainObj
+            global GameStateObj
 
             if self.selectedItem == 0:
-                GameState = GameStates.PLAYING
-                global GameObj
-                GameObj = Game()
-                MainObj = None
+                self.nextGameState = Game()
 
             elif self.selectedItem == 1:
-                # GameState = GameStates.HIGHSCORES
-                pass
+                self.nextGameState = HighScores()
 
             elif self.selectedItem == 2:
-                # GameState = GameStates.OPTIONS
                 pass
 
             elif self.selectedItem == 3:
@@ -469,13 +531,10 @@ class MainMenu:
         if font == self.highlight:
             return self.highlight.render(text, False, constants.colors['RED'])
 
-    def updateMenu(self):
+    def update(self, keystohandle):
+        self.handleKeys(keystohandle)
+
         Screen.fill(constants.colors["BLACK"])
-        # Screen.blit(self.mainmenu, (self.mainmenu_Width, self.mainmenu_Height))
-        # Screen.blit(self.startgamemenu, (self.startgamemenu_Width, self.startgamemenu_Height))
-        # Screen.blit(self.highscoremenu, (self.highscoremenu_Width, self.highscoremenu_Height))
-        # Screen.blit(self.optionsmenu, (self.optionsmenu_Width, self.optionsmenu_Height))
-        # Screen.blit(self.exitmenu, (self.exitmenu_Width, self.exitmenu_Height))
 
         Screen.blit(self.mainmenu, (self.mainmenu_Width, self.mainmenu_Height))
         Screen.blit(self.menuItems[0], (self.startgamemenu_Width, self.startgamemenu_Height))
@@ -484,6 +543,11 @@ class MainMenu:
         Screen.blit(self.menuItems[3], (self.exitmenu_Width, self.exitmenu_Height))
 
         pygame.time.delay(80)
+
+        if self.nextGameState:
+            return self.nextGameState
+
+        return self
 
 class HighScores:
     pygame.font.init()
@@ -499,6 +563,8 @@ class HighScores:
     rows = None
     window = 0
     pages = 0
+    nextGameState = None
+
     def __init__(self):
         self.highMenu = self.highField('HIGHSCORES', self, chosenfont=self.mainFont)
         scores = sensordb.get_scores()
@@ -547,7 +613,8 @@ class HighScores:
     def handleKeys(self, keysPressed):
 
         if keyBindings.checkPress('exit', keysPressed):
-            pygame.event.post(pygame.event.Event(pygame.QUIT))
+            self.nextGameState = MainMenu()
+            pygame.time.delay(500)
             return
 
         if keyBindings.checkPress('left', keysPressed) and self.window:
@@ -587,18 +654,20 @@ class HighScores:
                                                   .format(scores[x][0], scores[x][1]), self)
         print('current:' + str(self.window))
 
-    def updateHigh(self):
+    def update(self, keysPressed):
+        self.handleKeys(keysPressed)
+
         Screen.fill(constants.colors["BLACK"])
-        Screen.blit(self.highMenu.text, (constants.WINDOW_HW - self.highMenu.width//2, self.highMenu.height))
+        Screen.blit(self.highMenu.text, (constants.WINDOW_WIDTH // 2 - self.highMenu.width//2, self.highMenu.height))
         i = 0
         for x in self.rows:
             if type(x) is self.highField:
                 if i == 0:
-                    Screen.blit(x.text, (constants.WINDOW_HW -
+                    Screen.blit(x.text, (constants.WINDOW_WIDTH // 2 -
                                          self.highMenu.width*0.70, (self.highMenu.height + constants.MAINFONT)))
                 else:
                     pass
-                    Screen.blit(x.text, (constants.WINDOW_HW -
+                    Screen.blit(x.text, (constants.WINDOW_WIDTH // 2 -
                                          self.highMenu.width*0.70, (constants.SUBFONT*0.9*i +
                                                                     self.highMenu.height + constants.MAINFONT)))
                 i = i + 1
@@ -619,7 +688,6 @@ class Audio:
     Handles playing music and sound effects. Uses sound mapping from constants.sounds and constants.music
     """
 
-    fadeoutTime = 1500  # ms
     trackPlaying = None
     trackToPlay = None
     gameSounds = dict()
@@ -627,7 +695,10 @@ class Audio:
     def __init__(self):
         # Create gameSounds dictionary from the constants.sounds dictionary containing Sound objects
         for key in constants.sounds.keys():
-            self.gameSounds[key] = pygame.mixer.Sound(constants.sounds[key])
+            self.gameSounds[key] = pygame.mixer.Sound(constants.sounds[key][0])
+            self.gameSounds[key].set_volume(constants.sounds[key][1])
+
+        self.fadeoutTime = constants.MUSICFADE
 
     def playMusic(self, musicName):
 

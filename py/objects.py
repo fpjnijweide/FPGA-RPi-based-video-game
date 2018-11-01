@@ -1,28 +1,54 @@
-import pygame, sys
-from pygame.locals import *
+import pygame
 import constants
 import random
+# import time
+
 
 class Block(pygame.sprite.Sprite):
     """
     """
-    def __init__(self, type, width, height):
+
+    @staticmethod
+    def generateType():
+        throwdice = random.randint(1, 100)
+        if throwdice >= 70 and throwdice<85:
+            return "green"
+        elif throwdice >= 85 and throwdice<95:
+            return "blue"
+        elif throwdice >= 95:
+            return "red"
+        else:
+            return "default"
+
+    def __init__(self, width, height):
 
         super().__init__()
-        
+
+        type = Block.generateType()
+
         if type=="default":
             color=constants.colors["WHITE"]
             self.initialhp = constants.BLOCK_INITIAL_HP
+            self.score = 10
         if type=="red":
             color=constants.colors["RED"]
             self.initialhp = constants.BLOCK_INITIAL_HP*8
+            self.score = 50
         if type=="green":
             color=constants.colors["GREEN"]
             self.initialhp = constants.BLOCK_INITIAL_HP*2
+            self.score = 20
         if type=="blue":
             color=constants.colors["BLUE"]
             self.initialhp = constants.BLOCK_INITIAL_HP*3
+            self.score = 30
+            self.initialhp = constants.BLOCK_INITIAL_HP*4
+        if type=="blue":
+            color=constants.colors["BLUE"]
+            self.initialhp = constants.BLOCK_INITIAL_HP*6
+            self.score = 30
 
+        self.type = type
         self.hp = self.initialhp
 
         self.initialColor = color
@@ -70,12 +96,14 @@ class Ball(pygame.sprite.Sprite):
         
         # Pass in the color of the Ball, and its x and y position, width and height.
         # Set the background color and set it to be transparent
-        self.image = pygame.Surface([radius*2, radius*2])
+        
         #self.image.fill(WHITE)
         #self.image.set_colorkey(WHITE)
- 
+        self.color=color
+        self.radius=radius
+        self.image = pygame.Surface([self.radius*2, self.radius*2])
         # Draw the Ball (a circle)
-        pygame.draw.circle(self.image, color, [radius,radius], radius)
+        self.circle = pygame.draw.circle(self.image, self.color, [self.radius,self.radius], self.radius)
 
         # Fetch the rectangle object that has the dimensions of the screen.
         self.rect = self.image.get_rect()
@@ -92,6 +120,12 @@ class Ball(pygame.sprite.Sprite):
         self.yfloat = float(self.rect.y)
 
         self.col_this_frame = [False, False]  # [x, y]
+
+    def update_bonus(self):
+        #pass
+        self.image = pygame.transform.scale(self.image, (self.radius*2, self.radius*2))
+        pygame.draw.circle(self.image, self.color, [self.radius,self.radius], self.radius)
+        self.rect = self.image.get_rect()
 
     def bounce(self, bounceIsVertical):
         """
@@ -113,11 +147,10 @@ class Ball(pygame.sprite.Sprite):
                 self.yspeed *= -1
                 self.col_this_frame[1] = True
 
-            else:
-                print("already bounced this axis")
-
     def update(self):
         """update ball location"""
+        # For gravity do something like:
+        # self.yspeed += 0.16
         self.xfloat += self.xspeed
         self.yfloat += self.yspeed
         self.rect.x = self.xfloat
@@ -143,14 +176,25 @@ class Paddle(pygame.sprite.Sprite):
         # Paddle located in middle of screen
         left = (constants.WINDOW_WIDTH // 2 ) - (width // 2)
 
-        self.image = pygame.Surface([width, height])
-        self.image.fill(color)
+        self.color=color
+        self.width=width
+        self.height=height
+        self.image = pygame.Surface([self.width, self.height])
+        self.image.fill(self.color)
         self.rect = self.image.get_rect()
 
         self.rect.x = left
         self.rect.y = y_position
+        self.bounciness = 1
  
-        
+    def update_bonus(self):
+        self.image = pygame.Surface([self.width, self.height])
+        self.image.fill(self.color)
+        pre_x, pre_y = self.rect.x, self.rect.y
+        self.rect = self.image.get_rect()
+        self.rect.x, self.rect.y = pre_x, pre_y
+
+
 class Wall(pygame.sprite.Sprite):
     """
     edges of screen. Used for collision detection as well as graphical purposes
@@ -195,45 +239,53 @@ class PowerUp:
     """
 
     """
-    # ('name', rng_chance, color)
-    types = [('speed', 8, 'CYAN'),
-             ('rocket', 1, 'ORANGE'),
-             ('laser', 3, 'RED')]
+
+    types = ["blue","red","green"]
+                    # ('name', rng_chance, color, duration, object, attribute, new_value)
+    type_properties= {"blue"  :( 8, "BLUE",  8000, "ball",   "radius", constants.BALLRADIUS*2 ),
+                      "red"   :( 1, "RED",   7000, "ball",   "speed",  constants.INITIAL_BALL_XSPEED*2),
+                      "green" :( 3, "GREEN", 5000, "paddle", "width",  constants.PADDLEWIDTH*2)}
     type = None
     color = None
 
     def __init__(self):
-        self.type = PowerUp.generateType()
-        self.color = self.getTypeInfo()[2]
+        self.current_powerups=[]
+
 
     @staticmethod
-    def generateType():
-        rngchoose = 0.0
-        rngtotal = 0.0
-        for t in PowerUp.types:
-            rngtotal += t[1]
-            # print(rngtotal)
-        rngnum = random.uniform(0, rngtotal)
-        for t in PowerUp.types:
-            rngchoose += t[1]
-            if rngnum <= rngchoose:
-                return t[0]
+    def generateType(power_type):
+        if power_type=="random":
+            rngchoose = 0.0
+            rngtotal = 0.0
+            for t in PowerUp.types:
+                rngtotal += PowerUp.type_properties[t][0] #add type property
+                # print(rngtotal)
+            rngnum = random.uniform(0, rngtotal)
+            for t in PowerUp.types:
+                rngchoose += PowerUp.type_properties[t][0]
+                if rngnum <= rngchoose:
+                    return t
         else:
-            print("Warning, no PowerUp type was generated")
+            return power_type
 
     def getTypeInfo(self):
+        """return tuple from self.types"""
         for t in self.types:
             if t[0] == self.type:
                 return t
         print("getTypeInfo error!")
 
     def activate(self):
-        # Do something
-        print('activate %s' % self.type)
+        # print('activate %s' % self.type)
+        # print(self.properties[2])
+        list_entry = ( ((pygame.time.get_ticks()+self.properties[2]),self.type ) )
+        return (list_entry,self.properties)
 
+        del self
         # After doing something, the reference to the object is removed.
 
     class PowerUpSprite(pygame.sprite.Sprite):
+        # TODO fix why are red power ups bugged?
         """
         Contains the object of a powerup that is displayed on the screen.
         """
@@ -241,10 +293,15 @@ class PowerUp:
         height = 20
         powerUp = None
 
-        def __init__(self, x, y):
+        def __init__(self, x, y, power_type, game):
             super().__init__()
-
             self.powerUp = PowerUp()
+            self.game = game
+
+            self.powerUp.type = PowerUp.generateType(power_type)
+
+            self.powerUp.properties = PowerUp.type_properties[self.powerUp.type]
+            self.powerUp.color = self.powerUp.properties[1]         
 
             self.image = pygame.Surface([self.width, self.height])
             self.image.fill(constants.colors[self.powerUp.color])
@@ -254,3 +311,10 @@ class PowerUp:
 
         def update(self):
             self.rect.y += 1
+            if self.rect.y > constants.WINDOW_HEIGHT:
+                self.game.powerUpSpritesList.remove(self)
+                self.game.AllSpritesList.remove(self)
+
+                # git commit suicide
+                self.kill()
+                del self

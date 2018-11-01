@@ -1,6 +1,4 @@
 # ==== Global variables should be defined here
-# Note: User-Customizable variables (settings) should be defined in a different,
-# not-yet created .txt or .conf or whatever file [TODO]
 # Game name string
 GAME_NAME = "Sensor Pong" # use this when referencing the game name so that we can easily change it
 # GAME_VERSION = '0.0.1' # not used currently but might be nice eventually
@@ -9,16 +7,18 @@ GAME_NAME = "Sensor Pong" # use this when referencing the game name so that we c
 # Offload functions to FPGA and receive from FPGA
 FPGA_ENABLED = False
 
+# Prevent losing the game
+GODMODE = True
 
 # Audio settings
-SOUND = False
+SOUND = True
 MUSIC = True
 
 # Window resolution
 WINDOW_WIDTH = 800
 WINDOW_HEIGHT = 600
-WINDOW_HW = WINDOW_WIDTH//2
-WINDOW_HH = WINDOW_HEIGHT//2
+FULLSCREEN = False
+
 MAINFONT = 70
 SUBFONT = 58
 #db
@@ -35,21 +35,23 @@ INITIAL_BALL_Y = 30
 
 #Ball speed
 INITIAL_BALL_XSPEED = 6
-INITIAL_BALL_YSPEED = 5
+INITIAL_BALL_YSPEED = INITIAL_BALL_XSPEED
 
 # Wall size
-WALLSIZE = 5
+WALLSIZE = 20
 
 # Paddle size
-PADDLEWIDTH  = 80
-PADDLEHEIGHT = 15
+PADDLEWIDTH  = 113
+PADDLEHEIGHT = 13
 PADDLE_Y_POS = 520
+PADDLEBOUNCINESS=1
 
 # Powerup chance
-POWERUP_CHANCE = 0.15
+# TODO chance per destroyed block, not global
+POWERUP_CHANCE = 0.9
 
 # Paddle speed
-PADDLESPEED = 6
+PADDLESPEED = 10
 
 # Block size
 BLOCKWIDTH  = 100
@@ -64,8 +66,8 @@ GRIDMARGIN = 100
 
 
 # Block respawn time range
-RESPAWNDELAY = 1000
-RESPAWNRANGE = 1500
+RESPAWNDELAY = 420
+RESPAWNRANGE = 2069
 
 # Color definitions
 colors = {
@@ -84,9 +86,9 @@ colors = {
 }
 
 # Audio track mapping
-# 'audioName':'relative/path/to/file'
+# 'audioName':('relative/path/to/file', volume)
 sounds = {
-        'bounce': '../resources/audio/bounce.ogg'
+        'bounce': ('../resources/audio/bounce.ogg', 0.05)
 #        'wallCollision':'../resources/audio/bounce.wav',
 #        'blockbreak':'../resources/sound/bounce2.wav'
 }
@@ -97,6 +99,7 @@ music  = {
 #        'newGame': '../resources/audio/<file>.ogg',
 #        'gameOver': '../resources/audio/<file>.ogg',
 }
-
+# ms for music to fade out when switching screens
+MUSICFADE = 1000
 
 
