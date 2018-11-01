@@ -1,6 +1,4 @@
 # ==== Global variables should be defined here
-# Note: User-Customizable variables (settings) should be defined in a different,
-# not-yet created .txt or .conf or whatever file [TODO]
 # Game name string
 GAME_NAME = "Sensor Pong" # use this when referencing the game name so that we can easily change it
 # GAME_VERSION = '0.0.1' # not used currently but might be nice eventually
@@ -25,18 +23,22 @@ FPGA_ENABLED = False
 # Do we send and receive data over GPIO at same time, or wait?
 GPIO_SEND_RECEIVE_AT_ONCE=False
 
+# Prevent losing the game
+GODMODE = True
+
 # Audio settings
-SOUND = False
+SOUND = True
 MUSIC = True
 
 # Window resolution
 WINDOW_WIDTH = 800
 WINDOW_HEIGHT = 600
-WINDOW_HW = WINDOW_WIDTH//2
-WINDOW_HH = WINDOW_HEIGHT//2
+FULLSCREEN = True
+
 MAINFONT = 70
 SUBFONT = 58
-
+#db
+SHOW = 7
 
 # Frames per second
 FPS = 60
@@ -55,7 +57,7 @@ INITIAL_BALL_YSPEED = INITIAL_BALL_XSPEED
 WALLSIZE = 20
 
 # Paddle size
-PADDLEWIDTH  = 90
+PADDLEWIDTH  = 113
 PADDLEHEIGHT = 13
 PADDLE_Y_POS = 520
 PADDLEBOUNCINESS=1
@@ -65,7 +67,7 @@ PADDLEBOUNCINESS=1
 POWERUP_CHANCE = 0.9
 
 # Paddle speed
-PADDLESPEED = 8
+PADDLESPEED = 10
 
 # Block size
 BLOCKWIDTH  = 100
@@ -100,9 +102,9 @@ colors = {
 }
 
 # Audio track mapping
-# 'audioName':'relative/path/to/file'
+# 'audioName':('relative/path/to/file', volume)
 sounds = {
-        'bounce': '../resources/audio/bounce.ogg'
+        'bounce': ('../resources/audio/bounce.ogg', 0.05)
 #        'wallCollision':'../resources/audio/bounce.wav',
 #        'blockbreak':'../resources/sound/bounce2.wav'
 }
@@ -113,6 +115,7 @@ music  = {
 #        'newGame': '../resources/audio/<file>.ogg',
 #        'gameOver': '../resources/audio/<file>.ogg',
 }
-
+# ms for music to fade out when switching screens
+MUSICFADE = 1000
 
 

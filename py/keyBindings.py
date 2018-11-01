@@ -14,6 +14,7 @@ def checkPress(action, keysPressed):
     """
     checkPress takes in the pygame.key.get_pressed() array and an action string
         to determine whether the action should be executed
+    TODO this is pretty inefficient, because it searches the keypress array many, many times
     """
     for binding in keys[action]:
 

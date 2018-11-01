@@ -1,13 +1,10 @@
-import sqlite3
-
-# conn = sqlite3.connect('highscores.db')
-conn = sqlite3.connect(':memory:')
-c = conn.cursor()
+import sqlite3, constants
 
 
 def create_table():
-    c.execute('create table highscores('
-          'name text, score integer)')
+    c.execute('create table if not exists highscores('
+          'name text not null, score integer not null)')
+
 
 def insertscore(name, score):
     with conn:
@@ -17,21 +14,35 @@ def insertscore(name, score):
                        # 'values(?,?)',
                        # (name, score)
                      )
+
+
 # returns the 7 highest scores
-def get_scores():
-    c.execute('select * from highscores order by score DESC')
-    return c.fetchmany(7)
+def get_scores(offset=None):
+    if type(offset) is int:
+        c.execute('select * from highscores order by score DESC limit ? offset ?',
+                  (constants.SHOW, offset))
+    else:
+        c.execute('select * from highscores order by score DESC limit ?',
+                  (constants.SHOW,))
+    return c.fetchall()
 
-def clear_table(*remain):
+
+def clear_table(remain=None):
     with conn:
-        if remain != None:
-            conn.execute('delete ')
-        conn.execute('delete * from highscores')
-create_table()
+        if remain == None:
+            conn.execute('delete from highscores')
+        else:
+            print('trying to keep ' + str(remain))
+            conn.execute('delete from highscores where oid not in(select oid from highscores order by score DESC limit :remain)', {'remain':remain} )
 
-insertscore('gibson', 200)
-insertscore('gibson', 2300)
-insertscore('gibson', 2100)
-print(get_scores())
-# for row in get_scores():
-#     print(row)
+
+def get_pages():
+    c.execute('select count(oid) from highscores')
+    num = c.fetchone()[0]
+    return num//constants.SHOW
+
+
+conn = sqlite3.connect(':memory:')
+c = conn.cursor()
+
+create_table()
