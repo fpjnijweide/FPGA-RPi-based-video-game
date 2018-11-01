@@ -1,19 +1,31 @@
-import pygame, sys
-from pygame.locals import *
+import pygame
 import constants
 import random
-import time
+# import time
 
 
 class Block(pygame.sprite.Sprite):
     """
     """
 
-    #type=None
-    def __init__(self, type, width, height):
+    @staticmethod
+    def generateType():
+        throwdice = random.randint(1, 100)
+        if throwdice >= 70 and throwdice<85:
+            return "green"
+        elif throwdice >= 85 and throwdice<95:
+            return "blue"
+        elif throwdice >= 95:
+            return "red"
+        else:
+            return "default"
+
+    def __init__(self, width, height):
 
         super().__init__()
-        
+
+        type = Block.generateType()
+
         if type=="default":
             color=constants.colors["WHITE"]
             self.initialhp = constants.BLOCK_INITIAL_HP
@@ -111,11 +123,9 @@ class Ball(pygame.sprite.Sprite):
 
     def update_bonus(self):
         #pass
-        #self.image = pygame.Surface([self.radius*2, self.radius*2])
         self.image = pygame.transform.scale(self.image, (self.radius*2, self.radius*2))
         pygame.draw.circle(self.image, self.color, [self.radius,self.radius], self.radius)
         self.rect = self.image.get_rect()
-        #self.image.fill(self.color)
 
     def bounce(self, bounceIsVertical):
         """
@@ -123,6 +133,7 @@ class Ball(pygame.sprite.Sprite):
         """
         # This function should 
         # but until the connection is realized this function will take care of that.
+        # pygame.time.delay(99)
         if constants.FPGA_ENABLED:
             #self.rect.x, self.rect.y = fpga_connection.sendBounce(bounceIsVertical, self.xspeed, self.yspeed, bounceConstant)
             pass
@@ -178,14 +189,13 @@ class Paddle(pygame.sprite.Sprite):
         self.bounciness = 1
  
     def update_bonus(self):
-        #self.image=pygame.Surface([self.width, self.height]) #TODO check if this works
         self.image = pygame.Surface([self.width, self.height])
         self.image.fill(self.color)
         pre_x, pre_y = self.rect.x, self.rect.y
         self.rect = self.image.get_rect()
         self.rect.x, self.rect.y = pre_x, pre_y
-        #   self.rect = self.image.get_rect()
-        
+
+
 class Wall(pygame.sprite.Sprite):
     """
     edges of screen. Used for collision detection as well as graphical purposes
@@ -269,14 +279,14 @@ class PowerUp:
     def activate(self):
         # print('activate %s' % self.type)
         # print(self.properties[2])
-        list_entry = ( ((pygame.time.get_ticks()+self.properties[2]),self.type  ) )
+        list_entry = ( ((pygame.time.get_ticks()+self.properties[2]),self.type ) )
         return (list_entry,self.properties)
 
         del self
         # After doing something, the reference to the object is removed.
 
     class PowerUpSprite(pygame.sprite.Sprite):
-        #TODO fix why are red power ups bugged?
+        # TODO fix why are red power ups bugged?
         """
         Contains the object of a powerup that is displayed on the screen.
         """
@@ -284,16 +294,15 @@ class PowerUp:
         height = 20
         powerUp = None
 
-        def __init__(self, x, y, power_type):
+        def __init__(self, x, y, power_type, game):
             super().__init__()
             self.powerUp = PowerUp()
+            self.game = game
 
             self.powerUp.type = PowerUp.generateType(power_type)
 
-
             self.powerUp.properties = PowerUp.type_properties[self.powerUp.type]
             self.powerUp.color = self.powerUp.properties[1]         
-
 
             self.image = pygame.Surface([self.width, self.height])
             self.image.fill(constants.colors[self.powerUp.color])
@@ -303,3 +312,10 @@ class PowerUp:
 
         def update(self):
             self.rect.y += 1
+            if self.rect.y > constants.WINDOW_HEIGHT:
+                self.game.powerUpSpritesList.remove(self)
+                self.game.AllSpritesList.remove(self)
+
+                # git commit suicide
+                self.kill()
+                del self
