@@ -6,15 +6,18 @@ GAME_NAME = "Sensor Pong" # use this when referencing the game name so that we c
 # GAME_VERSION = '0.0.1' # not used currently but might be nice eventually
 
 # GPIO pin definitions
-READ_PINS={"XSPEED":23,
-           "YSPEED":24,
-           "PADDLESPEED":25,
-           "BUTTONS":26}
-WRITE_PINS={"XSPEED":17,
-            "YSPEED":18,
-            "BOUNCINESS":27,
-            "IS_VERTICAL":22}
-CLOCK_PIN=11
+# TODO check if we can still use dictionary in threads? Sequentially, it does not work.
+# READ_PINS={"XSPEED:23,
+#            "YSPEED":24,
+#            "PADDLESPEED":25,
+#            "BUTTONS":26}
+# WRITE_PINS={"XSPEED":17,
+#             "YSPEED":18,
+#             "BOUNCINESS":27,
+#             "IS_VERTICAL":22}
+READ_PINS=[("XSPEED",23,4),("YSPEED",24,5),("PADDLESPEED",25,6),("BUTTONS",26,25)] #name, BCM, wiringpi
+WRITE_PINS=[("XSPEED",17,0),("YSPEED",18,1),("BOUNCINESS",27,2),("IS_VERTICAL",22,3)]#name, BCM, wiringpi
+CLOCK_PIN=20
 MOSI_PIN=10
 CLOCKSPEED=1000
 DUTYCYCLE=127
