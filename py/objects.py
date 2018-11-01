@@ -133,6 +133,7 @@ class Ball(pygame.sprite.Sprite):
         """
         # This function should 
         # but until the connection is realized this function will take care of that.
+        # pygame.time.delay(99)
         if constants.FPGA_ENABLED:
             #self.rect.x, self.rect.y = fpga_connection.sendBounce(bounceIsVertical, self.xspeed, self.yspeed, bounceConstant)
             pass
