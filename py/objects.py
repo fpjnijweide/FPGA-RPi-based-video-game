@@ -124,11 +124,14 @@ class Ball(pygame.sprite.Sprite):
 
     def update_bonus(self):
         for p in self.active_power:
+            rm = False
             for otherp in self.active_power:
                 if p[1] == otherp[1] and p is not otherp:
                     self.active_power.remove(p)
+                    rm = True
+                    break
 
-            if pygame.time.get_ticks() > p[0]:
+            if pygame.time.get_ticks() > p[0] and not rm:
                 if p[1] == 'blue':
                     # print('removing blu')
                     self.color = constants.colors['WHITE']
@@ -139,8 +142,10 @@ class Ball(pygame.sprite.Sprite):
                 elif p[1] == 'red':
                     # print('removing red')
                     self.color = constants.colors['WHITE']
-                    self.xspeed = constants.INITIAL_BALL_XSPEED
-                    self.yspeed = constants.INITIAL_BALL_YSPEED
+                    self.xspeed /= abs(self.xspeed)
+                    self.xspeed *= constants.INITIAL_BALL_XSPEED
+                    self.yspeed /= abs(self.yspeed)
+                    self.yspeed *= constants.INITIAL_BALL_YSPEED
                     self.active_power.remove(p)
         self.image = pygame.transform.smoothscale(self.image, (self.radius*2, self.radius*2))
         pygame.draw.circle(self.image, self.color, [self.radius,self.radius], self.radius)
@@ -211,10 +216,12 @@ class Paddle(pygame.sprite.Sprite):
  
     def update_bonus(self):
         for p in self.active_power:
+            rm = False
             for otherp in self.active_power:
                 if p[1] == otherp[1] and p is not otherp:
                     self.active_power.remove(p)
-            if pygame.time.get_ticks() > p[0]:
+                    rm = True
+            if pygame.time.get_ticks() > p[0] and not rm:
                 if p[1] == 'green':
                     self.width = constants.PADDLEWIDTH
                     self.active_power.remove(p)

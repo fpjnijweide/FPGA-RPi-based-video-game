@@ -7,7 +7,7 @@ GAME_NAME = "Sensor Pong" # use this when referencing the game name so that we c
 FPGA_ENABLED = False
 
 # Prevent losing the game
-GODMODE = True
+GODMODE = False
 
 # Audio settings
 SOUND = True

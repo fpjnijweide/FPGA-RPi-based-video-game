@@ -106,7 +106,7 @@ class Game:
     """
     # define variables to be initialized
     score = None
-    scoreMult = None
+    # scoreMult = None
 
     playerBall = None
     paddle = None
@@ -158,7 +158,6 @@ class Game:
 
         # Initialize score
         self.score = 0
-        self.scoreMult = 1.0
 
         self.nextGameState = self
 
@@ -226,6 +225,8 @@ class Game:
         score_rect.y = 50
         Screen.blit(score_view, score_rect)
 
+        # pygame.time.delay(50)
+
     def removeblock(self, obj1):
         self.AllSpritesList.remove(obj1)
         self.CollisionSpritesList.remove(obj1)
@@ -263,7 +264,7 @@ class Game:
             self.grid[newblock.y_on_grid][newblock.x_on_grid] = newblock
 
     def inc_score(self, points):
-        self.score += int(points * self.scoreMult)
+        self.score += points
 
     def gameover(self):
         sensordb.insertscore('jemoeder', self.score)
@@ -665,7 +666,7 @@ class HighScores:
                 i = i + 1
         pagecount = self.highField(str(self.window) + '/' + str(self.pages), self, self.pageFont)
         Screen.blit(pagecount.text, (constants.WINDOW_WIDTH - pagecount.width - 20, constants.WINDOW_HEIGHT - pagecount.height - 20))
-        pygame.time.delay(250)
+        pygame.time.delay(80)
 
 
 class Audio:
