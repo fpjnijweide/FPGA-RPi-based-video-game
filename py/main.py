@@ -73,7 +73,9 @@ def main():
         keysPressed = pygame.key.get_pressed()
 
         global GameStateObj
-        GameStateObj = GameStateObj.update(keysPressed)
+        GameStateObj.update(keysPressed)
+        GameStateObj = GameStateObj.nextGameState
+        # GameStateObj = GameStateObj.update(keysPressed)
 
         # Display fps in screen
         if constants.VIEWFPS:
@@ -113,7 +115,6 @@ class Game:
     walls = [None, None, None, None]
     PowerUps = None
     currentPowerUps = None
-    nextGameState = None
 
     def __init__(self):
         # Create two empty sprite groups.
@@ -158,6 +159,8 @@ class Game:
         # Initialize score
         self.score = 0
         self.scoreMult = 1.0
+
+        self.nextGameState = self
 
     def handleKeys(self, keysPressed):
         """
@@ -229,11 +232,6 @@ class Game:
         score_rect.y = 50
         Screen.blit(score_view, score_rect)
 
-        if self.nextGameState:
-            return self.nextGameState
-
-        return self
-
     def removeblock(self, obj1):
         self.AllSpritesList.remove(obj1)
         self.CollisionSpritesList.remove(obj1)
@@ -277,10 +275,7 @@ class Game:
         sensordb.insertscore('jemoeder', self.score)
         print(sensordb.get_scores())
         pygame.time.delay(500)
-        self.exit(MainMenu())
-
-    def exit(self, to_gamestate):
-        self.nextGameState = to_gamestate
+        self.nextGameState = MainMenu()
 
 
 class CollisionHandling:
@@ -442,8 +437,6 @@ class MainMenu:
     ## revamp ##
     entries = None
 
-    nextGameState = None
-
     def __init__(self):
         pygame.display.set_caption(constants.GAME_NAME + ' - Main menu' )
         self.texts = ['Start game', 'Highscores', 'Options', 'Exit']
@@ -475,6 +468,8 @@ class MainMenu:
         self.menucolor = 'RED'
 
         AudioObj.playMusic('menu')
+
+        self.nextGameState = self
 
     # TODO use subclass instances for the various screen items
     # something like this
@@ -544,27 +539,22 @@ class MainMenu:
 
         pygame.time.delay(80)
 
-        if self.nextGameState:
-            return self.nextGameState
-
-        return self
 
 class HighScores:
-    pygame.font.init()
+    # pygame.font.init()
     # print(pygame.font.get_fonts())
-    pygame.display.set_caption(constants.GAME_NAME + ' - HighScores')
-    mainFont = pygame.font.SysFont('informalroman', 60)  # 76? HEIGTH
-    subFont = pygame.font.SysFont('couriernew', 50)  # 58 HEIGTH
-    mainFont.set_underline(True)
-    highlight = pygame.font.SysFont('couriernew', 50, bold=True)
-    highlight.set_underline(True)
     highMenu = None
     rows = None
     window = 0
     pages = 0
-    nextGameState = None
 
     def __init__(self):
+        pygame.display.set_caption(constants.GAME_NAME + ' - HighScores')
+        self.mainFont = pygame.font.SysFont('informalroman', 60)  # 76? HEIGTH
+        self.subFont = pygame.font.SysFont('couriernew', 50)  # 58 HEIGTH
+        self.mainFont.set_underline(True)
+        self.highlight = pygame.font.SysFont('couriernew', 50, bold=True)
+        self.highlight.set_underline(True)
         self.highMenu = self.highField('HIGHSCORES', self, chosenfont=self.mainFont)
         scores = sensordb.get_scores()
         # self.window = 0
@@ -572,9 +562,11 @@ class HighScores:
         print('number of pages:' + str(self.pages) )
         self.rows = [None]*constants.SHOW
         for x in range(0, len(scores)):
-            print('concat is: '+ scores[x][0] + ' ' + str(scores[x][1]))
+            # print('concat is: '+ scores[x][0] + ' ' + str(scores[x][1]))
             self.rows[x] = self.highField('{:<9.9s}   {:>4d}'
                                           .format(scores[x][0],  scores[x][1]), self)
+
+        self.nextGameState = self
 
     class highField():
         # mainFont = pygame.font.SysFont('couriernew', 60)  # 76? HEIGTH
@@ -638,8 +630,9 @@ class HighScores:
         for x in self.rows:
             if type(x) is self.highField:
                 if i == 0:
-                    Screen.blit(x.text, (constants.WINDOW_WIDTH // 2 -
-                                         self.highMenu.width*0.70, (self.highMenu.height + constants.MAINFONT)))
+                    Screen.blit(x.text,
+                                (constants.WINDOW_WIDTH // 2 - self.highMenu.width*0.70, (self.highMenu.height + constants.MAINFONT)))
+
                 else:
                     pass
                     Screen.blit(x.text, (constants.WINDOW_WIDTH // 2 -
@@ -648,11 +641,6 @@ class HighScores:
                 i = i + 1
 
         pygame.time.delay(90)
-
-        if self.nextGameState:
-            return self.nextGameState
-        return self
-
 
     # def writeText(self, text, font, background=None):
     #     if font == self.mainFont:
