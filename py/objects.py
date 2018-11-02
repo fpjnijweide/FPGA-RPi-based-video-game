@@ -281,9 +281,9 @@ class PowerUp:
 
     types = ["blue","red","green"]
                     # ('name', rng_chance, color, duration, object, attribute, new_value factor)
-    type_properties= {"blue"  :( 8, "BLUE",  3000, "ball",   "radius", 2.8 ),
+    type_properties= {"blue"  :( 8, "BLUE",  3000, "ball",   "radius", 3),
                       "red"   :( 1, "RED",   2000, "ball",   "speed",  1.7),
-                      "green" :( 3, "GREEN", 4000, "paddle", "width",  2)}
+                      "green" :( 3, "GREEN", 5000, "paddle", "width",  2)}
     type = None
     color = None
 

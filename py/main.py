@@ -250,25 +250,33 @@ class Game:
 
         newblock = objects.Block(self.blocksize-(2*constants.BLOCKMARGIN), self.blocksize-(2*constants.BLOCKMARGIN))
 
-        # But maybe the grid stuff can stay here
-
         newblock.x_on_grid=random.randint(1,constants.GRIDX)-1
         newblock.y_on_grid=random.randint(1,constants.GRIDY)-1
 
         if not self.grid[newblock.y_on_grid][newblock.x_on_grid]:
-            newblock.rect.x=constants.GRIDMARGIN + self.blocksize*newblock.x_on_grid + constants.BLOCKMARGIN
-            newblock.rect.y=constants.GRIDMARGIN + self.blocksize*newblock.y_on_grid + constants.BLOCKMARGIN
-            self.AllSpritesList.add(newblock)
-            self.CollisionSpritesList.add(newblock)
-            self.blocklist.append(newblock)
-            self.grid[newblock.y_on_grid][newblock.x_on_grid] = newblock
+            block_x = constants.GRIDMARGIN + self.blocksize*newblock.x_on_grid + constants.BLOCKMARGIN
+            block_y = constants.GRIDMARGIN + self.blocksize*newblock.y_on_grid + constants.BLOCKMARGIN
+            ball_x = self.playerBall.rect.x
+            ball_y = self.playerBall.rect.y
+            # block will not spawn too close to the ball
+            # note that the distance is measure from the top-left
+            #   of both rects, and not from the center
+            if math.hypot(block_x - ball_x, block_y - ball_y) >= constants.MINSPAWNDIST:
+
+                newblock.rect.x = block_x
+                newblock.rect.y = block_y
+
+                self.AllSpritesList.add(newblock)
+                self.CollisionSpritesList.add(newblock)
+                self.blocklist.append(newblock)
+                self.grid[newblock.y_on_grid][newblock.x_on_grid] = newblock
 
     def inc_score(self, points):
         self.score += points
 
     def gameover(self):
         sensordb.insertscore('jemoeder', self.score)
-        print(sensordb.get_scores())
+        # print(sensordb.get_scores())
         pygame.time.delay(500)
         self.nextGameState = MainMenu()
 
@@ -564,7 +572,7 @@ class HighScores:
         self.highMenu = self.highField('HIGHSCORES', self, chosenfont=self.mainFont)
         scores = sensordb.get_scores()
         self.pages = sensordb.get_pages()
-        print('number of pages:' + str(self.pages) )
+        # print('number of pages:' + str(self.pages) )
         self.rows = [None]*constants.SHOW
         for x in range(0, len(scores)):
             # print('concat is: '+ scores[x][0] + ' ' + str(scores[x][1]))
@@ -614,8 +622,8 @@ class HighScores:
             pygame.time.delay(500)
             return
 
-        if keyBindings.checkPress('left', keysPressed) and self.window:
-            print('entered with window:', self.window)
+        if keyBindings.checkPress('left', keysPressed):
+            # print('entered with window:', self.window)
             if self.window == 0:
                 print('should start mainmenu...')
                 self.nextGameState = MainMenu()
@@ -667,6 +675,8 @@ class HighScores:
         pagecount = self.highField(str(self.window) + '/' + str(self.pages), self, self.pageFont)
         Screen.blit(pagecount.text, (constants.WINDOW_WIDTH - pagecount.width - 20, constants.WINDOW_HEIGHT - pagecount.height - 20))
         pygame.time.delay(80)
+
+        return self.nextGameState
 
 
 class Audio:

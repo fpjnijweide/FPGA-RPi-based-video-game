@@ -79,10 +79,12 @@ GRIDX = 10
 GRIDY = 3
 GRIDMARGIN = 100
 
+# Blocks will not spawn if within n pixels from the ball
+MINSPAWNDIST = 150
 
 # Block respawn time range
-RESPAWNDELAY = 420
-RESPAWNRANGE = 2069
+RESPAWNDELAY = 169
+RESPAWNRANGE = 1969
 
 # Color definitions
 colors = {
