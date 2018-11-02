@@ -281,9 +281,9 @@ class PowerUp:
 
     types = ["blue","red","green"]
                     # ('name', rng_chance, color, duration, object, attribute, new_value factor)
-    type_properties= {"blue"  :( 8, "BLUE",  3000, "ball",   "radius", 2.8 ),
+    type_properties= {"blue"  :( 8, "BLUE",  3000, "ball",   "radius", 3),
                       "red"   :( 1, "RED",   2000, "ball",   "speed",  1.7),
-                      "green" :( 3, "GREEN", 4000, "paddle", "width",  2)}
+                      "green" :( 3, "GREEN", 5000, "paddle", "width",  2)}
     type = None
     color = None
 
@@ -323,7 +323,6 @@ class PowerUp:
         # After doing something, the reference to the object is removed.
 
     class PowerUpSprite(pygame.sprite.Sprite):
-        # TODO fix why are red power ups bugged?
         """
         Contains the object of a powerup that is displayed on the screen.
         """
@@ -345,10 +344,12 @@ class PowerUp:
             self.image.fill(constants.colors[self.powerUp.color])
             self.rect = self.image.get_rect()
             self.rect.x = x
+            self.yfloat = y
             self.rect.y = y
 
         def update(self):
-            self.rect.y += 1
+            self.yfloat += constants.POWERSPEED
+            self.rect.y = int(self.yfloat)
             if self.rect.y > constants.WINDOW_HEIGHT:
                 self.game.powerUpSpritesList.remove(self)
                 self.game.AllSpritesList.remove(self)

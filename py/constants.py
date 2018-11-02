@@ -64,7 +64,7 @@ PADDLEBOUNCINESS=1
 
 # Powerup chance
 # TODO chance per destroyed block, not global
-POWERUP_CHANCE = 0.9
+POWERUP_CHANCE = 0.2
 
 # Paddle speed
 PADDLESPEED = 10
@@ -80,10 +80,15 @@ GRIDX = 10
 GRIDY = 3
 GRIDMARGIN = 100
 
+# Blocks will not spawn if within n pixels from the ball
+MINSPAWNDIST = 150
 
 # Block respawn time range
-RESPAWNDELAY = 420
-RESPAWNRANGE = 2069
+RESPAWNDELAY = 169
+RESPAWNRANGE = 1969
+
+# Powerup fall speed
+POWERSPEED = 1.8
 
 # Color definitions
 colors = {
@@ -117,5 +122,11 @@ music  = {
 }
 # ms for music to fade out when switching screens
 MUSICFADE = 1000
+
+# Image mapping
+# 'name':'relative/path'
+img = {
+    'icon': '../resources/img/icon.bmp'
+}
 
 
