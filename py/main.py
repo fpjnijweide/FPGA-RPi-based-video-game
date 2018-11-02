@@ -20,7 +20,7 @@ def init():
     Note: creating a multiline string using triple quotation marks is how you create python documentation
     """
     # Initialize all pygame modules
-    pygame.mixer.pre_init(buffer=1024)
+    pygame.mixer.pre_init(buffer=1024)  # lower buffer for reduced delay
     pygame.display.init()
     pygame.font.init()
     pygame.mixer.init()
@@ -32,8 +32,8 @@ def init():
                                      else 0)
 
     # Set title of screen
-    pygame.display.set_caption(constants.GAME_NAME) 
-    # TODO create game icon and pygame.display.set_icon(Surface icon)
+    pygame.display.set_caption(constants.GAME_NAME)
+    # Set window icon
     pygame.display.set_icon(pygame.image.load(constants.img['icon']))
 
     global AudioObj
@@ -47,7 +47,7 @@ def init():
 
     # Avoid cluttering the pygame event queue
     pygame.event.set_allowed(None)
-    pygame.event.set_allowed([pygame.QUIT, pygame.KEYDOWN, pygame.KEYUP])
+    pygame.event.set_allowed([pygame.QUIT, pygame.KEYDOWN])
 
 
 def main():
@@ -60,20 +60,21 @@ def main():
         # Internally process events
         pygame.event.pump()
         # Iterate through each event
-        for event in pygame.event.get():
 
-            if event.type == pygame.QUIT:
-                # When the game window's [x] is pressed,
-                #   exit main() function to end program.
-                return
+        # When the game window's [x] is pressed,
+        # or a keypress leads to a quit event being posted
+        if pygame.event.peek(pygame.QUIT):
+            #   exit main() function to end program.
+            return
 
         # ==== Keypress handling
         # Get boolean array of key pressed
         # TODO use events to handle presses (maybe)
-        keysPressed = pygame.key.get_pressed()
+        # TODO move the next line to the update function of gamestates
+        # keysPressed = pygame.key.get_pressed()
 
         global GameStateObj
-        GameStateObj.update(keysPressed)
+        GameStateObj.update()
         GameStateObj = GameStateObj.nextGameState
         # GameStateObj = GameStateObj.update(keysPressed)
 
@@ -161,10 +162,12 @@ class Game:
 
         self.nextGameState = self
 
-    def handleKeys(self, keysPressed):
+    def handleKeys(self):
         """
         Calls keyBindings.checkPress and responds accordingly
         """
+        keysPressed = pygame.key.get_pressed()
+
         if keyBindings.checkPress('exit', keysPressed):
             # pygame.event.post(pygame.event.Event(pygame.QUIT))
             # TODO find some other way of delaying input
@@ -194,12 +197,12 @@ class Game:
                 self.currentPowerUps.remove(p)
                 # TODO actually deactive powerup
 
-    def update(self, keystohandle):
+    def update(self):
         """
         Updates sprites and stuff. Called once every frame while playing game.
         """
         # Handle collisions
-        self.handleKeys(keystohandle)
+        self.handleKeys()
         self.collisionHandler.evaluate()
         self.check_powerup_status()
 
@@ -277,7 +280,7 @@ class Game:
     def gameover(self):
         sensordb.insertscore('jemoeder', self.score)
         # print(sensordb.get_scores())
-        pygame.time.delay(500)
+        # pygame.time.delay(500)
         self.nextGameState = MainMenu()
 
 
@@ -479,8 +482,10 @@ class MainMenu:
 
         AudioObj.playMusic('menu')
 
-        self.lastpressed = pygame.time.get_ticks()
+        # self.lastpressed = pygame.time.get_ticks()
         self.nextGameState = self
+
+        pygame.event.clear()
 
     class highField():
         parent = None
@@ -497,38 +502,37 @@ class MainMenu:
                 # print('main')
                 self.text = self.parent.mainFont.render(text, False, constants.colors['WHITE'])
             else:
-                print('high')
+                # print('high')
                 self.text = self.parent.highlight.render(text, False, constants.colors['RED'])
 
             self.width = self.text.get_width()
             self.height = self.text.get_height()
 
-    def checkinbounds(self):
-        now = pygame.time.get_ticks()
-        if (now - self.lastpressed) >= (1000/constants.MAINMENUMOVES):
-            self.lastpressed = now
-            return True
-        else:
-            return False
+    # def checkinbounds(self):
+    #     now = pygame.time.get_ticks()
+    #     if (now - self.lastpressed) >= (1000/constants.MAINMENUMOVES):
+    #         self.lastpressed = now
+    #         return True
+    #     else:
+    #         return False
 
-    def handleKeys(self, keysPressed):
-        if keyBindings.checkPress('exit', keysPressed):
+    def handleKeys(self):
+
+        keys_down = pygame.event.get(pygame.KEYDOWN)
+
+        if keyBindings.checkDown('exit', keys_down):
             pygame.event.post(pygame.event.Event(pygame.QUIT))
             return
-        if keyBindings.checkPress('left', keysPressed):
-            if self.checkinbounds():
-                self.move('left')
-            # self.menuItems[self.selectedItem] = self.highField(self.texts[self.selectedItem], self, chosenfont=self.subFont)
-            # self.selectedItem = (self.selectedItem - 1) % len(self.menuItems)
-            # self.menuItems[self.selectedItem] = self.highField(self.texts[self.selectedItem], self, chosenfont=self.highlight)
 
-        if keyBindings.checkPress('right', keysPressed):
-            if self.checkinbounds():
-                self.move('right')
-            # self.menuItems[self.selectedItem] = self.highField(self.texts[self.selectedItem], self, chosenfont=self.subFont)
-            # self.selectedItem = (self.selectedItem + 1) % len(self.menuItems)
-            # self.menuItems[self.selectedItem] = self.highField(self.texts[self.selectedItem], self, chosenfont=self.highlight)
-        if keyBindings.checkPress('activate', keysPressed):
+        if keyBindings.checkDown('left', keys_down):
+            # if self.checkinbounds():
+            self.move('left')
+
+        if keyBindings.checkDown('right', keys_down):
+            # if self.checkinbounds():
+            self.move('right')
+
+        if keyBindings.checkDown('activate', keys_down):
 
             global GameStateObj
 
@@ -551,8 +555,8 @@ class MainMenu:
         self.menuItems[self.selectedItem] = self.highField(self.texts[self.selectedItem], self,
                                                            chosenfont=self.highlight)
 
-    def update(self, keystohandle):
-        self.handleKeys(keystohandle)
+    def update(self):
+        self.handleKeys()
         Screen.fill(constants.colors["BLACK"])
         Screen.blit(self.mainmenu.text, (self.mainmenu_Width, self.mainmenu_Height))
         Screen.blit(self.menuItems[0].text, (self.startgamemenu_Width, self.startgamemenu_Height))
@@ -589,6 +593,9 @@ class HighScores:
             self.rows[x] = self.highField('{:<9.9s}   {:>4d}'
                                           .format(scores[x][0],  scores[x][1]), self)
         AudioObj.playMusic('highScore')
+
+        pygame.event.clear()
+
         self.nextGameState = self
 
     class highField():
@@ -628,46 +635,47 @@ class HighScores:
         #         # print('high')
         #         self.text = self.parent.highlight.render(newtext, False, constants.colors['RED'])
 
-    def handleKeys(self, keysPressed):
+    def handleKeys(self):
+        key_down = pygame.event.get(pygame.KEYDOWN)
 
-        if keyBindings.checkPress('exit', keysPressed):
+        if keyBindings.checkDown('exit', key_down):
             self.nextGameState = MainMenu()
-            pygame.time.delay(500)
+            # pygame.time.delay(500)
             return
 
-        if keyBindings.checkPress('left', keysPressed):
+        if keyBindings.checkDown('left', key_down):
             if self.window == 0:
                 # print('should start mainmenu...')
                 self.nextGameState = MainMenu()
             else:
                 self.window = self.window - 1
                 scores = sensordb.get_scores(offset=(constants.SHOW * self.window))
-                print('new set:' + str(scores))
+                # print('new set:' + str(scores))
                 self.rows = [None] * constants.SHOW
                 for x in range(0, len(scores)):
                     # print('concat is: ' + scores[x][0] + ' ' + str(scores[x][1]))
                     self.rows[x] = self.highField('{:<9.9s}   {:>4d}'
                                                   .format(scores[x][0], scores[x][1]), self)
-            print('current:' + str(self.window))
+            # print('current:' + str(self.window))
 
-        if keyBindings.checkPress('right', keysPressed):
+        if keyBindings.checkDown('right', key_down):
             sumNone = sum(x is None for x in self.rows)
-            print('entered with window:', self.window)
+            # print('entered with window:', self.window)
             if sumNone != 0:
                 pass
             else:
                 self.window = self.window + 1
                 scores = sensordb.get_scores(constants.SHOW*self.window)
-                print('new set:' + str(scores))
+                # print('new set:' + str(scores))
                 self.rows = [None] * constants.SHOW
                 for x in range(0, len(scores)):
                     # print('concat is: ' + scores[x][0] + ' ' + str(scores[x][1]))
                     self.rows[x] = self.highField('{:<9.9s}   {:>4d}'
                                                   .format(scores[x][0], scores[x][1]), self)
-        print('current:' + str(self.window))
+        # print('current:' + str(self.window))
 
-    def update(self, keysPressed):
-        self.handleKeys(keysPressed)
+    def update(self):
+        self.handleKeys()
 
         Screen.fill(constants.colors["BLACK"])
         Screen.blit(self.highMenu.text, (constants.WINDOW_WIDTH // 2 - self.highMenu.width//2, self.highMenu.height))
@@ -686,7 +694,8 @@ class HighScores:
                 i = i + 1
         pagecount = self.highField(str(self.window) + '/' + str(self.pages), self, self.pageFont)
         Screen.blit(pagecount.text, (constants.WINDOW_WIDTH - pagecount.width - 20, constants.WINDOW_HEIGHT - pagecount.height - 20))
-        pygame.time.delay(80)
+
+        # pygame.time.delay(80)
 
         return self.nextGameState
 
