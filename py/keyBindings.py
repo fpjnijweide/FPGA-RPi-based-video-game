@@ -23,3 +23,17 @@ def checkPress(action, keysPressed):
             return True
 
     return False
+
+
+def checkDown(action, keys_down):
+    for binding in keys[action]:
+        # print('binding='+str(binding))
+        for key_evt in keys_down:
+            # print('keydown='+str(key_evt.key))
+
+            if binding == key_evt.key:
+
+                return True
+    return False
+
+
