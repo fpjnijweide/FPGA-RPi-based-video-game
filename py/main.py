@@ -24,7 +24,6 @@ def init():
     pygame.display.init()
     pygame.font.init()
     pygame.mixer.init()
-
     # Set up screen
     global Screen
     Screen = pygame.display.set_mode((constants.WINDOW_WIDTH,
@@ -437,7 +436,6 @@ class MainMenu:
     # menuItems = [mainmenu, optionsmenu, highscoremenu, startgamemenu]
     menuItems = None
     menucolor = None
-
     ## revamp ##
     entries = None
 
@@ -476,6 +474,7 @@ class MainMenu:
 
         AudioObj.playMusic('menu')
 
+        self.lastpressed = pygame.time.get_ticks()
         self.nextGameState = self
 
     class highField():
@@ -499,19 +498,28 @@ class MainMenu:
             self.width = self.text.get_width()
             self.height = self.text.get_height()
 
+    def checkinbounds(self):
+        now = pygame.time.get_ticks()
+        if (now - self.lastpressed) >= (1000/constants.MAINMENUMOVES):
+            self.lastpressed = now
+            return True
+        else:
+            return False
+
     def handleKeys(self, keysPressed):
         if keyBindings.checkPress('exit', keysPressed):
             pygame.event.post(pygame.event.Event(pygame.QUIT))
             return
-
         if keyBindings.checkPress('left', keysPressed):
-            self.move('left')
+            if self.checkinbounds():
+                self.move('left')
             # self.menuItems[self.selectedItem] = self.highField(self.texts[self.selectedItem], self, chosenfont=self.subFont)
             # self.selectedItem = (self.selectedItem - 1) % len(self.menuItems)
             # self.menuItems[self.selectedItem] = self.highField(self.texts[self.selectedItem], self, chosenfont=self.highlight)
 
         if keyBindings.checkPress('right', keysPressed):
-            self.move('right')
+            if self.checkinbounds():
+                self.move('right')
             # self.menuItems[self.selectedItem] = self.highField(self.texts[self.selectedItem], self, chosenfont=self.subFont)
             # self.selectedItem = (self.selectedItem + 1) % len(self.menuItems)
             # self.menuItems[self.selectedItem] = self.highField(self.texts[self.selectedItem], self, chosenfont=self.highlight)
@@ -547,7 +555,7 @@ class MainMenu:
         Screen.blit(self.menuItems[2].text, (self.optionsmenu_Width, self.optionsmenu_Height))
         Screen.blit(self.menuItems[3].text, (self.exitmenu_Width, self.exitmenu_Height))
 
-        pygame.time.delay(80)
+        # pygame.time.delay(80)
 
 
 class HighScores:
