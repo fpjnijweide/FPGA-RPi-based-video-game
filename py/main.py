@@ -24,7 +24,6 @@ def init():
     pygame.display.init()
     pygame.font.init()
     pygame.mixer.init()
-
     # Set up screen
     global Screen
     Screen = pygame.display.set_mode((constants.WINDOW_WIDTH,
@@ -305,13 +304,13 @@ class CollisionHandling:
             if isinstance(c, objects.Block):
                 c_newhp = c.reduceHP(self.game.playerBall.xspeed, self.game.playerBall.yspeed)
                 if c_newhp <= 0:
-                    
+
                     self.game.inc_score(c.score)
 
                     if c.type=="red":
                         newPowerUp = objects.PowerUp.PowerUpSprite(self.game.playerBall.rect.x, self.game.playerBall.rect.y, "red", self.game)
                         self.game.AllSpritesList.add(newPowerUp)
-                        self.game.powerUpSpritesList.add(newPowerUp)                        
+                        self.game.powerUpSpritesList.add(newPowerUp)
                     elif c.type=="blue":
                         newPowerUp = objects.PowerUp.PowerUpSprite(self.game.playerBall.rect.x, self.game.playerBall.rect.y, "blue", self.game)
                         self.game.AllSpritesList.add(newPowerUp)
@@ -319,7 +318,7 @@ class CollisionHandling:
                     elif c.type=="green":
                         newPowerUp = objects.PowerUp.PowerUpSprite(self.game.playerBall.rect.x, self.game.playerBall.rect.y, "green", self.game)
                         self.game.AllSpritesList.add(newPowerUp)
-                        self.game.powerUpSpritesList.add(newPowerUp)                                
+                        self.game.powerUpSpritesList.add(newPowerUp)
                     # Randomly generate powerup
                     elif random.random() < constants.POWERUP_CHANCE:
                         # Create object and add to relevant sprite lists
@@ -416,7 +415,6 @@ class CollisionHandling:
 class MainMenu:
     """
     contains menu rendering and keyhandling specific to menu
-    i mean not yet but it should
     """
     mainFont = None
     subFont = None
@@ -443,7 +441,6 @@ class MainMenu:
     # menuItems = [mainmenu, optionsmenu, highscoremenu, startgamemenu]
     menuItems = None
     menucolor = None
-
     ## revamp ##
     entries = None
 
@@ -455,63 +452,82 @@ class MainMenu:
         self.highlight = pygame.font.SysFont('arial', 50, bold=True)
         self.highlight.set_underline(True)
 
-        self.mainmenu = self.writeText('Main Menu', self.mainFont)
-        self.startgamemenu = self.writeText('Start game', self.highlight)
-        self.highscoremenu = self.writeText('Highscores', self.subFont)
-        self.optionsmenu = self.writeText('Options', self.subFont)
-        self.exitmenu = self.writeText('Exit', self.subFont)
-        self.menuItems = { 0:self.startgamemenu, 1:self.highscoremenu, 2:self.optionsmenu, 3:self.exitmenu}
+        self.mainmenu = self.highField('Main Menu', self, self.mainFont)
+        self.startgamemenu = self.highField(self.texts[0], self, self.highlight)
+        self.highscoremenu = self.highField(self.texts[1], self, self.subFont)
+        self.optionsmenu = self.highField(self.texts[2], self, self.subFont)
+        self.exitmenu = self.highField(self.texts[3], self, self.subFont)
+        self.menuItems = {0: self.startgamemenu, 1: self.highscoremenu, 2: self.optionsmenu, 3: self.exitmenu}
         self.selectedItem = 0
-        # for x in range(0, len(self.menuItems)):
-        #     print(self.menuItems[x].get_size())# width, height
-        self.mainmenu_Width = constants.WINDOW_WIDTH // 2 - self.mainmenu.get_width()//2
+
+        # self.mainmenu_Width = constants.WINDOW_WIDTH // 2 - self.mainmenu.width//2
+        # self.mainmenu_Height = constants.WINDOW_HEIGHT*1/4 - self.mainmenu.height//2
+        # self.widths = [ self.mainmenu_Width + constants.MAINFONT, self.widths[0] + constants.SUBFONT,
+        #                self.widths[2] + constants.SUBFONT, self.widths[3] + constants.SUBFONT ]
+        self.mainmenu_Width = constants.WINDOW_WIDTH // 2 - self.mainmenu.width//2
         self.startgamemenu_Width = 30 #constants.WINDOW_WIDTH/1000 # + self.startgamemenu.get_width()//2
-        self.highscoremenu_Width = self.startgamemenu_Width + self.startgamemenu.get_width()
-        self.optionsmenu_Width = self.highscoremenu_Width + self.highscoremenu.get_width()
-        self.exitmenu_Width = self.optionsmenu_Width + self.optionsmenu.get_width()
-        # height menuItems
-        self.mainmenu_Height = constants.WINDOW_HEIGHT*1/4 - self.mainmenu.get_height()//2
+        self.highscoremenu_Width = self.startgamemenu_Width + self.startgamemenu.width
+        self.optionsmenu_Width = self.highscoremenu_Width + self.highscoremenu.width
+        self.exitmenu_Width = self.optionsmenu_Width + self.optionsmenu.width
+        # self.heights = {0: self.mainmenu_Height + constants.MAINFONT, 1: self.heights[0] + constants.SUBFONT,
+        #                 2: self.heighs[2] + constants.SUBFONT, 3: self.heights[3] + constants.SUBFONT }
+        self.mainmenu_Height = constants.WINDOW_HEIGHT*1/4 - self.mainmenu.height//2
         self.startgamemenu_Height = self.mainmenu_Height + constants.MAINFONT
         self.highscoremenu_Height = self.startgamemenu_Height + constants.SUBFONT
         self.optionsmenu_Height = self.highscoremenu_Height + constants.SUBFONT
         self.exitmenu_Height = self.optionsmenu_Height + constants.SUBFONT
-        self.menucolor = 'RED'
 
         AudioObj.playMusic('menu')
 
+        self.lastpressed = pygame.time.get_ticks()
         self.nextGameState = self
 
-    # TODO use subclass instances for the various screen items
-    # something like this
-    class MenuOption:
-        text = None
+    class highField():
+        parent = None
         width = None
         height = None
+        text = None
 
-        def __init__(self, width, height, text):
-            self.width, self.height = width, height
-            self.text = text
+        def __init__(self, text, parent, chosenfont=None):
+            self.parent = parent
+            if chosenfont == (None or self.parent.subFont):
+                # print('none')
+                self.text = self.parent.subFont.render(text, False, constants.colors['GREEN'])
+            elif chosenfont == self.parent.mainFont:
+                # print('main')
+                self.text = self.parent.mainFont.render(text, False, constants.colors['WHITE'])
+            else:
+                print('high')
+                self.text = self.parent.highlight.render(text, False, constants.colors['RED'])
 
-            self.mainFont = pygame.font.SysFont('arial', 60)
-            self.subFont = pygame.font.SysFont('arial', 50)
-            self.highlight = pygame.font.SysFont('arial', 50, bold=True)
-            self.highlight.set_underline(True)
+            self.width = self.text.get_width()
+            self.height = self.text.get_height()
+
+    def checkinbounds(self):
+        now = pygame.time.get_ticks()
+        if (now - self.lastpressed) >= (1000/constants.MAINMENUMOVES):
+            self.lastpressed = now
+            return True
+        else:
+            return False
 
     def handleKeys(self, keysPressed):
         if keyBindings.checkPress('exit', keysPressed):
             pygame.event.post(pygame.event.Event(pygame.QUIT))
             return
-
         if keyBindings.checkPress('left', keysPressed):
-            self.menuItems[self.selectedItem] = self.writeText(self.texts[self.selectedItem], self.subFont)
-            self.selectedItem = (self.selectedItem - 1) % len(self.menuItems)
-            self.menuItems[self.selectedItem] = self.writeText(self.texts[self.selectedItem], self.highlight)
+            if self.checkinbounds():
+                self.move('left')
+            # self.menuItems[self.selectedItem] = self.highField(self.texts[self.selectedItem], self, chosenfont=self.subFont)
+            # self.selectedItem = (self.selectedItem - 1) % len(self.menuItems)
+            # self.menuItems[self.selectedItem] = self.highField(self.texts[self.selectedItem], self, chosenfont=self.highlight)
 
         if keyBindings.checkPress('right', keysPressed):
-            self.menuItems[self.selectedItem] = self.writeText(self.texts[self.selectedItem], self.subFont)
-            self.selectedItem = (self.selectedItem + 1) % len(self.menuItems)
-            self.menuItems[self.selectedItem] = self.writeText(self.texts[self.selectedItem], self.highlight)
-
+            if self.checkinbounds():
+                self.move('right')
+            # self.menuItems[self.selectedItem] = self.highField(self.texts[self.selectedItem], self, chosenfont=self.subFont)
+            # self.selectedItem = (self.selectedItem + 1) % len(self.menuItems)
+            # self.menuItems[self.selectedItem] = self.highField(self.texts[self.selectedItem], self, chosenfont=self.highlight)
         if keyBindings.checkPress('activate', keysPressed):
 
             global GameStateObj
@@ -528,31 +544,29 @@ class MainMenu:
             elif self.selectedItem == 3:
                 pygame.event.post(pygame.event.Event(pygame.QUIT))
 
-    def writeText(self, text, font):
-        if font == self.mainFont:
-            return self.mainFont.render(text, False, constants.colors['YELLOW'])
-        if font == self.subFont:
-            return self.subFont.render(text, False, constants.colors['YELLOW'])
-        if font == self.highlight:
-            return self.highlight.render(text, False, constants.colors['RED'])
+    def move(self, move):
+        self.menuItems[self.selectedItem] = self.highField(self.texts[self.selectedItem], self,
+                                                           chosenfont=self.subFont)
+        self.selectedItem = (self.selectedItem + (1 if move == 'right' else - 1)) % len(self.menuItems)
+        self.menuItems[self.selectedItem] = self.highField(self.texts[self.selectedItem], self,
+                                                           chosenfont=self.highlight)
 
     def update(self, keystohandle):
         self.handleKeys(keystohandle)
-
         Screen.fill(constants.colors["BLACK"])
+        Screen.blit(self.mainmenu.text, (self.mainmenu_Width, self.mainmenu_Height))
+        Screen.blit(self.menuItems[0].text, (self.startgamemenu_Width, self.startgamemenu_Height))
+        Screen.blit(self.menuItems[1].text, (self.highscoremenu_Width, self.highscoremenu_Height))
+        Screen.blit(self.menuItems[2].text, (self.optionsmenu_Width, self.optionsmenu_Height))
+        Screen.blit(self.menuItems[3].text, (self.exitmenu_Width, self.exitmenu_Height))
 
-        Screen.blit(self.mainmenu, (self.mainmenu_Width, self.mainmenu_Height))
-        Screen.blit(self.menuItems[0], (self.startgamemenu_Width, self.startgamemenu_Height))
-        Screen.blit(self.menuItems[1], (self.highscoremenu_Width, self.highscoremenu_Height))
-        Screen.blit(self.menuItems[2], (self.optionsmenu_Width, self.optionsmenu_Height))
-        Screen.blit(self.menuItems[3], (self.exitmenu_Width, self.exitmenu_Height))
-
-        pygame.time.delay(80)
+        # pygame.time.delay(80)
 
 
 class HighScores:
-    # pygame.font.init()
-    # print(pygame.font.get_fonts())
+    """
+    contains rendering for highscores menu and keyhandling specific to highscores menu
+    """
     highMenu = None
     rows = None
     window = 0
@@ -562,7 +576,6 @@ class HighScores:
         pygame.display.set_caption(constants.GAME_NAME + ' - HighScores')
         self.mainFont = pygame.font.SysFont('informalroman', 60)  # 76? HEIGTH
         self.subFont = pygame.font.SysFont('couriernew', 50)  # 58 HEIGTH
-        self.mainFont.set_underline(True)
         self.pageFont = pygame.font.SysFont('courgiernew', 60)
         self.highlight = pygame.font.SysFont('couriernew', 50, bold=True)
         self.highlight.set_underline(True)
@@ -579,13 +592,6 @@ class HighScores:
         self.nextGameState = self
 
     class highField():
-        # mainFont = pygame.font.SysFont('couriernew', 60)  # 76? HEIGTH
-        # subFont = pygame.font.SysFont('arial', 50)  # 58 HEIGTH
-        # highlight = pygame.font.SysFont('arial', 50, bold=True)
-        # highlight.set_underline(True)
-        # mainFont = None
-        # subFont = None
-        # highlight = None
         parent = None
         width = None
         height = None
@@ -593,7 +599,7 @@ class HighScores:
 
         def __init__(self, text, parent, chosenfont=None):
             self.parent = parent
-            if chosenfont == None:
+            if chosenfont == (None or self.parent.subFont):
                 # print('none')
                 self.text = self.parent.subFont.render(text, False, constants.colors['GREEN'])
             elif chosenfont == self.parent.mainFont:
@@ -608,9 +614,19 @@ class HighScores:
 
             self.width = self.text.get_width()
             self.height = self.text.get_height()
-
-        # def settext(self, text, selectedfont=parent.subFont):
-        #     self.text = self.writeText(self, text, self.parent.selectedfont)
+        # def settext(self, newtext, chosenfont=None):
+        #     if chosenfont == (None or self.parent.subFont):
+        #         # print('none')
+        #         self.text = self.parent.subFont.render(newtext, False, constants.colors['GREEN'])
+        #     elif chosenfont == self.parent.mainFont:
+        #         # print('main')
+        #         self.text = self.parent.mainFont.render(newtext, False, constants.colors['WHITE'])
+        #     elif chosenfont == self.parent.pageFont:
+        #         # print('pagefont')
+        #         self.text = self.parent.pageFont.render(newtext, False, constants.colors['WHITE'])
+        #     else:
+        #         # print('high')
+        #         self.text = self.parent.highlight.render(newtext, False, constants.colors['RED'])
 
     def handleKeys(self, keysPressed):
 
@@ -620,9 +636,8 @@ class HighScores:
             return
 
         if keyBindings.checkPress('left', keysPressed):
-            # print('entered with window:', self.window)
             if self.window == 0:
-                print('should start mainmenu...')
+                # print('should start mainmenu...')
                 self.nextGameState = MainMenu()
             else:
                 self.window = self.window - 1
