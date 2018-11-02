@@ -47,7 +47,7 @@ def init():
 
     # Avoid cluttering the pygame event queue
     pygame.event.set_allowed(None)
-    pygame.event.set_allowed([pygame.QUIT, pygame.KEYDOWN, pygame.KEYUP])
+    pygame.event.set_allowed([pygame.QUIT, pygame.KEYDOWN])
 
 
 def main():
@@ -280,7 +280,7 @@ class Game:
     def gameover(self):
         sensordb.insertscore('jemoeder', self.score)
         # print(sensordb.get_scores())
-        pygame.time.delay(500)
+        # pygame.time.delay(500)
         self.nextGameState = MainMenu()
 
 
@@ -502,7 +502,7 @@ class MainMenu:
                 # print('main')
                 self.text = self.parent.mainFont.render(text, False, constants.colors['WHITE'])
             else:
-                print('high')
+                # print('high')
                 self.text = self.parent.highlight.render(text, False, constants.colors['RED'])
 
             self.width = self.text.get_width()
@@ -593,6 +593,9 @@ class HighScores:
             self.rows[x] = self.highField('{:<9.9s}   {:>4d}'
                                           .format(scores[x][0],  scores[x][1]), self)
         AudioObj.playMusic('highScore')
+
+        pygame.event.clear()
+
         self.nextGameState = self
 
     class highField():
@@ -633,14 +636,14 @@ class HighScores:
         #         self.text = self.parent.highlight.render(newtext, False, constants.colors['RED'])
 
     def handleKeys(self):
-        keysPressed = pygame.key.get_pressed()
+        key_down = pygame.event.get(pygame.KEYDOWN)
 
-        if keyBindings.checkPress('exit', keysPressed):
+        if keyBindings.checkDown('exit', key_down):
             self.nextGameState = MainMenu()
-            pygame.time.delay(500)
+            # pygame.time.delay(500)
             return
 
-        if keyBindings.checkPress('left', keysPressed):
+        if keyBindings.checkDown('left', key_down):
             if self.window == 0:
                 # print('should start mainmenu...')
                 self.nextGameState = MainMenu()
@@ -655,7 +658,7 @@ class HighScores:
                                                   .format(scores[x][0], scores[x][1]), self)
             # print('current:' + str(self.window))
 
-        if keyBindings.checkPress('right', keysPressed):
+        if keyBindings.checkDown('right', key_down):
             sumNone = sum(x is None for x in self.rows)
             # print('entered with window:', self.window)
             if sumNone != 0:
@@ -692,7 +695,7 @@ class HighScores:
         pagecount = self.highField(str(self.window) + '/' + str(self.pages), self, self.pageFont)
         Screen.blit(pagecount.text, (constants.WINDOW_WIDTH - pagecount.width - 20, constants.WINDOW_HEIGHT - pagecount.height - 20))
 
-        pygame.time.delay(80)
+        # pygame.time.delay(80)
 
         return self.nextGameState
 
