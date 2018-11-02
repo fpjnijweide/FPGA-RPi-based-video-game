@@ -125,7 +125,7 @@ MUSICFADE = 1000
 # Image mapping
 # 'name':'relative/path'
 img = {
-    'icon': '../resources/img/icon.png'
+    'icon': '../resources/img/icon.bmp'
 }
 
 

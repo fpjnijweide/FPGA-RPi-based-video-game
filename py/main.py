@@ -37,7 +37,6 @@ def init():
     # TODO create game icon and pygame.display.set_icon(Surface icon)
     pygame.display.set_icon(pygame.image.load(constants.img['icon']))
 
-
     global AudioObj
     AudioObj = Audio()
 
