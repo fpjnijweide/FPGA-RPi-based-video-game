@@ -323,7 +323,6 @@ class PowerUp:
         # After doing something, the reference to the object is removed.
 
     class PowerUpSprite(pygame.sprite.Sprite):
-        # TODO fix why are red power ups bugged?
         """
         Contains the object of a powerup that is displayed on the screen.
         """
@@ -345,10 +344,12 @@ class PowerUp:
             self.image.fill(constants.colors[self.powerUp.color])
             self.rect = self.image.get_rect()
             self.rect.x = x
+            self.yfloat = y
             self.rect.y = y
 
         def update(self):
-            self.rect.y += 1
+            self.yfloat += constants.POWERSPEED
+            self.rect.y = int(self.yfloat)
             if self.rect.y > constants.WINDOW_HEIGHT:
                 self.game.powerUpSpritesList.remove(self)
                 self.game.AllSpritesList.remove(self)

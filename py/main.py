@@ -35,6 +35,8 @@ def init():
     # Set title of screen
     pygame.display.set_caption(constants.GAME_NAME) 
     # TODO create game icon and pygame.display.set_icon(Surface icon)
+    pygame.display.set_icon(pygame.image.load(constants.img['icon']))
+
 
     global AudioObj
     AudioObj = Audio()
@@ -345,7 +347,6 @@ class CollisionHandling:
         for c in powerUpCollisions:
 
             (powerup_entry,powerup_properties) = c.powerUp.activate()
-            # TODO actually activate powerup
 
             powerup_color=constants.colors[  powerup_properties[1]  ]
             factor = powerup_properties[5]
@@ -370,9 +371,6 @@ class CollisionHandling:
 
                 elif powerup_properties[4]=="width":
                     powerup_object.width = int(factor * powerup_object.width)
-
-            # TODO update paddle size, ball size, ball speed
-            # TODO unset powerups
 
             powerup_object.active_power.append(powerup_entry)
             self.game.currentPowerUps.append(powerup_entry)

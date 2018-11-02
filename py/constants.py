@@ -63,7 +63,7 @@ PADDLEBOUNCINESS=1
 
 # Powerup chance
 # TODO chance per destroyed block, not global
-POWERUP_CHANCE = 0.9
+POWERUP_CHANCE = 0.2
 
 # Paddle speed
 PADDLESPEED = 10
@@ -85,6 +85,9 @@ MINSPAWNDIST = 150
 # Block respawn time range
 RESPAWNDELAY = 169
 RESPAWNRANGE = 1969
+
+# Powerup fall speed
+POWERSPEED = 1.8
 
 # Color definitions
 colors = {
@@ -118,5 +121,11 @@ music  = {
 }
 # ms for music to fade out when switching screens
 MUSICFADE = 1000
+
+# Image mapping
+# 'name':'relative/path'
+img = {
+    'icon': '../resources/img/icon.png'
+}
 
 
