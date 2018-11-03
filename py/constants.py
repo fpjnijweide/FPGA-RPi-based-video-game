@@ -130,3 +130,9 @@ img = {
 }
 
 
+# Font mapping
+# 'name':'relative/path'
+fonts = {
+    'optimusprinceps':'../resources/fonts/OptimusPrinceps.ttf'
+}
+

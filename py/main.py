@@ -374,6 +374,7 @@ class CollisionHandling:
 
                 elif powerup_properties[4]=="width":
                     powerup_object.width = int(factor * powerup_object.width)
+                    # TODO align center of small and big paddle
 
             powerup_object.active_power.append(powerup_entry)
             self.game.currentPowerUps.append(powerup_entry)
@@ -712,18 +713,22 @@ class GameOver():
 
         pygame.event.clear()
 
-        self.font = pygame.font.match_font('liberationserif')
+        self.font = pygame.font.Font(constants.fonts['optimusprinceps'], 100)
         self.text = 'YOU DIED'
 
         self.nextGameState = self
 
     def update(self):
 
+        self.handleKeys()
+
         Screen.fill(constants.colors['BLACK'])
-        text = pygame.font.Font(self.font, 100).render(self.text, True, constants.colors['RED'])
+        text = self.font.render(self.text, True, constants.colors['RED'])
         textrect = text.get_rect()
         textrect.center = (constants.WINDOW_WIDTH // 2, constants.WINDOW_HEIGHT // 2)
-        Screen.blit(text, (textrect))
+        Screen.blit(text, textrect)
+
+    def handleKeys(self):
 
         if pygame.event.get(pygame.KEYDOWN):
             self.nextGameState = Game()
