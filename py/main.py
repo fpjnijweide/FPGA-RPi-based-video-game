@@ -42,6 +42,7 @@ def init():
     global ClockObj
     ClockObj = pygame.time.Clock()  # create game clock
 
+    # TODO create base gamestate class
     global GameStateObj
     GameStateObj = MainMenu()
 
@@ -88,7 +89,8 @@ def main():
 
         # Display fps in screen
         if constants.VIEWFPS:
-            fps = pygame.font.Font(None, 30).render(str(int(ClockObj.get_fps())),
+            fps = pygame.font.Font(None, 30).render(str(int(
+                                                    ClockObj.get_fps())),
                                                     True,
                                                     constants.colors['WHITE'])
             Screen.blit(fps, (50, 50))
@@ -117,6 +119,9 @@ class Game:
     walls = [None, None, None, None]
     PowerUps = None
     currentPowerUps = None
+
+    # TODO allow player to set name somehow, or remove names altogether
+    player_name = 'Player'
 
     def __init__(self):
         # Create two empty sprite groups.
@@ -170,7 +175,9 @@ class Game:
         keysPressed = pygame.key.get_pressed()
 
         if keyBindings.checkPress('exit', keysPressed):
-            self.gameover()
+            # self.gameover()
+            self.nextGameState = MainMenu()
+            # Note: score is not saved
             return
 
         if keyBindings.checkPress('left', keysPressed) and (self.paddle.rect.x > constants.WALLSIZE):
@@ -275,10 +282,10 @@ class Game:
         self.score += points
 
     def gameover(self):
-        sensordb.insertscore('jemoeder', self.score)
+        sensordb.insertscore(self.player_name, self.score)
         # print(sensordb.get_scores())
         # pygame.time.delay(500)
-        self.nextGameState = MainMenu()
+        self.nextGameState = GameOver(self)
 
 
 class CollisionHandling:
@@ -307,21 +314,18 @@ class CollisionHandling:
 
                     self.game.inc_score(c.score)
 
-                    if c.type=="red":
-                        newPowerUp = objects.PowerUp.PowerUpSprite(self.game.playerBall.rect.x, self.game.playerBall.rect.y, "red", self.game)
-                        self.game.AllSpritesList.add(newPowerUp)
-                        self.game.powerUpSpritesList.add(newPowerUp)
-                    elif c.type=="blue":
-                        newPowerUp = objects.PowerUp.PowerUpSprite(self.game.playerBall.rect.x, self.game.playerBall.rect.y, "blue", self.game)
-                        self.game.AllSpritesList.add(newPowerUp)
-                        self.game.powerUpSpritesList.add(newPowerUp)
-                    elif c.type=="green":
-                        newPowerUp = objects.PowerUp.PowerUpSprite(self.game.playerBall.rect.x, self.game.playerBall.rect.y, "green", self.game)
-                        self.game.AllSpritesList.add(newPowerUp)
-                        self.game.powerUpSpritesList.add(newPowerUp)
-                    # Randomly generate powerup
+                    if c.powertype in objects.PowerUp.types:
+
+                        new_powerup = objects.PowerUp.PowerUpSprite(
+                            self.game.playerBall.rect.x,
+                            self.game.playerBall.rect.y,
+                            c.type, self.game)
+
+                        self.game.AllSpritesList.add(new_powerup)
+                        self.game.powerUpSpritesList.add(new_powerup)
+
+                    # Randomly generate powerup for white blocks
                     elif random.random() < constants.POWERUP_CHANCE:
-                        # Create object and add to relevant sprite lists
                         newPowerUp = objects.PowerUp.PowerUpSprite(self.game.playerBall.rect.x, self.game.playerBall.rect.y, "random", self.game)
                         self.game.AllSpritesList.add(newPowerUp)
                         self.game.powerUpSpritesList.add(newPowerUp)
@@ -356,6 +360,7 @@ class CollisionHandling:
 
             powerup_entry.append(powerup_object)
             skip = False
+            # Do not activate if it is already, but do extend the time
             for entry in self.game.currentPowerUps:
                 if powerup_entry[1] == entry [1] and powerup_entry is not entry:
                     skip = True
@@ -405,8 +410,8 @@ class CollisionHandling:
         bot_right = math.atan2( coll_y,  coll_x)
         bot_left  = math.atan2( coll_y, -coll_x)
 
-        top = top_left < ball_in_angle <= top_right
-        bottom = bot_right < ball_in_angle <= bot_left
+        top = top_left <= ball_in_angle < top_right
+        bottom = bot_right <= ball_in_angle < bot_left
 
         return not (top or bottom)
 
@@ -695,6 +700,33 @@ class HighScores:
         # pygame.time.delay(80)
 
         return self.nextGameState
+
+
+class GameOver():
+
+    def __init__(self, game):
+        self.score = game.score
+        self.player_name = game.player_name
+
+        pygame.display.set_caption(constants.GAME_NAME + ' - Game over')
+
+        pygame.event.clear()
+
+        self.font = pygame.font.match_font('liberationserif')
+        self.text = 'YOU DIED'
+
+        self.nextGameState = self
+
+    def update(self):
+
+        Screen.fill(constants.colors['BLACK'])
+        text = pygame.font.Font(self.font, 100).render(self.text, True, constants.colors['RED'])
+        textrect = text.get_rect()
+        textrect.center = (constants.WINDOW_WIDTH // 2, constants.WINDOW_HEIGHT // 2)
+        Screen.blit(text, (textrect))
+
+        if pygame.event.get(pygame.KEYDOWN):
+            self.nextGameState = Game()
 
 
 class Audio:

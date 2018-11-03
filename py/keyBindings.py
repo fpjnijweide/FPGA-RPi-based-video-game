@@ -10,11 +10,11 @@ keys = {
     'restart': [pygame.K_HOME]
 }
 
+
 def checkPress(action, keysPressed):
     """
     checkPress takes in the pygame.key.get_pressed() array and an action string
         to determine whether the action should be executed
-    TODO this is pretty inefficient, because it searches the keypress array many, many times
     """
     for binding in keys[action]:
 
@@ -26,6 +26,13 @@ def checkPress(action, keysPressed):
 
 
 def checkDown(action, keys_down):
+    """
+    Whereas checkPress checks for the currently held keys,
+    checkDown checks whether a key has been pressed down
+    in the last frame
+    (since the last pygame.event.clear()
+    :return: boolean
+    """
     for binding in keys[action]:
         # print('binding='+str(binding))
         for key_evt in keys_down:

@@ -49,6 +49,7 @@ class Block(pygame.sprite.Sprite):
             self.score = 30
 
         self.type = type
+        self.powertype = self.type
         self.hp = self.initialhp
 
         self.initialColor = color
