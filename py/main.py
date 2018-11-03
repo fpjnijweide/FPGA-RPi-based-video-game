@@ -49,6 +49,9 @@ def init():
     pygame.event.set_allowed(None)
     pygame.event.set_allowed([pygame.QUIT, pygame.KEYDOWN])
 
+    # Setting the custom AudioObj.end_event.type is done in the Audio class
+    # pygame.event.set_allowed(AudioObj.end_event.type)
+
 
 def main():
     """
@@ -66,17 +69,22 @@ def main():
         if pygame.event.peek(pygame.QUIT):
             #   exit main() function to end program.
             return
+            # Note that the pygame stops updating but is not quit entirely
+            #   if this function is returned from.
 
-        # ==== Keypress handling
-        # Get boolean array of key pressed
-        # TODO use events to handle presses (maybe)
-        # TODO move the next line to the update function of gamestates
-        # keysPressed = pygame.key.get_pressed()
+        # Update music when track ends
+        if pygame.event.get(AudioObj.end_event.type):
+            AudioObj.updateMusic()
+
+        # ==== Keypress handling ====
+        # Note: Keypress handling is not dealt with in main(),
+        #    but dealt with in all GameStateObj.update() functions.
+        # This way, each game screen can handle user input in different ways.
+
 
         global GameStateObj
         GameStateObj.update()
         GameStateObj = GameStateObj.nextGameState
-        # GameStateObj = GameStateObj.update(keysPressed)
 
         # Display fps in screen
         if constants.VIEWFPS:
@@ -90,15 +98,8 @@ def main():
         # see https://www.pygame.org/docs/tut/newbieguide.html and look for "Dirty rect animation." section
         pygame.display.flip()
 
-        # update music
-        # TODO use pygame.music.set_endevent() and only update if music end event happens.
-        AudioObj.updateMusic()
-
         # then wait until tick has fully passed
         ClockObj.tick(constants.FPS)
-
-        # End of game loop.
-        # Note that the game stops updating but is not quit entirely
 
 
 class Game:
@@ -169,9 +170,6 @@ class Game:
         keysPressed = pygame.key.get_pressed()
 
         if keyBindings.checkPress('exit', keysPressed):
-            # pygame.event.post(pygame.event.Event(pygame.QUIT))
-            # TODO find some other way of delaying input
-            # TODO -- OR use keyevents to handle inputs
             self.gameover()
             return
 
@@ -195,7 +193,6 @@ class Game:
                 self.playerBall.update_bonus()
 
                 self.currentPowerUps.remove(p)
-                # TODO actually deactive powerup
 
     def update(self):
         """
@@ -717,6 +714,10 @@ class Audio:
 
         self.fadeoutTime = constants.MUSICFADE
 
+        # Post custom event to event queue when music needs to be updated
+        self.end_event = pygame.event.Event(pygame.USEREVENT)
+        pygame.mixer.music.set_endevent(self.end_event.type)
+
     def playMusic(self, musicName):
 
         # Don't do anything if music is disabled.
@@ -727,6 +728,8 @@ class Audio:
 
         if pygame.mixer.music.get_busy() and self.trackToPlay != self.trackPlaying:
             pygame.mixer.music.fadeout(self.fadeoutTime)
+        else:
+            self.updateMusic()
 
     def updateMusic(self):
 
@@ -736,7 +739,6 @@ class Audio:
             pygame.mixer.music.set_volume(self.trackToPlay[1])
             pygame.mixer.music.play(0)
             self.trackPlaying = self.trackToPlay
-        # TODO use pygame.mixer.music.set_endevent() for optimization
 
     def playSound(self, soundName):
 

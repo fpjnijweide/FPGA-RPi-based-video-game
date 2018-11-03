@@ -42,7 +42,7 @@ SHOW = 7
 # Frames per second
 FPS = 60
 VIEWFPS = True
-MAINMENUMOVES = 5  # indicates amount of times you can move left or write in main menu
+# MAINMENUMOVES = 5  # indicates amount of times you can move left or write in main menu
 
 # Ball size and pos
 BALLRADIUS = 7
