@@ -53,6 +53,9 @@ def init():
     # Setting the custom AudioObj.end_event.type is done in the Audio class
     # pygame.event.set_allowed(AudioObj.end_event.type)
 
+    # global dirty_rects
+    # dirty_rects=[]
+
 
 def main():
     """
@@ -82,7 +85,6 @@ def main():
         #    but dealt with in all GameStateObj.update() functions.
         # This way, each game screen can handle user input in different ways.
 
-
         global GameStateObj
         GameStateObj.update()
         GameStateObj = GameStateObj.nextGameState
@@ -99,6 +101,7 @@ def main():
         # (by using display.update() and passing it only the screen area that needs to be updated)
         # see https://www.pygame.org/docs/tut/newbieguide.html and look for "Dirty rect animation." section
         pygame.display.flip()
+        # pygame.display.update(dirty_rects)
 
         # then wait until tick has fully passed
         ClockObj.tick(constants.FPS)
@@ -283,8 +286,10 @@ class Game:
 
     def gameover(self):
         sensordb.insertscore(self.player_name, self.score)
-        # print(sensordb.get_scores())
+        # is_hiscore = sensordb.get_highscore(self.score)
+
         # pygame.time.delay(500)
+        AudioObj.playSound('gameover')
         self.nextGameState = GameOver(self)
 
 
@@ -706,32 +711,48 @@ class HighScores:
 class GameOver():
 
     def __init__(self, game):
-        self.score = game.score
+        self.score = str(game.score)
         self.player_name = game.player_name
 
         pygame.display.set_caption(constants.GAME_NAME + ' - Game over')
 
         pygame.event.clear()
 
-        self.font = pygame.font.Font(constants.fonts['optimusprinceps'], 100)
-        self.text = 'YOU DIED'
+        self.dead_font = pygame.font.Font(constants.fonts['optimusprinceps'], 100)
+        self.dead_text = 'YOU DIED'
+
+        self.score_font = pygame.font.Font(None, 70)
 
         self.nextGameState = self
 
     def update(self):
-
         self.handleKeys()
 
         Screen.fill(constants.colors['BLACK'])
-        text = self.font.render(self.text, True, constants.colors['RED'])
-        textrect = text.get_rect()
-        textrect.center = (constants.WINDOW_WIDTH // 2, constants.WINDOW_HEIGHT // 2)
-        Screen.blit(text, textrect)
+
+        dead = self.dead_font.render(self.dead_text, True, constants.colors['RED'])
+        deadrect = dead.get_rect()
+        deadrect.center = (constants.WINDOW_WIDTH // 2, constants.WINDOW_HEIGHT // 2)
+
+        score = self.score_font.render(self.score, True, constants.colors['WHITE'])
+        scorerect = score.get_rect()
+        scorerect.midtop = (constants.WINDOW_WIDTH // 2,
+                            220 + constants.WINDOW_HEIGHT // 2)
+
+        Screen.blit(dead, deadrect)
+        Screen.blit(score, scorerect)
 
     def handleKeys(self):
 
-        if pygame.event.get(pygame.KEYDOWN):
+        key_down = pygame.event.get(pygame.KEYDOWN)
+
+        if keyBindings.checkDown('activate', key_down):
             self.nextGameState = Game()
+            return
+
+        if keyBindings.checkDown('exit', key_down):
+            self.nextGameState = MainMenu()
+            return
 
 
 class Audio:

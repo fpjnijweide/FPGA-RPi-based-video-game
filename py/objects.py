@@ -33,20 +33,15 @@ class Block(pygame.sprite.Sprite):
         if type=="red":
             color=constants.colors["RED"]
             self.initialhp = constants.BLOCK_INITIAL_HP*8
-            self.score = 50
+            self.score = 70
         if type=="green":
             color=constants.colors["GREEN"]
-            self.initialhp = constants.BLOCK_INITIAL_HP*2
-            self.score = 20
-        if type=="blue":
-            color=constants.colors["BLUE"]
             self.initialhp = constants.BLOCK_INITIAL_HP*3
             self.score = 30
-            self.initialhp = constants.BLOCK_INITIAL_HP*4
         if type=="blue":
             color=constants.colors["BLUE"]
-            self.initialhp = constants.BLOCK_INITIAL_HP*6
-            self.score = 30
+            self.initialhp = constants.BLOCK_INITIAL_HP*5
+            self.score = 40
 
         self.type = type
         self.powertype = self.type

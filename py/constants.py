@@ -47,7 +47,7 @@ VIEWFPS = True
 # Ball size and pos
 BALLRADIUS = 7
 INITIAL_BALL_X = 30
-INITIAL_BALL_Y = 30
+INITIAL_BALL_Y = 120
 
 #Ball speed
 INITIAL_BALL_XSPEED = 6
@@ -109,7 +109,8 @@ colors = {
 # Audio track mapping
 # 'audioName':('relative/path/to/file', volume)
 sounds = {
-        'bounce': ('../resources/audio/bounce.ogg', 0.05)
+        'bounce': ('../resources/audio/bounce.ogg', 0.11),
+        'gameover':('../resources/audio/dead.ogg', 0.25)
 #        'wallCollision':'../resources/audio/bounce.wav',
 #        'blockbreak':'../resources/sound/bounce2.wav'
 }
