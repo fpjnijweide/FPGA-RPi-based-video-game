@@ -42,12 +42,19 @@ def init():
     global ClockObj
     ClockObj = pygame.time.Clock()  # create game clock
 
+    # TODO create base gamestate class
     global GameStateObj
     GameStateObj = MainMenu()
 
     # Avoid cluttering the pygame event queue
     pygame.event.set_allowed(None)
     pygame.event.set_allowed([pygame.QUIT, pygame.KEYDOWN])
+
+    # Setting the custom AudioObj.end_event.type is done in the Audio class
+    # pygame.event.set_allowed(AudioObj.end_event.type)
+
+    # global dirty_rects
+    # dirty_rects=[]
 
 
 def main():
@@ -66,21 +73,26 @@ def main():
         if pygame.event.peek(pygame.QUIT):
             #   exit main() function to end program.
             return
+            # Note that the pygame stops updating but is not quit entirely
+            #   if this function is returned from.
 
-        # ==== Keypress handling
-        # Get boolean array of key pressed
-        # TODO use events to handle presses (maybe)
-        # TODO move the next line to the update function of gamestates
-        # keysPressed = pygame.key.get_pressed()
+        # Update music when track ends
+        if pygame.event.get(AudioObj.end_event.type):
+            AudioObj.updateMusic()
+
+        # ==== Keypress handling ====
+        # Note: Keypress handling is not dealt with in main(),
+        #    but dealt with in all GameStateObj.update() functions.
+        # This way, each game screen can handle user input in different ways.
 
         global GameStateObj
         GameStateObj.update()
         GameStateObj = GameStateObj.nextGameState
-        # GameStateObj = GameStateObj.update(keysPressed)
 
         # Display fps in screen
         if constants.VIEWFPS:
-            fps = pygame.font.Font(None, 30).render(str(int(ClockObj.get_fps())),
+            fps = pygame.font.Font(None, 30).render(str(int(
+                                                    ClockObj.get_fps())),
                                                     True,
                                                     constants.colors['WHITE'])
             Screen.blit(fps, (50, 50))
@@ -89,16 +101,10 @@ def main():
         # (by using display.update() and passing it only the screen area that needs to be updated)
         # see https://www.pygame.org/docs/tut/newbieguide.html and look for "Dirty rect animation." section
         pygame.display.flip()
-
-        # update music
-        # TODO use pygame.music.set_endevent() and only update if music end event happens.
-        AudioObj.updateMusic()
+        # pygame.display.update(dirty_rects)
 
         # then wait until tick has fully passed
         ClockObj.tick(constants.FPS)
-
-        # End of game loop.
-        # Note that the game stops updating but is not quit entirely
 
 
 class Game:
@@ -116,6 +122,9 @@ class Game:
     walls = [None, None, None, None]
     PowerUps = None
     currentPowerUps = None
+
+    # TODO allow player to set name somehow, or remove names altogether
+    player_name = 'Player'
 
     def __init__(self):
         # Create two empty sprite groups.
@@ -169,10 +178,9 @@ class Game:
         keysPressed = pygame.key.get_pressed()
 
         if keyBindings.checkPress('exit', keysPressed):
-            # pygame.event.post(pygame.event.Event(pygame.QUIT))
-            # TODO find some other way of delaying input
-            # TODO -- OR use keyevents to handle inputs
-            self.gameover()
+            # self.gameover()
+            self.nextGameState = MainMenu()
+            # Note: score is not saved
             return
 
         if keyBindings.checkPress('left', keysPressed) and (self.paddle.rect.x > constants.WALLSIZE):
@@ -195,7 +203,6 @@ class Game:
                 self.playerBall.update_bonus()
 
                 self.currentPowerUps.remove(p)
-                # TODO actually deactive powerup
 
     def update(self):
         """
@@ -278,10 +285,12 @@ class Game:
         self.score += points
 
     def gameover(self):
-        sensordb.insertscore('jemoeder', self.score)
-        # print(sensordb.get_scores())
+        sensordb.insertscore(self.player_name, self.score)
+        # is_hiscore = sensordb.get_highscore(self.score)
+
         # pygame.time.delay(500)
-        self.nextGameState = MainMenu()
+        AudioObj.playSound('gameover')
+        self.nextGameState = GameOver(self)
 
 
 class CollisionHandling:
@@ -310,21 +319,18 @@ class CollisionHandling:
 
                     self.game.inc_score(c.score)
 
-                    if c.type=="red":
-                        newPowerUp = objects.PowerUp.PowerUpSprite(self.game.playerBall.rect.x, self.game.playerBall.rect.y, "red", self.game)
-                        self.game.AllSpritesList.add(newPowerUp)
-                        self.game.powerUpSpritesList.add(newPowerUp)
-                    elif c.type=="blue":
-                        newPowerUp = objects.PowerUp.PowerUpSprite(self.game.playerBall.rect.x, self.game.playerBall.rect.y, "blue", self.game)
-                        self.game.AllSpritesList.add(newPowerUp)
-                        self.game.powerUpSpritesList.add(newPowerUp)
-                    elif c.type=="green":
-                        newPowerUp = objects.PowerUp.PowerUpSprite(self.game.playerBall.rect.x, self.game.playerBall.rect.y, "green", self.game)
-                        self.game.AllSpritesList.add(newPowerUp)
-                        self.game.powerUpSpritesList.add(newPowerUp)
-                    # Randomly generate powerup
+                    if c.powertype in objects.PowerUp.types:
+
+                        new_powerup = objects.PowerUp.PowerUpSprite(
+                            self.game.playerBall.rect.x,
+                            self.game.playerBall.rect.y,
+                            c.type, self.game)
+
+                        self.game.AllSpritesList.add(new_powerup)
+                        self.game.powerUpSpritesList.add(new_powerup)
+
+                    # Randomly generate powerup for white blocks
                     elif random.random() < constants.POWERUP_CHANCE:
-                        # Create object and add to relevant sprite lists
                         newPowerUp = objects.PowerUp.PowerUpSprite(self.game.playerBall.rect.x, self.game.playerBall.rect.y, "random", self.game)
                         self.game.AllSpritesList.add(newPowerUp)
                         self.game.powerUpSpritesList.add(newPowerUp)
@@ -359,6 +365,7 @@ class CollisionHandling:
 
             powerup_entry.append(powerup_object)
             skip = False
+            # Do not activate if it is already, but do extend the time
             for entry in self.game.currentPowerUps:
                 if powerup_entry[1] == entry [1] and powerup_entry is not entry:
                     skip = True
@@ -372,6 +379,7 @@ class CollisionHandling:
 
                 elif powerup_properties[4]=="width":
                     powerup_object.width = int(factor * powerup_object.width)
+                    # TODO align center of small and big paddle
 
             powerup_object.active_power.append(powerup_entry)
             self.game.currentPowerUps.append(powerup_entry)
@@ -408,8 +416,8 @@ class CollisionHandling:
         bot_right = math.atan2( coll_y,  coll_x)
         bot_left  = math.atan2( coll_y, -coll_x)
 
-        top = top_left < ball_in_angle <= top_right
-        bottom = bot_right < ball_in_angle <= bot_left
+        top = top_left <= ball_in_angle < top_right
+        bottom = bot_right <= ball_in_angle < bot_left
 
         return not (top or bottom)
 
@@ -700,6 +708,53 @@ class HighScores:
         return self.nextGameState
 
 
+class GameOver():
+
+    def __init__(self, game):
+        self.score = str(game.score)
+        self.player_name = game.player_name
+
+        pygame.display.set_caption(constants.GAME_NAME + ' - Game over')
+
+        pygame.event.clear()
+
+        self.dead_font = pygame.font.Font(constants.fonts['optimusprinceps'], 100)
+        self.dead_text = 'YOU DIED'
+
+        self.score_font = pygame.font.Font(None, 70)
+
+        self.nextGameState = self
+
+    def update(self):
+        self.handleKeys()
+
+        Screen.fill(constants.colors['BLACK'])
+
+        dead = self.dead_font.render(self.dead_text, True, constants.colors['RED'])
+        deadrect = dead.get_rect()
+        deadrect.center = (constants.WINDOW_WIDTH // 2, constants.WINDOW_HEIGHT // 2)
+
+        score = self.score_font.render(self.score, True, constants.colors['WHITE'])
+        scorerect = score.get_rect()
+        scorerect.midtop = (constants.WINDOW_WIDTH // 2,
+                            220 + constants.WINDOW_HEIGHT // 2)
+
+        Screen.blit(dead, deadrect)
+        Screen.blit(score, scorerect)
+
+    def handleKeys(self):
+
+        key_down = pygame.event.get(pygame.KEYDOWN)
+
+        if keyBindings.checkDown('activate', key_down):
+            self.nextGameState = Game()
+            return
+
+        if keyBindings.checkDown('exit', key_down):
+            self.nextGameState = MainMenu()
+            return
+
+
 class Audio:
     """
     Handles playing music and sound effects. Uses sound mapping from constants.sounds and constants.music
@@ -717,6 +772,10 @@ class Audio:
 
         self.fadeoutTime = constants.MUSICFADE
 
+        # Post custom event to event queue when music needs to be updated
+        self.end_event = pygame.event.Event(pygame.USEREVENT)
+        pygame.mixer.music.set_endevent(self.end_event.type)
+
     def playMusic(self, musicName):
 
         # Don't do anything if music is disabled.
@@ -727,6 +786,8 @@ class Audio:
 
         if pygame.mixer.music.get_busy() and self.trackToPlay != self.trackPlaying:
             pygame.mixer.music.fadeout(self.fadeoutTime)
+        else:
+            self.updateMusic()
 
     def updateMusic(self):
 
@@ -736,7 +797,6 @@ class Audio:
             pygame.mixer.music.set_volume(self.trackToPlay[1])
             pygame.mixer.music.play(0)
             self.trackPlaying = self.trackToPlay
-        # TODO use pygame.mixer.music.set_endevent() for optimization
 
     def playSound(self, soundName):
 

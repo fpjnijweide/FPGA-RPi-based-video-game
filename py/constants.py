@@ -42,12 +42,12 @@ SHOW = 7
 # Frames per second
 FPS = 60
 VIEWFPS = True
-MAINMENUMOVES = 5  # indicates amount of times you can move left or write in main menu
+# MAINMENUMOVES = 5  # indicates amount of times you can move left or write in main menu
 
 # Ball size and pos
 BALLRADIUS = 7
 INITIAL_BALL_X = 30
-INITIAL_BALL_Y = 30
+INITIAL_BALL_Y = 120
 
 #Ball speed
 INITIAL_BALL_XSPEED = 6
@@ -109,7 +109,8 @@ colors = {
 # Audio track mapping
 # 'audioName':('relative/path/to/file', volume)
 sounds = {
-        'bounce': ('../resources/audio/bounce.ogg', 0.05)
+        'bounce': ('../resources/audio/bounce.ogg', 0.11),
+        'gameover':('../resources/audio/dead.ogg', 0.25)
 #        'wallCollision':'../resources/audio/bounce.wav',
 #        'blockbreak':'../resources/sound/bounce2.wav'
 }
@@ -129,4 +130,10 @@ img = {
     'icon': '../resources/img/icon.bmp'
 }
 
+
+# Font mapping
+# 'name':'relative/path'
+fonts = {
+    'optimusprinceps':'../resources/fonts/OptimusPrinceps.ttf'
+}
 

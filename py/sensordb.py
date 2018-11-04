@@ -7,7 +7,7 @@ def create_table():
 
 
 def insertscore(name, score):
-    # TODO return True if its a new highscore
+    # TODO return True if its a new highscore?
     with conn:
         conn.execute('insert into highscores(name, score)'
                      'values(:name, :score)',
