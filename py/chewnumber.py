@@ -25,7 +25,7 @@ def decToFixedPoint(decimal):
         binary=orginal_binary[2:]
 
 
-    if len(binary) > 7:
+    if len(binary) > 8:
         print("overflow")
         return "overflow"
 
@@ -39,9 +39,10 @@ def decToFixedPoint(decimal):
     else:
         binary="0"+binary
 
-    return binary
+    return "0" + binary
 
 def fixedPointToDec(fixedpoint):
+    #fixedpoint = fixedpoint[1:]
     if fixedpoint[0]=='1':
         isnegative=True
     else:

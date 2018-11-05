@@ -13,12 +13,13 @@ GAME_NAME = "Sensor Pong" # use this when referencing the game name so that we c
 #             "YSPEED":18,
 #             "BOUNCINESS":27,
 #             "IS_VERTICAL":22}
-READ_PINS=[("XSPEED",16),("YSPEED",17),("PADDLESPEED",18),("BUTTONS",19)] #name, BCM, wiringpi
-WRITE_PINS=[("XSPEED",23),("YSPEED",24),("BOUNCINESS",25),("IS_VERTICAL",26)]#name, BCM, wiringpi
+READ_PINS=[("XSPEED",16),("YSPEED",17),("PADDLESPEED",18),("BUTTONS",19)] #name, BCM
+WRITE_PINS=[("XSPEED",23),("YSPEED",24),("BOUNCINESS",25),("IS_VERTICAL",26)]#name, BCM
 CLOCK_PIN=20
 MOSI_PIN=10
-CLOCKSPEED=1000
-DUTYCYCLE=127
+SLAVESELECT_PIN = 9
+CLOCKSPEED=250
+DUTYCYCLE=128
 
 # Offload functions to FPGA and receive from FPGA
 FPGA_ENABLED = False
