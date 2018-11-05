@@ -225,9 +225,11 @@ class Paddle(pygame.sprite.Sprite):
 
         self.image = pygame.Surface([self.width, self.height])
         self.image.fill(self.color)
-        pre_x, pre_y = self.rect.x, self.rect.y
+
+        # Assign old rectangle center to new rect to align
+        center = self.rect.center
         self.rect = self.image.get_rect()
-        self.rect.x, self.rect.y = pre_x, pre_y
+        self.rect.center = center
 
 
 class Wall(pygame.sprite.Sprite):
@@ -277,9 +279,9 @@ class PowerUp:
 
     types = ["blue","red","green"]
                     # ('name', rng_chance, color, duration, object, attribute, new_value factor)
-    type_properties= {"blue"  :( 8, "BLUE",  3000, "ball",   "radius", 3),
-                      "red"   :( 1, "RED",   2000, "ball",   "speed",  1.7),
-                      "green" :( 3, "GREEN", 5000, "paddle", "width",  2)}
+    type_properties= {"blue"  :( 5, "BLUE",  3333, "ball",   "radius", 3),
+                      "red"   :( 1, "RED",   2222, "ball",   "speed",  1.7),
+                      "green" :( 3, "GREEN", 5555, "paddle", "width",  2)}
     type = None
     color = None
 

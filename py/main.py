@@ -50,12 +50,6 @@ def init():
     pygame.event.set_allowed(None)
     pygame.event.set_allowed([pygame.QUIT, pygame.KEYDOWN])
 
-    # Setting the custom AudioObj.end_event.type is done in the Audio class
-    # pygame.event.set_allowed(AudioObj.end_event.type)
-
-    # global dirty_rects
-    # dirty_rects=[]
-
 
 def main():
     """
@@ -100,8 +94,10 @@ def main():
         # Update entire graphical display, TODO can be heavily optimized
         # (by using display.update() and passing it only the screen area that needs to be updated)
         # see https://www.pygame.org/docs/tut/newbieguide.html and look for "Dirty rect animation." section
-        pygame.display.flip()
+        # pygame.display.flip()
         # pygame.display.update(dirty_rects)
+
+        pygame.display.flip()
 
         # then wait until tick has fully passed
         ClockObj.tick(constants.FPS)
@@ -383,7 +379,6 @@ class CollisionHandling:
 
                 elif powerup_properties[4]=="width":
                     powerup_object.width = int(factor * powerup_object.width)
-                    # TODO align center of small and big paddle
 
             powerup_object.active_power.append(powerup_entry)
             self.game.currentPowerUps.append(powerup_entry)
