@@ -19,7 +19,7 @@ def deactivateSlave():
     initialisation.pi.write(constants.SLAVESELECT_PIN, 1)
 
 
-"""def writeBit(cycles,data):
+def writeBit(cycles,data):
     # TODO switch to threads instead of writing/reading sequentially
     #global pi
 
@@ -49,7 +49,7 @@ def readBit():
         bitList.append(currentData)
 
     return bitList
-"""
+
 
 def connect(xspeed,yspeed,bounciness,isvertical):
     # Converting data to binary
@@ -130,11 +130,42 @@ def connect(xspeed,yspeed,bounciness,isvertical):
 #     fpgaShouldWrite()
 #     return receivedData
 
+def writeBank(on,off):
+    initialisation.pi.clear_bank_1(off)
+    initialisation.pi.set_bank_1(on)
+
+def readBank():
+    bankdata=initialisation.pi.read_bank_1()
+    pin1=bankdata & 1<<constants.READ_PINS[0][1]
+    pin2=bankdata & 1<<constants.READ_PINS[1][1]
+    pin3=bankdata & 1<<constants.READ_PINS[2][1]
+    pin4=bankdata & 1<<constants.READ_PINS[3][1]
+
+    return [pin1, pin2, pin3, pin4]
+
+
+
+
 def rwByteSequence(data):
     data=data[:]
     receivedData = []
     currentCycle = 0
     previousClock = initialisation.pi.read(constants.CLOCK_PIN)
+
+    on_writeBankData=[]
+    off_writeBankData=[]
+    for cycles in range(0,8):
+        on_output=0
+        off_output=0
+        for i in range (0,4):
+            bit=data[i][cycles]
+            if bit=="1":
+                on_output = on_output | 1<<constants.WRITE_PINS[i][1]
+            else:
+                off_output = off_output | 1<<constants.WRITE_PINS[i][1]        
+        on_writeBankData.append(on_output)
+        off_writeBankData.append(off_output)
+
     fpgaShouldRead()
     activateSlave()  
     while len(receivedData)<8:
@@ -144,10 +175,19 @@ def rwByteSequence(data):
             #if currentCycle == 0:
                 #fpgaShouldRead()
             if currentCycle <= 1:
-                threaded_pin.writeBit(currentCycle-1, [["00"],["00"],["00"],["00"]])                
+                writeBit(currentCycle-1, [["00"],["00"],["00"],["00"]])                
             if currentCycle >= 2 and currentCycle <= 9:              
                 #data = ["010000000", "000010011", "000001010", "000000000"]
-                threaded_pin.writeBit(currentCycle-2, data)
+
+
+
+
+                #writeBit(currentCycle-2, data)
+                writeBank(on_writeBankData[currentCycle-2],off_writeBankData[currentCycle-2])
+
+
+
+
 
             if currentCycle == 10:
                 deactivateSlave()            
@@ -166,9 +206,9 @@ def rwByteSequence(data):
             if currentCycle == 11:
                 activateSlave()
                 fpgaShouldWrite()
-                threaded_pin.readBit()
+                readBit()
             if (currentCycle >= 12):
-                receivedBits = threaded_pin.readBit()
+                receivedBits = readBit()
                 receivedData.append(receivedBits)
 
             currentCycle += 1
@@ -189,9 +229,9 @@ def main():
     debug=True
     initialisation.initConnection()
     # WRITE THE VALUES YOU WANT TO SEND HERE
-    xspeed = 13
-    yspeed = 20
-    bounciness = 33
+    xspeed = 5
+    yspeed = 2
+    bounciness = 3
     isvertical = False
 
     print("(xspeed,yspeed,bounciness,isvertical)")
@@ -210,40 +250,7 @@ if __name__ == "__main__":
     main()
     
 
-#banks do not work
-
-
-def writeBank(cycles,data):
-    xspeedbit=data[0][cycles] #xspeed
-    yspeedbit=data[1][cycles]#yspeed
-    bouncinessbit=data[2][cycles]#bouciness
-    is_verticalbit=data[3][cycles]#isvertical
-
-
-
-
-    xspeedpin=constants.WRITE_PINS[0][2]
-    yspeedpin = constants.WRITE_PINS[1][2]
-    bouncinesspin = constants.WRITE_PINS[0][2]
-    is_verticalpin=constants.WRITE_PINS[0][2]
-
-    bitstring=['0']*32
-    bitstring[xspeedpin]=str(xspeedbit)
-    bitstring[yspeedpin]=str(yspeedbit)
-    bitstring[bouncinesspin]=str(bouncinessbit)
-    bitstring[is_verticalpin]=str(is_verticalbit)
-
-    pi.set_bank_1(int(''.join(bitstring),2))
-
-def readBank():
-    bankdata=bin(pi.read_bank_1())[2:]
-    pin1=constants.READ_PINS[0][2]
-    pin2=constants.READ_PINS[1][2]
-    pin3=constants.READ_PINS[2][2]
-    pin4=constants.READ_PINS[3][2]
-
-    return list(map(int, [bankdata[pin1],bankdata[pin2],bankdata[pin3],bankdata[pin4]]))
-
+#banks should work now
 
 
     

@@ -28,4 +28,11 @@ def initConnection():
     pi.set_PWM_frequency(constants.CLOCK_PIN, constants.CLOCKSPEED)
     pi.set_PWM_dutycycle(constants.CLOCK_PIN, constants.DUTYCYCLE)
 
-    pi.write(constants.MOSI_PIN, 1)  # make sure no data is sent yet
+    pi.write(constants.SLAVESELECT_PIN, 1)  # make sure no data is sent yet
+
+    pi.wave_clear() # clear any existing waveforms
+
+    # flash_500=[]
+    # flash_500.append(pigpio.pulse(1<<constants.CLOCK_PIN, 1<<20, 10))
+    # #flash_500.append(pigpio.pulse(1<<G2, 1<<G1, 500000))
+    # pi.wave_add_generic(flash_500) # 500 ms flashes
