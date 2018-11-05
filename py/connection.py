@@ -136,12 +136,10 @@ def writeBank(on,off):
 
 def readBank():
     bankdata=initialisation.pi.read_bank_1()
-    pin1=bankdata & 1<<constants.READ_PINS[0][1]
-    pin2=bankdata & 1<<constants.READ_PINS[1][1]
-    pin3=bankdata & 1<<constants.READ_PINS[2][1]
-    pin4=bankdata & 1<<constants.READ_PINS[3][1]
 
-    return [pin1, pin2, pin3, pin4]
+
+
+    return bankdata
 
 
 
@@ -152,6 +150,7 @@ def rwByteSequence(data):
     currentCycle = 0
     previousClock = initialisation.pi.read(constants.CLOCK_PIN)
 
+    #get bank array ready
     on_writeBankData=[]
     off_writeBankData=[]
     for cycles in range(0,8):
@@ -165,6 +164,8 @@ def rwByteSequence(data):
                 off_output = off_output | 1<<constants.WRITE_PINS[i][1]        
         on_writeBankData.append(on_output)
         off_writeBankData.append(off_output)
+
+
 
     fpgaShouldRead()
     activateSlave()  
@@ -206,9 +207,9 @@ def rwByteSequence(data):
             if currentCycle == 11:
                 activateSlave()
                 fpgaShouldWrite()
-                readBit()
+                readBank()
             if (currentCycle >= 12):
-                receivedBits = readBit()
+                receivedBits = readBank()
                 receivedData.append(receivedBits)
 
             currentCycle += 1
@@ -216,9 +217,24 @@ def rwByteSequence(data):
 
     fpgaShouldRead()
     deactivateSlave()
+
+    #read data from bank array
+    for cycle in range(0,len(receivedData)):
+        bankdata=receivedData[cycle]
+        pin1=bankdata >> constants.READ_PINS[0][1] & 1
+        pin2=bankdata >> constants.READ_PINS[1][1] & 1
+        pin3=bankdata >> constants.READ_PINS[2][1] & 1
+        pin4=bankdata >> constants.READ_PINS[3][1] & 1  
+        receivedData[cycle]=[pin1,pin2,pin3,pin4]
+        
     return receivedData
 
+#######################
+    print("bankdata")
+    print(bin(bankdata))
 
+
+##################################
     
 def closeConnection():
     #global pi
@@ -229,9 +245,9 @@ def main():
     debug=True
     initialisation.initConnection()
     # WRITE THE VALUES YOU WANT TO SEND HERE
-    xspeed = 5
+    xspeed = 55
     yspeed = 2
-    bounciness = 3
+    bounciness = 13
     isvertical = False
 
     print("(xspeed,yspeed,bounciness,isvertical)")
