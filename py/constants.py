@@ -135,6 +135,7 @@ img = {
 # 'name':'relative/path'
 # get fonts from dafont.com, filter for '100% free' fonts
 fonts = {
-    'optimusprinceps':'../resources/fonts/OptimusPrinceps.ttf'
+    'optimusprinceps':'../resources/fonts/OptimusPrinceps.ttf',
+    'Courier New': '../resources/fonts/couri.ttf'
 }
 
