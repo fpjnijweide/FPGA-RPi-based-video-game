@@ -100,7 +100,7 @@ class Ball(pygame.sprite.Sprite):
         self.radius=radius
         self.image = pygame.Surface([self.radius*2, self.radius*2])
         # Draw the Ball (a circle)
-        self.circle = pygame.draw.circle(self.image, self.color, [self.radius,self.radius], self.radius)
+        pygame.draw.circle(self.image, self.color, [self.radius,self.radius], self.radius)
 
         # Fetch the rectangle object that has the dimensions of the screen.
         self.rect = self.image.get_rect()

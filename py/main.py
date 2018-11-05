@@ -12,6 +12,8 @@ import random
 # Ok so instead of time.time()  (s)
 # It's pygame.time.get_ticks() (ms)
 
+# if constants.FPGA_ENABLED:
+#     import FPGA
 
 def init():
     """
@@ -42,7 +44,6 @@ def init():
     global ClockObj
     ClockObj = pygame.time.Clock()  # create game clock
 
-    # TODO create base gamestate class
     global GameStateObj
     GameStateObj = MainMenu()
 
@@ -281,12 +282,12 @@ class Game:
         self.score += points
 
     def gameover(self):
-        sensordb.insertscore(self.player_name, self.score)
+        ishigh = sensordb.insertscore(self.player_name, self.score)
         # is_hiscore = sensordb.get_highscore(self.score)
 
         # pygame.time.delay(500)
         AudioObj.playSound('gameover')
-        self.nextGameState = GameOver(self)
+        self.nextGameState = GameOver(self, ishigh)
 
 
 class CollisionHandling:
@@ -709,7 +710,7 @@ class HighScores:
 
 class GameOver():
 
-    def __init__(self, game):
+    def __init__(self, game, ishighscore=False):
         self.score = str(game.score)
         self.player_name = game.player_name
 
@@ -722,7 +723,12 @@ class GameOver():
 
         self.score_font = pygame.font.Font(None, 70)
 
+        self.high_font = pygame.font.Font(None, 60)
+        self.high_text = 'New Highscore!'
+
         self.nextGameState = self
+
+        self.ishighscore = ishighscore
 
     def update(self):
         self.handleKeys()
@@ -737,6 +743,13 @@ class GameOver():
         scorerect = score.get_rect()
         scorerect.midtop = (constants.WINDOW_WIDTH // 2,
                             220 + constants.WINDOW_HEIGHT // 2)
+
+        if self.ishighscore:
+            high = self.high_font.render(self.high_text, True, constants.colors['GREEN'])
+            highrect = high.get_rect()
+            highrect.center = (constants.WINDOW_WIDTH // 2,
+                               80)
+            Screen.blit(high, highrect)
 
         Screen.blit(dead, deadrect)
         Screen.blit(score, scorerect)
