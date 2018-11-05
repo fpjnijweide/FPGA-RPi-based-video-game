@@ -614,8 +614,7 @@ class HighScores:
 
         def __init__(self, text, parent, chosenfont=None):
             self.parent = parent
-            if chosenfont == (None or self.parent.subFont):
-                # print('none')
+            if (chosenfont is None) or (chosenfont == self.parent.subFont):
                 self.text = self.parent.subFont.render(text, False, constants.colors['GREEN'])
             elif chosenfont == self.parent.mainFont:
                 # print('main')
