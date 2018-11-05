@@ -12,6 +12,8 @@ import random
 # Ok so instead of time.time()  (s)
 # It's pygame.time.get_ticks() (ms)
 
+# if constants.FPGA_ENABLED:
+#     import FPGA
 
 def init():
     """
@@ -42,19 +44,12 @@ def init():
     global ClockObj
     ClockObj = pygame.time.Clock()  # create game clock
 
-    # TODO create base gamestate class
     global GameStateObj
     GameStateObj = MainMenu()
 
     # Avoid cluttering the pygame event queue
     pygame.event.set_allowed(None)
     pygame.event.set_allowed([pygame.QUIT, pygame.KEYDOWN])
-
-    # Setting the custom AudioObj.end_event.type is done in the Audio class
-    # pygame.event.set_allowed(AudioObj.end_event.type)
-
-    # global dirty_rects
-    # dirty_rects=[]
 
 
 def main():
@@ -100,8 +95,10 @@ def main():
         # Update entire graphical display, TODO can be heavily optimized
         # (by using display.update() and passing it only the screen area that needs to be updated)
         # see https://www.pygame.org/docs/tut/newbieguide.html and look for "Dirty rect animation." section
-        pygame.display.flip()
+        # pygame.display.flip()
         # pygame.display.update(dirty_rects)
+
+        pygame.display.flip()
 
         # then wait until tick has fully passed
         ClockObj.tick(constants.FPS)
@@ -285,12 +282,12 @@ class Game:
         self.score += points
 
     def gameover(self):
-        sensordb.insertscore(self.player_name, self.score)
+        ishigh = sensordb.insertscore(self.player_name, self.score)
         # is_hiscore = sensordb.get_highscore(self.score)
 
         # pygame.time.delay(500)
         AudioObj.playSound('gameover')
-        self.nextGameState = GameOver(self)
+        self.nextGameState = GameOver(self, ishigh)
 
 
 class CollisionHandling:
@@ -312,10 +309,13 @@ class CollisionHandling:
         collisions = pygame.sprite.spritecollide(self.game.playerBall, self.game.CollisionSpritesList, False)
 
         for c in collisions:
+
             # Collision happens with block (instead of paddle or ball)
             if isinstance(c, objects.Block):
-                c_newhp = c.reduceHP(self.game.playerBall.xspeed, self.game.playerBall.yspeed)
-                if c_newhp <= 0:
+
+                c.reduceHP(self.game.playerBall.xspeed, self.game.playerBall.yspeed)
+
+                if c.hp <= 0:
 
                     self.game.inc_score(c.score)
 
@@ -340,6 +340,7 @@ class CollisionHandling:
             elif isinstance(c, objects.Wall) and c.name == 'bottom_wall':
                 if not constants.GODMODE:
                     self.game.gameover()
+                    return
 
             isVertical = CollisionHandling.find_bounce_is_vertical(self.game.playerBall, c)
 
@@ -379,7 +380,6 @@ class CollisionHandling:
 
                 elif powerup_properties[4]=="width":
                     powerup_object.width = int(factor * powerup_object.width)
-                    # TODO align center of small and big paddle
 
             powerup_object.active_power.append(powerup_entry)
             self.game.currentPowerUps.append(powerup_entry)
@@ -614,8 +614,7 @@ class HighScores:
 
         def __init__(self, text, parent, chosenfont=None):
             self.parent = parent
-            if chosenfont == (None or self.parent.subFont):
-                # print('none')
+            if (chosenfont is None) or (chosenfont == self.parent.subFont):
                 self.text = self.parent.subFont.render(text, False, constants.colors['GREEN'])
             elif chosenfont == self.parent.mainFont:
                 # print('main')
@@ -710,7 +709,7 @@ class HighScores:
 
 class GameOver():
 
-    def __init__(self, game):
+    def __init__(self, game, ishighscore=False):
         self.score = str(game.score)
         self.player_name = game.player_name
 
@@ -723,7 +722,12 @@ class GameOver():
 
         self.score_font = pygame.font.Font(None, 70)
 
+        self.high_font = pygame.font.Font(None, 60)
+        self.high_text = 'New Highscore!'
+
         self.nextGameState = self
+
+        self.ishighscore = ishighscore
 
     def update(self):
         self.handleKeys()
@@ -738,6 +742,13 @@ class GameOver():
         scorerect = score.get_rect()
         scorerect.midtop = (constants.WINDOW_WIDTH // 2,
                             220 + constants.WINDOW_HEIGHT // 2)
+
+        if self.ishighscore:
+            high = self.high_font.render(self.high_text, True, constants.colors['GREEN'])
+            highrect = high.get_rect()
+            highrect.center = (constants.WINDOW_WIDTH // 2,
+                               80)
+            Screen.blit(high, highrect)
 
         Screen.blit(dead, deadrect)
         Screen.blit(score, scorerect)
