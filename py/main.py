@@ -458,9 +458,9 @@ class MainMenu:
     def __init__(self):
         pygame.display.set_caption(constants.GAME_NAME + ' - Main menu' )
         self.texts = ['Start game', 'Highscores', 'Options', 'Exit']
-        self.mainFont = pygame.font.SysFont('arial', 60) # 76? HEIGTH
-        self.subFont = pygame.font.SysFont('arial', 50) # 58 HEIGTH
-        self.highlight = pygame.font.SysFont('arial', 50, bold=True)
+        self.mainFont = pygame.font.Font(constants.fonts['Courier New'], 60) # 76? HEIGTH
+        self.subFont = pygame.font.Font(constants.fonts['Courier New'], 40) # 58 HEIGTH
+        self.highlight = pygame.font.Font(constants.fonts['Courier New'], 40, bold=True)
         self.highlight.set_underline(True)
 
         self.mainmenu = self.highField('Main Menu', self, self.mainFont)
@@ -586,10 +586,10 @@ class HighScores:
 
     def __init__(self):
         pygame.display.set_caption(constants.GAME_NAME + ' - HighScores')
-        self.mainFont = pygame.font.SysFont('informalroman', 60)  # 76? HEIGTH
-        self.subFont = pygame.font.SysFont('couriernew', 50)  # 58 HEIGTH
-        self.pageFont = pygame.font.SysFont('courgiernew', 60)
-        self.highlight = pygame.font.SysFont('couriernew', 50, bold=True)
+        self.mainFont = pygame.font.SysFont('arial', 60)  # 76? HEIGTH
+        self.subFont = pygame.font.SysFont('Courier New', 50)  # 58 HEIGTH
+        self.pageFont = pygame.font.SysFont('Courier New', 60)
+        self.highlight = pygame.font.SysFont('Courier New', 50, bold=True)
         self.highlight.set_underline(True)
         self.highMenu = self.highField('HIGHSCORES', self, chosenfont=self.mainFont)
         scores = sensordb.get_scores()
