@@ -72,7 +72,7 @@ class Block(pygame.sprite.Sprite):
             self.image.fill((redcolor, greencolor, bluecolor))
         if self.hp <= 0:
             self.image.fill((0,0,0))
-        return self.hp
+        # return self.hp
         # self.currentColor = tuple(map(lambda x:   x*(self.hp//self.initialhp), self.initialColor))
         
 

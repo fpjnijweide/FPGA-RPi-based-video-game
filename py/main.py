@@ -312,10 +312,13 @@ class CollisionHandling:
         collisions = pygame.sprite.spritecollide(self.game.playerBall, self.game.CollisionSpritesList, False)
 
         for c in collisions:
+
             # Collision happens with block (instead of paddle or ball)
             if isinstance(c, objects.Block):
-                c_newhp = c.reduceHP(self.game.playerBall.xspeed, self.game.playerBall.yspeed)
-                if c_newhp <= 0:
+
+                c.reduceHP(self.game.playerBall.xspeed, self.game.playerBall.yspeed)
+
+                if c.hp <= 0:
 
                     self.game.inc_score(c.score)
 
@@ -340,6 +343,7 @@ class CollisionHandling:
             elif isinstance(c, objects.Wall) and c.name == 'bottom_wall':
                 if not constants.GODMODE:
                     self.game.gameover()
+                    return
 
             isVertical = CollisionHandling.find_bounce_is_vertical(self.game.playerBall, c)
 
