@@ -226,15 +226,10 @@ def rwByteSequence(data):
         pin3=bankdata >> constants.READ_PINS[2][1] & 1
         pin4=bankdata >> constants.READ_PINS[3][1] & 1  
         receivedData[cycle]=[pin1,pin2,pin3,pin4]
-        
+
     return receivedData
 
-#######################
-    print("bankdata")
-    print(bin(bankdata))
 
-
-##################################
     
 def closeConnection():
     #global pi
