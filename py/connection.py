@@ -6,10 +6,10 @@ import initialisation
 
 # Function definitions
 
-def readyToReceive():
+def fpgaShouldRead():
     initialisation.pi.write(constants.MOSI_PIN, 0)
 
-def notReadyToReceive():
+def fpgaShouldWrite():
     initialisation.pi.write(constants.MOSI_PIN, 1)
     
 def activateSlave():
@@ -115,7 +115,7 @@ def connect(xspeed,yspeed,bounciness,isvertical):
 #         if (currentClock != previousClock and currentClock == 1):
 #             # TODO check if sleeps are needed to allow for game rendering, higher fps
 #             if currentCycle == 0:
-#                 readyToReceive()
+#                 fpgaShouldRead()
 #             if currentCycle <= 7:
 #                 writeBit(currentCycle, data)
 #             if currentCycle >= 1:
@@ -125,7 +125,7 @@ def connect(xspeed,yspeed,bounciness,isvertical):
 #
 #         previousClock = currentClock
 #
-#     notReadyToReceive()
+#     fpgaShouldWrite()
 #     return receivedData
 
 def rwByteSequence(data):
@@ -139,43 +139,42 @@ def rwByteSequence(data):
         if (currentClock != previousClock and currentClock == 1 and currentCycle <= 10):
             # TODO check if sleeps are needed to allow for game rendering, higher fps
             #if currentCycle == 0:
-                #readyToReceive()
-            if currentCycle <= 8:
-                readyToReceive()
+                #fpgaShouldRead()
+            if currentCycle <= 0:
+                fpgaShouldRead()
                 activateSlave()
-
+                threaded_pin.writeBit(currentCycle-1, [["0"],["0"],["0"],["0"]])                
+            if currentCycle >= 1 and currentCycle <= 8:              
                 #data = ["010000000", "000010011", "000001010", "000000000"]
-                threaded_pin.writeBit(currentCycle, data)
-                
-            elif currentCycle >=9 and currentCycle <= 10:
-                notReadyToReceive()
-                deactivateSlave()
+                threaded_pin.writeBit(currentCycle-1, data)
+
+            if currentCycle == 10:
+                deactivateSlave()            
             #elif currentCycle >= 11 and currentCycle <= 19:
-                #notReadyToReceive() #actually receiving
+                #fpgaShouldWrite() #actually receiving
                # activateSlave()
                # receivedBits = threaded_pin.readBit()
                 
                # if currentCycle >= 12:
                 #    receivedData.append(receivedBits)
             #elif currentCycle>=20:
-                #readyToReceive()
+                #fpgaShouldRead()
                 #deactivateSlave()
             currentCycle += 1
-        elif (currentClock != previousClock and currentClock == 0 and currentCycle > 10):
-            if (currentCycle >= 11 and currentCycle <= 19):
-                notReadyToReceive() #actually receiving
+        elif (currentClock != previousClock and currentClock == 0 and currentCycle >= 11):
+            if currentCycle == 11:
                 activateSlave()
+                fpgaShouldWrite()
+                threaded_pin.readBit()
+            if (currentCycle >= 12):
                 receivedBits = threaded_pin.readBit()
-                
-                if currentCycle >= 12:
-                    receivedData.append(receivedBits)
-            elif currentCycle>=20:
-                readyToReceive()
-                deactivateSlave()
+                receivedData.append(receivedBits)
+
             currentCycle += 1
         previousClock = currentClock
 
-    notReadyToReceive()
+    fpgaShouldRead()
+    deactivateSlave()
     return receivedData
 
 
@@ -190,8 +189,8 @@ def main():
     initialisation.initConnection()
     # WRITE THE VALUES YOU WANT TO SEND HERE
     xspeed = chewnumber.fixedPointToDec("00000001")
-    yspeed = 0.125
-    bounciness = 0.125
+    yspeed = -15.875
+    bounciness = -15.875
     isvertical = True
 
     print("(xspeed,yspeed,bounciness,isvertical)")

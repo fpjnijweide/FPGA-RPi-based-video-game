@@ -39,7 +39,7 @@ def decToFixedPoint(decimal):
     else:
         binary="0"+binary
 
-    return "0" + binary
+    return binary
 
 def fixedPointToDec(fixedpoint):
     #fixedpoint = fixedpoint[1:]
@@ -112,6 +112,6 @@ def minifloatToBin(minifloat):
         minifloat = float(minifloat)/10
     exponent = bin(exp)[2:]
     for i in range(4-len(exponent)):
-        exponent = "0" + exponent
+        exponent =  exponent
     res = sign + exponent + mantissa
     return res
