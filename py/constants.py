@@ -62,9 +62,9 @@ PADDLEHEIGHT = 13
 PADDLE_Y_POS = 520
 PADDLEBOUNCINESS=1
 
-# Powerup chance
-# TODO chance per destroyed block, not global
-POWERUP_CHANCE = 0.2
+# Powerup chance for white blocks
+# other blocks will always drop power of their color
+POWERUP_CHANCE = 0.3
 
 # Paddle speed
 PADDLESPEED = 10

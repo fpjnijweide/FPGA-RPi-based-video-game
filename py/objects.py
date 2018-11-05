@@ -135,14 +135,14 @@ class Ball(pygame.sprite.Sprite):
 
                     self.active_power.remove(p)
 
-                elif p[1] == 'red':
-                    # print('removing red')
+                elif p[1] == 'red' or p[1] == 'gray':
                     self.color = constants.colors['WHITE']
                     self.xspeed /= abs(self.xspeed)
                     self.xspeed *= constants.INITIAL_BALL_XSPEED
                     self.yspeed /= abs(self.yspeed)
                     self.yspeed *= constants.INITIAL_BALL_YSPEED
                     self.active_power.remove(p)
+
         self.image = pygame.transform.smoothscale(self.image, (self.radius*2, self.radius*2))
         pygame.draw.circle(self.image, self.color, [self.radius,self.radius], self.radius)
         self.rect = self.image.get_rect()
@@ -277,11 +277,13 @@ class PowerUp:
 
     """
 
-    types = ["blue","red","green"]
+    types = ["blue","red","green","gray"]
                     # ('name', rng_chance, color, duration, object, attribute, new_value factor)
-    type_properties= {"blue"  :( 5, "BLUE",  3333, "ball",   "radius", 3),
+    type_properties= {"blue"  :( 2, "BLUE",  3333, "ball",   "radius", 3),
                       "red"   :( 1, "RED",   2222, "ball",   "speed",  1.7),
-                      "green" :( 3, "GREEN", 5555, "paddle", "width",  2)}
+                      "green" :( 2, "GREEN", 5555, "paddle", "width",  2),
+                      "gray" :(5, "GRAY", 2222, "ball",
+                                "speed", 0.6)}
     type = None
     color = None
 

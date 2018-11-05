@@ -15,6 +15,7 @@ import random
 # if constants.FPGA_ENABLED:
 #     import FPGA
 
+
 def init():
     """
     main.init() is called once at the very start of the program and sets up pygame.
@@ -225,8 +226,8 @@ class Game:
 
         ui_font = pygame.font.SysFont('arial', 30)
         score_view = ui_font.render(str(self.score),
-                                        True,
-                                        constants.colors['WHITE'])
+                                    True,
+                                    constants.colors['WHITE'])
         score_rect = score_view.get_rect()
         score_rect.right = constants.WINDOW_WIDTH - constants.WALLSIZE - 20
         score_rect.y = 50
@@ -359,6 +360,8 @@ class CollisionHandling:
             powerup_color=constants.colors[  powerup_properties[1]  ]
             factor = powerup_properties[5]
 
+
+
             if powerup_properties[3]=="ball":
                 powerup_object=self.game.playerBall
             elif powerup_properties[3]=="paddle":
@@ -420,7 +423,6 @@ class CollisionHandling:
         bottom = bot_right <= ball_in_angle < bot_left
 
         return not (top or bottom)
-
 
 
 class MainMenu:
@@ -707,7 +709,7 @@ class HighScores:
         return self.nextGameState
 
 
-class GameOver():
+class GameOver:
 
     def __init__(self, game, ishighscore=False):
         self.score = str(game.score)
