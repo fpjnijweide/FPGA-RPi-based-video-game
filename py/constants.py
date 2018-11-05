@@ -64,7 +64,7 @@ PADDLEBOUNCINESS=1
 
 # Powerup chance for white blocks
 # other blocks will always drop power of their color
-POWERUP_CHANCE = 0.3
+POWERUP_CHANCE = 0.4
 
 # Paddle speed
 PADDLESPEED = 10

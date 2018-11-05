@@ -190,7 +190,7 @@ class Ball(pygame.sprite.Sprite):
 class Paddle(pygame.sprite.Sprite):
     """
     """
-    def __init__(self, color, y_position, width, height):
+    def __init__(self, color, y_position, width, height, game):
 
         super().__init__()
 
@@ -209,6 +209,12 @@ class Paddle(pygame.sprite.Sprite):
         self.bounciness = 1
 
         self.active_power = []
+
+        self.laser = False
+        self.laser_freq = 40
+        self.last_laser = 0
+
+        self.game = game
  
     def update_bonus(self):
         for p in self.active_power:
@@ -222,6 +228,10 @@ class Paddle(pygame.sprite.Sprite):
                     self.width = constants.PADDLEWIDTH
                     self.active_power.remove(p)
                     self.color = constants.colors['WHITE']
+                elif p[1] == 'yellow':
+                    self.laser = False
+                    self.active_power.remove(p)
+                    self.color = constants.colors['WHITE']
 
         self.image = pygame.Surface([self.width, self.height])
         self.image.fill(self.color)
@@ -230,6 +240,20 @@ class Paddle(pygame.sprite.Sprite):
         center = self.rect.center
         self.rect = self.image.get_rect()
         self.rect.center = center
+
+
+    def spawnlaser(self):
+        if self.laser:
+            laser = Laser(self.rect)
+            self.game.AllSpritesList.add(laser)
+            self.game.laserList.add(laser)
+
+    def update(self):
+        if self.last_laser >= self.laser_freq:
+            self.spawnlaser()
+            self.last_laser = 0
+
+        self.last_laser += 1
 
 
 class Wall(pygame.sprite.Sprite):
@@ -277,13 +301,16 @@ class PowerUp:
 
     """
 
-    types = ["blue","red","green","gray"]
+    types = ["blue","red","green","gray","yellow"]
                     # ('name', rng_chance, color, duration, object, attribute, new_value factor)
-    type_properties= {"blue"  :( 2, "BLUE",  3333, "ball",   "radius", 3),
+    type_properties= {"blue"  :( 1, "BLUE",  3333, "ball",   "radius", 3),
                       "red"   :( 1, "RED",   2222, "ball",   "speed",  1.7),
-                      "green" :( 2, "GREEN", 5555, "paddle", "width",  2),
-                      "gray" :(5, "GRAY", 2222, "ball",
-                                "speed", 0.6)}
+                      "green" :( 1, "GREEN", 5555, "paddle", "width",  2),
+                      "gray" :(7, "GRAY", 2222, "ball",
+                                "speed", 0.6),
+                      "yellow":(5, "YELLOW", 3333, "paddle",
+                                "laser", True)
+                      }
     type = None
     color = None
 
@@ -357,3 +384,23 @@ class PowerUp:
                 # git commit suicide
                 self.kill()
                 del self
+
+
+class Laser(pygame.sprite.Sprite):
+    width = 6
+    height = 10
+    yspeed = 9
+
+    def __init__(self, paddlerect):
+        super().__init__()
+
+        self.image = pygame.Surface([self.width, self.height])
+        self.image.fill(constants.colors['YELLOW'])
+        self.rect = self.image.get_rect()
+        self.rect.midbottom = paddlerect.midtop
+
+        self.yfloat = self.rect.y
+
+    def update(self):
+        self.yfloat -= self.yspeed
+        self.rect.y = int(self.yfloat)
