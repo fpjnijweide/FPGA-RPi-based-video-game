@@ -465,7 +465,7 @@ class MainMenu:
         self.highlight = pygame.font.Font(constants.fonts['Courier New'], 40, bold=True)
         self.highlight.set_underline(True)
 
-        self.mainmenu = self.highField('Main Menu', self, self.mainFont)
+        self.mainmenu = self.highField(constants.GAME_NAME, self, self.mainFont)
         self.startgamemenu = self.highField(self.texts[0], self, self.highlight)
         self.highscoremenu = self.highField(self.texts[1], self, self.subFont)
         self.optionsmenu = self.highField(self.texts[2], self, self.subFont)
