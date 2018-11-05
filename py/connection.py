@@ -53,7 +53,9 @@ def readBit():
 
 def connect(xspeed,yspeed,bounciness,isvertical):
     # Converting data to binary
-    data = list(map(chewnumber.decToFixedPoint, [xspeed, yspeed, bounciness]))
+    
+    data = list(map(chewnumber.decToInt, [xspeed, yspeed, bounciness]))
+    #data[0]="00001111"
     returndata = [[]]
 
     if isvertical:
@@ -82,9 +84,9 @@ def connect(xspeed,yspeed,bounciness,isvertical):
         formatdata[2].append(str(returndata[i][2]))
         formatdata[3].append(str(returndata[i][3]))
 
-    newxspeed=chewnumber.fixedPointToDec(''.join(formatdata[0]))
-    newyspeed=chewnumber.fixedPointToDec(''.join(formatdata[1]))
-    paddlespeed=chewnumber.fixedPointToDec(''.join(formatdata[2]))
+    newxspeed=chewnumber.intToDec(''.join(formatdata[0]))
+    newyspeed=chewnumber.intToDec(''.join(formatdata[1]))
+    paddlespeed=chewnumber.intToDec(''.join(formatdata[2]))
     buttondata=''.join(formatdata[3])
 
     if buttondata=="11111111":
@@ -133,20 +135,19 @@ def rwByteSequence(data):
     receivedData = []
     currentCycle = 0
     previousClock = initialisation.pi.read(constants.CLOCK_PIN)
-
+    fpgaShouldRead()
+    activateSlave()  
     while len(receivedData)<8:
         currentClock = initialisation.pi.read(constants.CLOCK_PIN)
         if (currentClock != previousClock and currentClock == 1 and currentCycle <= 10):
             # TODO check if sleeps are needed to allow for game rendering, higher fps
             #if currentCycle == 0:
                 #fpgaShouldRead()
-            if currentCycle <= 0:
-                fpgaShouldRead()
-                activateSlave()
-                threaded_pin.writeBit(currentCycle-1, [["0"],["0"],["0"],["0"]])                
-            if currentCycle >= 1 and currentCycle <= 8:              
+            if currentCycle <= 1:
+                threaded_pin.writeBit(currentCycle-1, [["00"],["00"],["00"],["00"]])                
+            if currentCycle >= 2 and currentCycle <= 9:              
                 #data = ["010000000", "000010011", "000001010", "000000000"]
-                threaded_pin.writeBit(currentCycle-1, data)
+                threaded_pin.writeBit(currentCycle-2, data)
 
             if currentCycle == 10:
                 deactivateSlave()            
@@ -188,10 +189,10 @@ def main():
     debug=True
     initialisation.initConnection()
     # WRITE THE VALUES YOU WANT TO SEND HERE
-    xspeed = chewnumber.fixedPointToDec("00000001")
-    yspeed = -15.875
-    bounciness = -15.875
-    isvertical = True
+    xspeed = 13
+    yspeed = 20
+    bounciness = 33
+    isvertical = False
 
     print("(xspeed,yspeed,bounciness,isvertical)")
     print(xspeed,yspeed,bounciness,isvertical)
