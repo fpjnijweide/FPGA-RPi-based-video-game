@@ -132,6 +132,7 @@ class Game:
         self.AllSpritesList = pygame.sprite.Group()
         self.CollisionSpritesList = pygame.sprite.Group()
         self.powerUpSpritesList = pygame.sprite.Group()
+        self.laserList = pygame.sprite.Group()
 
         # Create Ball object
         self.playerBall = objects.Ball(constants.colors["WHITE"], constants.BALLRADIUS)
@@ -139,7 +140,7 @@ class Game:
 
         # Create paddle object
         self.paddle = objects.Paddle(constants.colors["WHITE"], constants.PADDLE_Y_POS,
-                                     constants.PADDLEWIDTH, constants.PADDLEHEIGHT)
+                                     constants.PADDLEWIDTH, constants.PADDLEHEIGHT, self)
         self.AllSpritesList.add(self.paddle)
         self.CollisionSpritesList.add(self.paddle)
 
@@ -301,6 +302,7 @@ class CollisionHandling:
     def evaluate(self):
         self.handle_ball_collisions()
         self.handle_power_up_collisions()
+        self.handle_laser_collisions()
 
     def handle_ball_collisions(self):
         """
@@ -384,6 +386,9 @@ class CollisionHandling:
                 elif powerup_properties[4]=="width":
                     powerup_object.width = int(factor * powerup_object.width)
 
+                elif powerup_properties[4] == 'laser':
+                    powerup_object.laser = True
+
             powerup_object.active_power.append(powerup_entry)
             self.game.currentPowerUps.append(powerup_entry)
 
@@ -392,6 +397,19 @@ class CollisionHandling:
 
             self.game.AllSpritesList.remove(c)
             self.game.powerUpSpritesList.remove(c)
+
+    def handle_laser_collisions(self):
+        laser_colls = pygame.sprite.groupcollide(self.game.laserList, self.game.AllSpritesList, False, False)
+        for c1 in laser_colls.keys():
+            for c2 in laser_colls[c1]:
+                if c1 is not c2:
+                    if isinstance(c2, objects.Block):
+                        self.game.removeblock(c2)
+                        self.game.inc_score(10)
+
+                    elif isinstance(c2, objects.Wall) and c2.name == 'top_wall':
+                        self.game.AllSpritesList.remove(c1)
+                        self.game.laserList.remove(c1)
 
     @staticmethod
     def find_bounce_is_vertical(ballObj, collisionObj):

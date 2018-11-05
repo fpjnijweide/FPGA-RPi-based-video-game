@@ -14,7 +14,7 @@ def insertscore(name, score):
         if highest:
             is_hiscore = highest[1] < score and score > 0
         else:
-            is_hiscore = False
+            is_hiscore = True
 
         conn.execute('insert into highscores(name, score)'
                      'values(:name, :score)',
