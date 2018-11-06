@@ -287,6 +287,11 @@ class Game:
         ishigh = sensordb.insertscore(self.player_name, self.score)
         # is_hiscore = sensordb.get_highscore(self.score)
 
+        print('%s got a score of %d' % (self.player_name, self.score))
+        if ishigh:
+            print('New Highscore!')
+        print()
+
         # pygame.time.delay(500)
         AudioObj.playSound('gameover')
         self.nextGameState = GameOver(self, ishigh)
@@ -362,8 +367,6 @@ class CollisionHandling:
             powerup_color=constants.colors[  powerup_properties[1]  ]
             factor = powerup_properties[5]
 
-
-
             if powerup_properties[3]=="ball":
                 powerup_object=self.game.playerBall
             elif powerup_properties[3]=="paddle":
@@ -405,7 +408,7 @@ class CollisionHandling:
                 if c1 is not c2:
                     if isinstance(c2, objects.Block):
                         self.game.removeblock(c2)
-                        self.game.inc_score(10)
+                        self.game.inc_score(50)
 
                     elif isinstance(c2, objects.Wall) and c2.name == 'top_wall':
                         self.game.AllSpritesList.remove(c1)

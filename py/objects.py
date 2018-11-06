@@ -11,11 +11,11 @@ class Block(pygame.sprite.Sprite):
     @staticmethod
     def generateType():
         throwdice = random.randint(1, 100)
-        if throwdice >= 70 and throwdice<85:
+        if 70 <= throwdice < 85:
             return "green"
-        elif throwdice >= 85 and throwdice<95:
+        elif 85 <= throwdice < 95:
             return "blue"
-        elif throwdice >= 95:
+        elif 95 <= throwdice:
             return "red"
         else:
             return "default"
@@ -33,15 +33,15 @@ class Block(pygame.sprite.Sprite):
         if type=="red":
             color=constants.colors["RED"]
             self.initialhp = constants.BLOCK_INITIAL_HP*8
-            self.score = 70
+            self.score = 40
         if type=="green":
             color=constants.colors["GREEN"]
             self.initialhp = constants.BLOCK_INITIAL_HP*3
-            self.score = 30
+            self.score = 20
         if type=="blue":
             color=constants.colors["BLUE"]
             self.initialhp = constants.BLOCK_INITIAL_HP*5
-            self.score = 40
+            self.score = 30
 
         self.type = type
         self.powertype = self.type
