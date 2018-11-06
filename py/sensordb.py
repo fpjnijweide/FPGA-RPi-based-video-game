@@ -7,13 +7,22 @@ def create_table():
 
 
 def insertscore(name, score):
+    # TODO return True if its a new highscore?
     with conn:
+        c.execute('select * from highscores order by score DESC limit 1')
+        highest = c.fetchone()
+        if highest:
+            is_hiscore = highest[1] < score and score > 0
+        else:
+            is_hiscore = True
+
         conn.execute('insert into highscores(name, score)'
                      'values(:name, :score)',
                      {'name': name, 'score': score}
                        # 'values(?,?)',
                        # (name, score)
                      )
+        return is_hiscore
 
 
 # returns the 7 highest scores

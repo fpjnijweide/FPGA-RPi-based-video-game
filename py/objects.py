@@ -10,11 +10,11 @@ class Block(pygame.sprite.Sprite):
     @staticmethod
     def generateType():
         throwdice = random.randint(1, 100)
-        if throwdice >= 70 and throwdice<85:
+        if 70 <= throwdice < 85:
             return "green"
-        elif throwdice >= 85 and throwdice<95:
+        elif 85 <= throwdice < 95:
             return "blue"
-        elif throwdice >= 95:
+        elif 95 <= throwdice:
             return "red"
         else:
             return "default"
@@ -32,22 +32,18 @@ class Block(pygame.sprite.Sprite):
         if type=="red":
             color=constants.colors["RED"]
             self.initialhp = constants.BLOCK_INITIAL_HP*8
-            self.score = 50
+            self.score = 40
         if type=="green":
             color=constants.colors["GREEN"]
-            self.initialhp = constants.BLOCK_INITIAL_HP*2
+            self.initialhp = constants.BLOCK_INITIAL_HP*3
             self.score = 20
         if type=="blue":
             color=constants.colors["BLUE"]
-            self.initialhp = constants.BLOCK_INITIAL_HP*3
-            self.score = 30
-            self.initialhp = constants.BLOCK_INITIAL_HP*4
-        if type=="blue":
-            color=constants.colors["BLUE"]
-            self.initialhp = constants.BLOCK_INITIAL_HP*6
+            self.initialhp = constants.BLOCK_INITIAL_HP*5
             self.score = 30
 
         self.type = type
+        self.powertype = self.type
         self.hp = self.initialhp
 
         self.initialColor = color
@@ -75,7 +71,7 @@ class Block(pygame.sprite.Sprite):
             self.image.fill((redcolor, greencolor, bluecolor))
         if self.hp <= 0:
             self.image.fill((0,0,0))
-        return self.hp
+        # return self.hp
         # self.currentColor = tuple(map(lambda x:   x*(self.hp//self.initialhp), self.initialColor))
         
 
@@ -88,6 +84,7 @@ class Ball(pygame.sprite.Sprite):
     # yspeed = 0
 
     # maxSpeed = 50
+    active_power = []
 
     def __init__(self, color, radius):
         # Call the parent class (Sprite) constructor
@@ -102,7 +99,7 @@ class Ball(pygame.sprite.Sprite):
         self.radius=radius
         self.image = pygame.Surface([self.radius*2, self.radius*2])
         # Draw the Ball (a circle)
-        self.circle = pygame.draw.circle(self.image, self.color, [self.radius,self.radius], self.radius)
+        pygame.draw.circle(self.image, self.color, [self.radius,self.radius], self.radius)
 
         # Fetch the rectangle object that has the dimensions of the screen.
         self.rect = self.image.get_rect()
@@ -121,26 +118,41 @@ class Ball(pygame.sprite.Sprite):
         self.col_this_frame = [False, False]  # [x, y]
 
     def update_bonus(self):
-        #pass
-        self.image = pygame.transform.scale(self.image, (self.radius*2, self.radius*2))
+        for p in self.active_power:
+            rm = False
+            for otherp in self.active_power:
+                if p[1] == otherp[1] and p is not otherp:
+                    self.active_power.remove(p)
+                    rm = True
+                    break
+
+            if pygame.time.get_ticks() > p[0] and not rm:
+                if p[1] == 'blue':
+                    # print('removing blu')
+                    self.color = constants.colors['WHITE']
+                    self.radius = constants.BALLRADIUS
+
+                    self.active_power.remove(p)
+
+                elif p[1] == 'red' or p[1] == 'gray':
+                    self.color = constants.colors['WHITE']
+                    self.xspeed /= abs(self.xspeed)
+                    self.xspeed *= constants.INITIAL_BALL_XSPEED
+                    self.yspeed /= abs(self.yspeed)
+                    self.yspeed *= constants.INITIAL_BALL_YSPEED
+                    self.active_power.remove(p)
+
+        self.image = pygame.transform.smoothscale(self.image, (self.radius*2, self.radius*2))
         pygame.draw.circle(self.image, self.color, [self.radius,self.radius], self.radius)
         self.rect = self.image.get_rect()
 
     def bounce(self, bounceIsVertical, returnvals):
-        """
-        Used in conjunction with 
-        """
-        # This function should 
-        # but until the connection is realized this function will take care of that.
-        # pygame.time.delay(99)
 
         if constants.XSPEED_ENABLED:
             self.xspeed = returnvals[0]
         elif (bounceIsVertical) and not self.col_this_frame[0]:
             self.xspeed *= -1
             self.col_this_frame[0] = True
-
-
 
         if constants.YSPEED_ENABLED:
             self.yspeed = returnvals[1]
@@ -172,7 +184,7 @@ class Ball(pygame.sprite.Sprite):
 class Paddle(pygame.sprite.Sprite):
     """
     """
-    def __init__(self, color, y_position, width, height):
+    def __init__(self, color, y_position, width, height, game):
 
         super().__init__()
 
@@ -189,13 +201,53 @@ class Paddle(pygame.sprite.Sprite):
         self.rect.x = left
         self.rect.y = y_position
         self.bounciness = 1
+
+        self.active_power = []
+
+        self.laser = False
+        self.laser_freq = 25
+        self.last_laser = 0
+
+        self.game = game
  
     def update_bonus(self):
+        for p in self.active_power:
+            rm = False
+            for otherp in self.active_power:
+                if p[1] == otherp[1] and p is not otherp:
+                    self.active_power.remove(p)
+                    rm = True
+            if pygame.time.get_ticks() > p[0] and not rm:
+                if p[1] == 'green':
+                    self.width = constants.PADDLEWIDTH
+                    self.active_power.remove(p)
+                    self.color = constants.colors['WHITE']
+                elif p[1] == 'yellow':
+                    self.laser = False
+                    self.active_power.remove(p)
+                    self.color = constants.colors['WHITE']
+
         self.image = pygame.Surface([self.width, self.height])
         self.image.fill(self.color)
-        pre_x, pre_y = self.rect.x, self.rect.y
+
+        # Assign old rectangle center to new rect to align
+        center = self.rect.center
         self.rect = self.image.get_rect()
-        self.rect.x, self.rect.y = pre_x, pre_y
+        self.rect.center = center
+
+
+    def spawnlaser(self):
+        if self.laser:
+            laser = Laser(self.rect)
+            self.game.AllSpritesList.add(laser)
+            self.game.laserList.add(laser)
+
+    def update(self):
+        if self.last_laser >= self.laser_freq:
+            self.spawnlaser()
+            self.last_laser = 0
+
+        self.last_laser += 1
 
 
 class Wall(pygame.sprite.Sprite):
@@ -243,11 +295,16 @@ class PowerUp:
 
     """
 
-    types = ["blue","red","green"]
-                    # ('name', rng_chance, color, duration, object, attribute, new_value)
-    type_properties= {"blue"  :( 8, "BLUE",  8000, "ball",   "radius", constants.BALLRADIUS*2 ),
-                      "red"   :( 1, "RED",   7000, "ball",   "speed",  constants.INITIAL_BALL_XSPEED*2),
-                      "green" :( 3, "GREEN", 5000, "paddle", "width",  constants.PADDLEWIDTH*2)}
+    types = ["blue","red","green","gray","yellow"]
+                    # ('name', rng_chance, color, duration, object, attribute, new_value factor)
+    type_properties= {"blue"  :( 1, "BLUE",  3333, "ball",   "radius", 3),
+                      "red"   :( 1, "RED",   2222, "ball",   "speed",  1.7),
+                      "green" :( 1, "GREEN", 5555, "paddle", "width",  2),
+                      "gray" :(7, "GRAY", 2222, "ball",
+                                "speed", 0.6),
+                      "yellow":(5, "YELLOW", 3333, "paddle",
+                                "laser", True)
+                      }
     type = None
     color = None
 
@@ -281,14 +338,12 @@ class PowerUp:
     def activate(self):
         # print('activate %s' % self.type)
         # print(self.properties[2])
-        list_entry = ( ((pygame.time.get_ticks()+self.properties[2]),self.type ) )
-        return (list_entry,self.properties)
+        list_entry = [(pygame.time.get_ticks() + self.properties[2]), self.type ]
+        return list_entry, self.properties
 
-        del self
         # After doing something, the reference to the object is removed.
 
     class PowerUpSprite(pygame.sprite.Sprite):
-        # TODO fix why are red power ups bugged?
         """
         Contains the object of a powerup that is displayed on the screen.
         """
@@ -310,10 +365,12 @@ class PowerUp:
             self.image.fill(constants.colors[self.powerUp.color])
             self.rect = self.image.get_rect()
             self.rect.x = x
+            self.yfloat = y
             self.rect.y = y
 
         def update(self):
-            self.rect.y += 1
+            self.yfloat += constants.POWERSPEED
+            self.rect.y = int(self.yfloat)
             if self.rect.y > constants.WINDOW_HEIGHT:
                 self.game.powerUpSpritesList.remove(self)
                 self.game.AllSpritesList.remove(self)
@@ -321,3 +378,23 @@ class PowerUp:
                 # git commit suicide
                 self.kill()
                 del self
+
+
+class Laser(pygame.sprite.Sprite):
+    width = 6
+    height = 10
+    yspeed = 9
+
+    def __init__(self, paddlerect):
+        super().__init__()
+
+        self.image = pygame.Surface([self.width, self.height])
+        self.image.fill(constants.colors['YELLOW'])
+        self.rect = self.image.get_rect()
+        self.rect.midbottom = paddlerect.midtop
+
+        self.yfloat = self.rect.y
+
+    def update(self):
+        self.yfloat -= self.yspeed
+        self.rect.y = int(self.yfloat)
