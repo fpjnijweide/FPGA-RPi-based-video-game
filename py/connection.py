@@ -260,8 +260,9 @@ def rwByteSequence(data):
             currentCycle += 1
         previousClock = currentClock
 
-    fpgaShouldRead()
     deactivateSlave()
+    fpgaShouldRead()
+
 
     #read data from bank array
     for cycle in range(0,len(receivedData)):
@@ -285,9 +286,9 @@ def main():
     debug=True
     initialisation.initConnection()
     # WRITE THE VALUES YOU WANT TO SEND HERE
-    xspeed = 0.125
+    xspeed = -3
     yspeed = 2
-    bounciness = 0.125
+    bounciness = 2
     isvertical = False
 
     print("(xspeed,yspeed,bounciness,isvertical)")

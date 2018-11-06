@@ -118,6 +118,8 @@ class Game:
     walls = [None, None, None, None]
     PowerUps = None
     currentPowerUps = None
+    wasThereABounceThisFrame = None
+    buttons=None
 
     def __init__(self):
         # Create two empty sprite groups.
@@ -127,6 +129,8 @@ class Game:
         self.AllSpritesList = pygame.sprite.Group()
         self.CollisionSpritesList = pygame.sprite.Group()
         self.powerUpSpritesList = pygame.sprite.Group()
+        self.wasThereABounceThisFrame = False
+        self.buttons= (False,False)
 
         # Create Ball object
         self.playerBall = objects.Ball(constants.colors["WHITE"], constants.BALLRADIUS)
@@ -210,7 +214,8 @@ class Game:
         """
         # Handle collisions
         #self.currenttime=pygame.time.get_ticks()
-        (newpaddlespeed, GameStateObj.buttons)=connection.readData()
+        self.wasThereABounceThisFrame = False
+        
         
         self.handleKeys(keystohandle)
         self.collisionHandler.evaluate()
@@ -237,6 +242,8 @@ class Game:
         score_rect.right = constants.WINDOW_WIDTH - constants.WALLSIZE - 20
         score_rect.y = 50
         Screen.blit(score_view, score_rect)
+        if (not self.wasThereABounceThisFrame) and constants.FPGA_ENABLED:
+            (newpaddlespeed, GameStateObj.buttons)=connection.readData()
 
     def removeblock(self, obj1):
         self.AllSpritesList.remove(obj1)
@@ -407,7 +414,9 @@ class CollisionHandling:
         bottom = bot_right < ball_in_angle <= bot_left
 
         isVertical= not (top or bottom)
-        (newxspeed, newyspeed, newpaddlespeed, GameStateObj.buttons)=connection.connect(GameStateObj.playerBall.xspeed,GameStateObj.playerBall.yspeed,1,isVertical)
+        if constants.FPGA_ENABLED:
+            (GameStateObj.playerBall.xspeed, newyspeed, newpaddlespeed, GameStateObj.buttons)=connection.connect(GameStateObj.playerBall.xspeed,GameStateObj.playerBall.yspeed,1,isVertical)
+        GameStateObj.wasThereABounceThisFrame = True
         return isVertical
 
 

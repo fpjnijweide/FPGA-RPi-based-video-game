@@ -45,7 +45,7 @@ SUBFONT = 58
 SHOW = 7
 
 # Frames per second
-FPS = 60
+FPS = 50
 VIEWFPS = True
 
 # Ball size and pos
