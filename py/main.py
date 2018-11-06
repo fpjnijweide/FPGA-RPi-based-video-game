@@ -210,7 +210,7 @@ class Game:
         """
         # Handle collisions
         #self.currenttime=pygame.time.get_ticks()
-        (newxspeed, newyspeed, newpaddlespeed, self.buttons)=connection.connect(self.playerBall.xspeed,self.playerBall.yspeed,1,False)
+        (newpaddlespeed, GameStateObj.buttons)=connection.readData()
         
         self.handleKeys(keystohandle)
         self.collisionHandler.evaluate()
@@ -278,7 +278,8 @@ class Game:
         self.score += int(points * self.scoreMult)
 
     def gameover(self):
-        sensordb.insertscore('jemoeder', self.score)
+        sensordb.insertscore('noname', self.score)
+        print("printing high scores!")
         print(sensordb.get_scores())
         pygame.time.delay(500)
         self.nextGameState = MainMenu()
@@ -405,7 +406,10 @@ class CollisionHandling:
         top = top_left < ball_in_angle <= top_right
         bottom = bot_right < ball_in_angle <= bot_left
 
-        return not (top or bottom)
+        isVertical= not (top or bottom)
+        (newxspeed, newyspeed, newpaddlespeed, GameStateObj.buttons)=connection.connect(GameStateObj.playerBall.xspeed,GameStateObj.playerBall.yspeed,1,isVertical)
+        return isVertical
+
 
 
 

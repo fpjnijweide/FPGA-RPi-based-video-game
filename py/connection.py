@@ -50,10 +50,66 @@ def readBit():
 
     return bitList
 
+def readData():
+    receivedData = []
+    currentCycle = 0
+    previousClock = initialisation.pi.read(constants.CLOCK_PIN)
+
+    fpgaShouldWrite()
+    activateSlave()  
+    while len(receivedData)<8:
+        currentClock = initialisation.pi.read(constants.CLOCK_PIN)
+        if (currentClock != previousClock and currentClock == 1):
+            if currentCycle == 0:
+                readBank()
+            if (currentCycle >= 1):
+                receivedBits = readBank()
+                receivedData.append(receivedBits)          
+
+            currentCycle += 1
+        previousClock = currentClock
+
+    fpgaShouldRead()
+    deactivateSlave()
+
+    #read data from bank array
+    for cycle in range(0,len(receivedData)):
+        bankdata=receivedData[cycle]
+        pin1=bankdata >> constants.READ_PINS[0][1] & 1
+        pin2=bankdata >> constants.READ_PINS[1][1] & 1
+        pin3=bankdata >> constants.READ_PINS[2][1] & 1
+        pin4=bankdata >> constants.READ_PINS[3][1] & 1  
+        receivedData[cycle]=[pin1,pin2,pin3,pin4]
+
+        #todo remove this sstringwise conversion, it's slow
+    formatdata=[[],[],[],[]]
+    for i in range(0,8):
+
+        formatdata[2].append(str(receivedData[i][2]))
+        formatdata[3].append(receivedData[i][3])
+
+
+    paddlespeed=chewnumber.fixedPointToDec(''.join(formatdata[2]))
+    buttondata=formatdata[3]
+    buttons=[False,False]
+    #TODO remove this stringwise checking, maybe use gmpy popcount
+    if buttondata[0:4].count(1)>=3:
+        buttons[0]=True
+    if buttondata[4:8].count(1)>=3:
+        buttons[1]=True
+
+
+    return (paddlespeed,buttons)
 
 def connect(xspeed,yspeed,bounciness,isvertical):
+    #TODO Make seperate function that only reads buttons and accelerometer
+
+
     # Converting data to binary
-    
+    print("sending data")
+    print("xspeed,yspeed,bounciness,isvertical")
+    print(xspeed,yspeed,bounciness,isvertical)
+
     #TODO make this shit more efficient because string operations
     data = list(map(chewnumber.decToFixedPoint, [xspeed, yspeed, bounciness]))
     #data[0]="00001111"
@@ -65,18 +121,12 @@ def connect(xspeed,yspeed,bounciness,isvertical):
         data.append("000000000")
 
     if constants.GPIO_SEND_RECEIVE_AT_ONCE: #send and receive at same time
-        print("read/wriitng in parallel")
-        print("sending data")
         print(data)
         returndata=rwByteParallel(data)
     else:
-        print("read/wriitng in sequence")
-        print("sending data")
-        print(data)
         returndata=rwByteSequence(data)
 
-    print("received data")
-    print(returndata)
+
 
     #todo remove this sstringwise conversion, it's slow
     formatdata=[[],[],[],[]]
@@ -97,6 +147,10 @@ def connect(xspeed,yspeed,bounciness,isvertical):
     if buttondata[4:8].count(1)>=3:
         buttons[1]=True
 
+    print("received data")
+    print(returndata)
+    print("(newxspeed,newyspeed,paddlespeed,buttons)")
+    print(newxspeed,newyspeed,paddlespeed,buttons)
     return (newxspeed,newyspeed,paddlespeed,buttons)
 
 
@@ -231,9 +285,9 @@ def main():
     debug=True
     initialisation.initConnection()
     # WRITE THE VALUES YOU WANT TO SEND HERE
-    xspeed = 55
+    xspeed = 0.125
     yspeed = 2
-    bounciness = 13
+    bounciness = 0.125
     isvertical = False
 
     print("(xspeed,yspeed,bounciness,isvertical)")
@@ -241,11 +295,8 @@ def main():
     returnval=connect(xspeed,yspeed,bounciness,isvertical)
 
 
-    print("DONE")
-    print("(xspeed,yspeed,bounciness,isvertical)")
-    print(xspeed,yspeed,bounciness,isvertical)
-    print("(newxspeed,newyspeed,paddlespeed,buttons)")
-    print(returnval)
+ 
+
     closeConnection()
 
 if __name__ == "__main__":
