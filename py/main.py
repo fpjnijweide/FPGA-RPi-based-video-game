@@ -197,10 +197,15 @@ class Game:
     def handleTilt(self, tilt_value):
         #TODO change range for changing paddle size?
         range = constants.WINDOW_WIDTH - 2*constants.WALLSIZE - self.paddle.width
-        multiplier = int((range/(2*constants.FIXEDPOINTMAX))*1.2 + 400)
-        newx = tilt_value*multiplier
+        multiplier = (range/(2*constants.FIXEDPOINTMAX))*1.2
+        newx = int(tilt_value*multiplier) + 400
         if (newx > constants.WALLSIZE and (newx + self.paddle.width) < (constants.WINDOW_WIDTH - constants.WALLSIZE)):
             self.paddle.rect.x = newx
+        elif (newx <= constants.WALLSIZE):
+            newx=constants.WALLSIZE
+        elif (newx + self.paddle.width) >= (constants.WINDOW_WIDTH - constants.WALLSIZE):
+            newx=constants.WINDOW_WIDTH - constants.WALLSIZE - self.paddle.width
+        self.paddle.rect.x=newx
 
     def check_powerup_status(self):
         for p in self.currentPowerUps:
