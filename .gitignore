@@ -1,5 +1,6 @@
 virtualenv/
 py/__pycache__/
+py/db/hiscores.db
 .idea/
 .ycm_extra_conf.py
 .vscode
