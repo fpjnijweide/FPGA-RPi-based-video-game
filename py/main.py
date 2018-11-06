@@ -404,6 +404,8 @@ class CollisionHandling:
             self.game.AllSpritesList.remove(c)
             self.game.powerUpSpritesList.remove(c)
 
+            AudioObj.playSound('powerup')
+
     def handle_laser_collisions(self):
         laser_colls = pygame.sprite.groupcollide(self.game.laserList, self.game.AllSpritesList, False, False)
         for c1 in laser_colls.keys():

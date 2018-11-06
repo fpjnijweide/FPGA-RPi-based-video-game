@@ -110,7 +110,8 @@ colors = {
 # 'audioName':('relative/path/to/file', volume)
 sounds = {
         'bounce': ('../resources/audio/bounce.ogg', 0.09),
-        'gameover':('../resources/audio/dead.ogg', 0.25)
+        'gameover':('../resources/audio/dead.ogg', 0.27),
+        'powerup':('../resources/audio/powerup.ogg', 0.3)
 #        'wallCollision':'../resources/audio/bounce.wav',
 #        'blockbreak':'../resources/sound/bounce2.wav'
 }
