@@ -8,6 +8,7 @@ Sensor Pong
 import pygame, sys, math
 import objects, constants, keyBindings, sensordb
 import random
+from lib import pygame_textinput
 # import time # use pygame.time functionality instead
 # Ok so instead of time.time()  (s)
 # It's pygame.time.get_ticks() (ms)
@@ -50,6 +51,9 @@ def init():
 
     global GameStateObj
     GameStateObj = MainMenu()
+
+    global PlayerName
+    PlayerName = 'Player'
 
     # Avoid cluttering the pygame event queue
     pygame.event.set_allowed(None)
@@ -125,7 +129,6 @@ class Game:
     buttons=None
 
     # TODO allow player to set name somehow, or remove names altogether
-    player_name = 'Player'
 
     def __init__(self):
         # Create two empty sprite groups.
@@ -172,6 +175,9 @@ class Game:
         self.score = 0
 
         self.nextGameState = self
+
+        global PlayerName
+        self.player_name = PlayerName
 
     def handleKeys(self):
         """
@@ -516,7 +522,7 @@ class MainMenu:
 
     def __init__(self):
         pygame.display.set_caption(constants.GAME_NAME + ' - Main menu' )
-        self.texts = ['Start game', 'Highscores', 'Options', 'Exit']
+        self.texts = ['Start game', 'Highscores', 'Name', 'Exit']
         self.mainFont = pygame.font.Font(constants.fonts['Courier New'], 60) # 76? HEIGTH
         self.subFont = pygame.font.Font(constants.fonts['Courier New'], 40) # 58 HEIGTH
         self.highlight = pygame.font.Font(constants.fonts['Courier New'], 40, bold=True)
@@ -547,6 +553,9 @@ class MainMenu:
         self.nextGameState = self
 
         pygame.event.clear()
+
+        self.textinput = pygame_textinput.TextInput(text_color=constants.colors['WHITE'], initial_string='Enter name then press ESC')
+        self.textinputenable = False
 
     class highField():
         parent = None
@@ -596,7 +605,10 @@ class MainMenu:
                 self.nextGameState = HighScores()
 
             elif self.selectedItem == 2:
-                pass
+                self.textinputenable = True
+                pygame.event.set_allowed(pygame.KEYUP)
+                self.clearedinput = False
+                pygame.event.clear()
 
             elif self.selectedItem == 3:
                 pygame.event.post(pygame.event.Event(pygame.QUIT))
@@ -609,13 +621,35 @@ class MainMenu:
                                                            chosenfont=self.highlight)
 
     def update(self):
-        self.handleKeys()
+        if not self.textinputenable:
+            self.handleKeys()
+
         Screen.fill(constants.colors["BLACK"])
         Screen.blit(self.mainmenu.text, (self.mainmenu_Width, self.mainmenu_Height))
         Screen.blit(self.menuItems[0].text, (self.startgamemenu_Width, self.startgamemenu_Height))
         Screen.blit(self.menuItems[1].text, (self.highscoremenu_Width, self.highscoremenu_Height))
         Screen.blit(self.menuItems[2].text, (self.optionsmenu_Width, self.optionsmenu_Height))
         Screen.blit(self.menuItems[3].text, (self.exitmenu_Width, self.exitmenu_Height))
+
+        if self.textinputenable:
+            self.update_input()
+
+    def update_input(self):
+        clear = pygame.event.peek(pygame.KEYDOWN)
+        events = pygame.event.get()
+
+        if keyBindings.checkDown('exit', events):
+            self.textinputenable = False
+            global PlayerName
+            PlayerName = self.textinput.get_text()
+
+        elif clear and not self.clearedinput:
+            self.clearedinput = True
+            self.textinput.clear_text()
+            self.textinput.set_cursor_color(constants.colors['WHITE'])
+
+        self.textinput.update(events)
+        Screen.blit(self.textinput.get_surface(), (40, 500))
 
 
 class HighScores:
