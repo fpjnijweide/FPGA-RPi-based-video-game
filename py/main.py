@@ -243,7 +243,11 @@ class Game:
         score_rect.y = 50
         Screen.blit(score_view, score_rect)
         if (not self.wasThereABounceThisFrame) and constants.FPGA_ENABLED:
-            (newpaddlespeed, GameStateObj.buttons)=connection.readData()
+            returnvals=connection.readData()
+            if constants.PADDLESPEED_ENABLED:
+                self.paddle.rect.x=returnvals[0]
+            if constants.BUTTONS_ENABLED:
+                self.buttons=returnvals[1]
 
     def removeblock(self, obj1):
         self.AllSpritesList.remove(obj1)
@@ -346,11 +350,16 @@ class CollisionHandling:
             isVertical = CollisionHandling.find_bounce_is_vertical(self.game.playerBall, c)
 
             if constants.FPGA_ENABLED:
-                returnvals=connection.connect(self.xspeed,self.playerBall.yspeed,1,bounceIsVertical)
+                returnvals=connection.connect(self.game.playerBall.xspeed,self.game.playerBall.yspeed,1,isVertical)
                 self.game.playerBall.bounce(isVertical,returnvals)
+                if constants.PADDLESPEED_ENABLED:
+                    self.game.paddle.rect.x = returnvals[2]
+
+                if constants.BUTTONS_ENABLED:
+                    self.game.buttons = returnvals[3]
             else:
                 self.game.playerBall.bounce(isVertical,[])
-            GameStateObj.wasThereABounceThisFrame = True  
+                self.game.wasThereABounceThisFrame = True
             # Should be handled at the object collided with, not here
             AudioObj.playSound('bounce')
 
