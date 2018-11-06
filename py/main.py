@@ -554,7 +554,8 @@ class MainMenu:
 
         pygame.event.clear()
 
-        self.textinput = pygame_textinput.TextInput(text_color=constants.colors['WHITE'], initial_string='Enter name then press ESC')
+        self.initialtextinput='Enter name then press ESC'
+        self.textinput = pygame_textinput.TextInput(text_color=constants.colors['WHITE'], initial_string=self.initialtextinput)
         self.textinputenable = False
 
     class highField():
@@ -640,6 +641,7 @@ class MainMenu:
 
         if keyBindings.checkDown('exit', events):
             self.textinputenable = False
+
             global PlayerName
             PlayerName = self.textinput.get_text()
 
@@ -675,7 +677,7 @@ class HighScores:
         self.rows = [None]*constants.SHOW
         for x in range(0, len(scores)):
             # print('concat is: '+ scores[x][0] + ' ' + str(scores[x][1]))
-            self.rows[x] = self.highField('{:<9.9s}   {:>4d}'
+            self.rows[x] = self.highField('{:<13.13s}  {:>4d}'
                                           .format(scores[x][0],  scores[x][1]), self)
         AudioObj.playMusic('highScore')
 
