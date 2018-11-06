@@ -214,7 +214,7 @@ def rwByteSequence(data):
 
     fpgaShouldRead()
     activateSlave()  
-    while len(receivedData)<8:
+    while True:
         currentClock = initialisation.pi.read(constants.CLOCK_PIN)
         if (currentClock != previousClock and currentClock == 1 and currentCycle <= 10):
             # TODO check if sleeps are needed to allow for game rendering, higher fps
@@ -253,15 +253,20 @@ def rwByteSequence(data):
                 activateSlave()
                 fpgaShouldWrite()
                 readBank()
-            if (currentCycle >= 12):
+            if (currentCycle >= 12 and currentCycle<=19):
                 receivedBits = readBank()
                 receivedData.append(receivedBits)
+            if currentCycle ==20
+                readBank()
+                deactivateSlave()
+                break
+            #TODO maybe add a cycle 21
+                
 
             currentCycle += 1
         previousClock = currentClock
 
-    deactivateSlave()
-    fpgaShouldRead()
+
 
 
     #read data from bank array
