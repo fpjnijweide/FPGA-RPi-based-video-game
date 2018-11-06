@@ -135,25 +135,22 @@ class Ball(pygame.sprite.Sprite):
         # This function should 
         # but until the connection is realized this function will take care of that.
         # pygame.time.delay(99)
-        if constants.FPGA_ENABLED:
-            if bounceIsVertical and not self.col_this_frame[0]:
-                (self.xspeed, newyspeed, newpaddlespeed, buttons)=returnvals
-                self.col_this_frame[0] = True
 
-            elif not (bounceIsVertical or self.col_this_frame[1]):
-                (self.xspeed, newyspeed, newpaddlespeed, buttons)=returnvals
-                self.yspeed *= -1
-                self.col_this_frame[1] = True            
-        else:
-            # If collision on an axis has already happened this frame,
-            # then don't bounce
-            if bounceIsVertical and not self.col_this_frame[0]:
-                self.xspeed *= -1
-                self.col_this_frame[0] = True
+        if constants.XSPEED_ENABLED:
+            self.xspeed = returnvals[0]
+        elif (bounceIsVertical) and not self.col_this_frame[0]:
+            self.xspeed *= -1
+            self.col_this_frame[0] = True
 
-            elif not (bounceIsVertical or self.col_this_frame[1]):
-                self.yspeed *= -1
-                self.col_this_frame[1] = True
+
+
+        if constants.YSPEED_ENABLED:
+            self.yspeed = returnvals[1]
+        elif not (bounceIsVertical or self.col_this_frame[1]):
+            self.yspeed *= -1
+            self.col_this_frame[1]=True
+
+
 
     def update(self):
         """update ball location"""
