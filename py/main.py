@@ -193,6 +193,20 @@ class Game:
         if keyBindings.checkPress('activate', keysPressed):
             pass
 
+    #This is used to move the paddle using the information received from the accelerometer
+    def handleTilt(self, tilt_value):
+        #TODO change range for changing paddle size?
+        range = constants.WINDOW_WIDTH - 2*constants.WALLSIZE - self.paddle.width
+        multiplier = (range/(2*constants.FIXEDPOINTMAX))*1.2
+        newx = int(tilt_value*multiplier) + 400
+        if (newx > constants.WALLSIZE and (newx + self.paddle.width) < (constants.WINDOW_WIDTH - constants.WALLSIZE)):
+            self.paddle.rect.x = newx
+        elif (newx <= constants.WALLSIZE):
+            newx=constants.WALLSIZE
+        elif (newx + self.paddle.width) >= (constants.WINDOW_WIDTH - constants.WALLSIZE):
+            newx=constants.WINDOW_WIDTH - constants.WALLSIZE - self.paddle.width
+        self.paddle.rect.x=newx
+
     def check_powerup_status(self):
         for p in self.currentPowerUps:
             if p[0] < pygame.time.get_ticks():
@@ -219,6 +233,8 @@ class Game:
         
         
         self.handleKeys(keystohandle)
+        #if constants.PADDLESPEED_ENABLED:
+         #   self.handleTilt(self.accelerometerValue)
         self.collisionHandler.evaluate()
         self.check_powerup_status()
 
@@ -246,9 +262,10 @@ class Game:
         if (not self.wasThereABounceThisFrame) and constants.FPGA_ENABLED:
             returnvals=connection.readData()
             if constants.PADDLESPEED_ENABLED:
-                self.paddle.rect.x=returnvals[0]
+                accelerometerValue = returnvals[0]
+                self.handleTilt(accelerometerValue)
             if constants.BUTTONS_ENABLED:
-                self.buttons=returnvals[1]
+                self.buttons = returnvals[1]
 
     def removeblock(self, obj1):
         self.AllSpritesList.remove(obj1)
@@ -354,8 +371,9 @@ class CollisionHandling:
                 returnvals=connection.connect(self.game.playerBall.xspeed,self.game.playerBall.yspeed,1,isVertical)
                 self.game.playerBall.bounce(isVertical,returnvals)
                 if constants.PADDLESPEED_ENABLED:
-                    self.game.paddle.rect.x = returnvals[2]
-
+                    #self.game.paddle.rect.x = returnvals[2]
+                    accelerometerValue = returnvals[2]
+                    self.game.handleTilt(accelerometerValue)
                 if constants.BUTTONS_ENABLED:
                     self.game.buttons = returnvals[3]
             else:

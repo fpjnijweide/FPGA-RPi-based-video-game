@@ -221,7 +221,7 @@ def rwByteSequence(data):
             #if currentCycle == 0:
                 #fpgaShouldRead()
             if currentCycle <= 1:
-                writeBit(currentCycle-1, [["00"],["00"],["00"],["00"]])                
+                writeBank(0,0)                
             if currentCycle >= 2 and currentCycle <= 9:              
                 #data = ["010000000", "000010011", "000001010", "000000000"]
 
