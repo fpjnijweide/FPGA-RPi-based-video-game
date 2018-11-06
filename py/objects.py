@@ -1,8 +1,6 @@
 import pygame
 import constants
 import random
-import connection
-# import time
 
 
 class Block(pygame.sprite.Sprite):

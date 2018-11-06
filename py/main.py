@@ -11,8 +11,9 @@ import random
 # import time # TODO use pygame.time functionality instead
 # Ok so instead of time.time()  (s)
 # It's pygame.time.get_ticks() (ms)
-import initialisation
-import connection
+if constants.FPGA_ENABLED:
+    import initialisation
+    import connection
 
 def init():
     """
