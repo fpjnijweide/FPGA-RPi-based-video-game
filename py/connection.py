@@ -110,15 +110,30 @@ def connect(xspeed,yspeed,bounciness,isvertical):
     print("xspeed,yspeed,bounciness,isvertical")
     print(xspeed,yspeed,bounciness,isvertical)
 
+    data= [[],[],[]]
+
+    datalist=[xspeed*8,yspeed*8,bounciness*8]
+    decreasing = [7, 6, 5, 4, 3, 2, 1, 0]
+    for value in range(0,3):
+        for i in range(0,7):
+            data[value].append(datalist[value] >> i & 1)
+        if datalist[value]<0:
+            data[value]=[1]+data[value]
+        else:
+            data[value] = [0] + data[value]
+
+
+
+
     #TODO make this shit more efficient because string operations
-    data = list(map(chewnumber.decToFixedPoint, [xspeed, yspeed, bounciness]))
+    #data = list(map(chewnumber.decToFixedPoint, [xspeed, yspeed, bounciness]))
     #data[0]="00001111"
-    returndata = [[]]
+    #returndata = [[]]
 
     if isvertical:
-        data.append("111111111")
+        data.append([1]*8)
     else:
-        data.append("000000000")
+        data.append([0]*8)
 
     if constants.GPIO_SEND_RECEIVE_AT_ONCE: #send and receive at same time
         print(data)
@@ -136,7 +151,7 @@ def connect(xspeed,yspeed,bounciness,isvertical):
          buttondata.append(returndata[i][3])
 
     formatdata3=[0,0,0,0]
-    decreasing = [7,6,5,4,3,2,1,0]
+
     for j in range (0,3):
         result = 0
         for i in range (1,8):
@@ -256,7 +271,7 @@ def rwByteSequence(data):
                 #fpgaShouldWrite() #actually receiving
                # activateSlave()
                # receivedBits = threaded_pin.readBit()
-                
+
                # if currentCycle >= 12:
                 #    receivedData.append(receivedBits)
             #elif currentCycle>=20:
