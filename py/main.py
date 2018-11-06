@@ -307,7 +307,10 @@ class CollisionHandling:
     def evaluate(self):
         self.handle_ball_collisions()
         self.handle_power_up_collisions()
-        self.handle_laser_collisions()
+
+        # Only handle laser colls if there are laser objects
+        if len(self.game.laserList) > 0:
+            self.handle_laser_collisions()
 
     def handle_ball_collisions(self):
         """
@@ -839,6 +842,11 @@ class Audio:
             return
 
         self.gameSounds[soundName].play(0)
+
+    def playandduck(self, soundName):
+
+        if not constants.SOUND:
+            return
 
 
 # Execute init() and main() only when program is run directly (not imported)

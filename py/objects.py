@@ -211,7 +211,7 @@ class Paddle(pygame.sprite.Sprite):
         self.active_power = []
 
         self.laser = False
-        self.laser_freq = 40
+        self.laser_freq = 25
         self.last_laser = 0
 
         self.game = game
