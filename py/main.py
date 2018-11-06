@@ -8,6 +8,7 @@ Sensor Pong
 import pygame, sys, math
 import objects, constants, keyBindings, sensordb
 import random
+from lib import pygame
 # import time # use pygame.time functionality instead
 # Ok so instead of time.time()  (s)
 # It's pygame.time.get_ticks() (ms)
@@ -548,6 +549,11 @@ class MainMenu:
 
         pygame.event.clear()
 
+        self.initialtextinput='Enter name then press ESC'
+        self.textinput = pygame_textinput.TextInput(text_color=constants.colors['WHITE'], initial_string=self.initialtextinput, repeat_keys_initial_ms=999999999999, repeat_keys_interval_ms=999999999)
+        # Okay guys this repeat keys interval is extremely hacky, but it fixes some weird issue
+        self.textinputenable = False
+
     class highField():
         parent = None
         width = None
@@ -616,6 +622,35 @@ class MainMenu:
         Screen.blit(self.menuItems[1].text, (self.highscoremenu_Width, self.highscoremenu_Height))
         Screen.blit(self.menuItems[2].text, (self.optionsmenu_Width, self.optionsmenu_Height))
         Screen.blit(self.menuItems[3].text, (self.exitmenu_Width, self.exitmenu_Height))
+
+        if self.textinputenable:
+            self.update_input()
+
+    def update_input(self):
+        clear = bool(pygame.event.peek(pygame.KEYDOWN))
+        # if clear and PlayerName != 'Player':
+        #     print(pygame.event.get(pygame.KEYDOWN))
+
+        events = pygame.event.get([pygame.KEYDOWN, pygame.KEYUP])
+
+        if keyBindings.checkDown('exit', events):
+            self.textinputenable = False
+
+            global PlayerName
+            PlayerName = self.textinput.get_text()
+            pygame.event.clear()
+
+            self.textinput.set_cursor_color(constants.colors['BLACK'])
+
+            return
+
+        elif clear and not self.clearedinput:
+            self.clearedinput = True
+            self.textinput.clear_text()
+            self.textinput.set_cursor_color(constants.colors['WHITE'])
+
+        self.textinput.update(events)
+        Screen.blit(self.textinput.get_surface(), (40, 500))
 
 
 class HighScores:
