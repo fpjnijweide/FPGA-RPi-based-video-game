@@ -8,7 +8,7 @@ Sensor Pong
 import pygame, sys, math
 import objects, constants, keyBindings, sensordb
 import random
-# import time # TODO use pygame.time functionality instead
+# import time # use pygame.time functionality instead
 # Ok so instead of time.time()  (s)
 # It's pygame.time.get_ticks() (ms)
 
@@ -62,8 +62,6 @@ def main():
         # ==== Event handling ====
         # Internally process events
         pygame.event.pump()
-        # Iterate through each event
-
         # When the game window's [x] is pressed,
         # or a keypress leads to a quit event being posted
         if pygame.event.peek(pygame.QUIT):
@@ -93,11 +91,14 @@ def main():
                                                     constants.colors['WHITE'])
             Screen.blit(fps, (50, 50))
 
-        # Update entire graphical display, TODO can be heavily optimized
+        # Update entire graphical display, can be heavily optimized
         # (by using display.update() and passing it only the screen area that needs to be updated)
         # see https://www.pygame.org/docs/tut/newbieguide.html and look for "Dirty rect animation." section
         # pygame.display.flip()
         # pygame.display.update(dirty_rects)
+        #
+        #
+        # However, doing that requires many, many code changes and is not worth doing as of now.
 
         pygame.display.flip()
 
@@ -111,7 +112,6 @@ class Game:
     """
     # define variables to be initialized
     score = None
-    # scoreMult = None
 
     playerBall = None
     paddle = None
@@ -379,7 +379,7 @@ class CollisionHandling:
             skip = False
             # Do not activate if it is already, but do extend the time
             for entry in self.game.currentPowerUps:
-                if powerup_entry[1] == entry [1] and powerup_entry is not entry:
+                if powerup_entry[1] == entry[1] and powerup_entry is not entry:
                     skip = True
             if not skip:
                 if powerup_properties[4]=="radius":

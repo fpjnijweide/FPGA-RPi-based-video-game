@@ -112,15 +112,11 @@ sounds = {
         'bounce': ('../resources/audio/bounce.ogg', 0.09),
         'gameover':('../resources/audio/dead.ogg', 0.27),
         'powerup':('../resources/audio/powerup.ogg', 0.3)
-#        'wallCollision':'../resources/audio/bounce.wav',
-#        'blockbreak':'../resources/sound/bounce2.wav'
 }
-music  = {
+music = {
         'main': ('../resources/audio/main.ogg', 1.0),
         'menu': ('../resources/audio/menu.ogg', 0.7),
         'highScore': ('../resources/audio/hiscore.ogg', 0.4)
-#        'newGame': '../resources/audio/<file>.ogg',
-#        'gameOver': '../resources/audio/<file>.ogg',
 }
 # ms for music to fade out when switching screens
 MUSICFADE = 1000
