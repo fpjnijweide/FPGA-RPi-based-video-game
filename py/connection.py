@@ -27,9 +27,9 @@ def writeBit(cycles,data):
     for currentTuple in constants.WRITE_PINS:
         currentPin=currentTuple[1]
         key=currentTuple[0]
-        global debug
-        if debug:
-            print("writing to current pin",currentPin,key,"data",data[i],"currently at bit",cycles,"which is",data[i][cycles])
+        # global debug
+        # if debug:
+        #     print("writing to current pin",currentPin,key,"data",data[i],"currently at bit",cycles,"which is",data[i][cycles])
         currentBit=data[i][cycles]
         initialisation.pi.write(currentPin, int(currentBit))
         i+=1
@@ -42,9 +42,9 @@ def readBit():
         currentPin=currentTuple[1]
         key=currentTuple[0]
         currentData=initialisation.pi.read(currentPin)
-        global debug
-        if debug:
-            print("reading current pin", currentPin, key, "data", currentData)
+        # global debug
+        # if debug:
+        #     print("reading current pin", currentPin, key, "data", currentData)
 
         bitList.append(currentData)
 
@@ -54,7 +54,8 @@ def readBit():
 def connect(xspeed,yspeed,bounciness,isvertical):
     # Converting data to binary
     
-    data = list(map(chewnumber.decToInt, [xspeed, yspeed, bounciness]))
+    #TODO make this shit more efficient because string operations
+    data = list(map(chewnumber.decToFixedPoint, [xspeed, yspeed, bounciness]))
     #data[0]="00001111"
     returndata = [[]]
 
@@ -77,30 +78,24 @@ def connect(xspeed,yspeed,bounciness,isvertical):
     print("received data")
     print(returndata)
 
+    #todo remove this sstringwise conversion, it's slow
     formatdata=[[],[],[],[]]
     for i in range(0,8):
         formatdata[0].append(str(returndata[i][0]))
         formatdata[1].append(str(returndata[i][1]))
         formatdata[2].append(str(returndata[i][2]))
-        formatdata[3].append(str(returndata[i][3]))
+        formatdata[3].append(returndata[i][3])
 
-    newxspeed=chewnumber.intToDec(''.join(formatdata[0]))
-    newyspeed=chewnumber.intToDec(''.join(formatdata[1]))
-    paddlespeed=chewnumber.intToDec(''.join(formatdata[2]))
-    buttondata=''.join(formatdata[3])
-
-    if buttondata=="11111111":
-        buttons=(True,True)
-    elif buttondata=="11110000":
-        buttons=(True,False)
-    elif buttondata=="00001111":
-        buttons=(False,True)
-    elif buttondata=="00000000":
-        buttons=(False,False)
-    else:
-        print("invalid button data")
-        print(buttondata)
-        buttons = (False, False)
+    newxspeed=chewnumber.fixedPointToDec(''.join(formatdata[0]))
+    newyspeed=chewnumber.fixedPointToDec(''.join(formatdata[1]))
+    paddlespeed=chewnumber.fixedPointToDec(''.join(formatdata[2]))
+    buttondata=formatdata[3]
+    buttons=[False,False]
+    #TODO remove this stringwise checking, maybe use gmpy popcount
+    if buttondata[0:4].count(1)>=3:
+        buttons[0]=True
+    if buttondata[4:8].count(1)>=3:
+        buttons[1]=True
 
     return (newxspeed,newyspeed,paddlespeed,buttons)
 
@@ -135,11 +130,7 @@ def writeBank(on,off):
     initialisation.pi.set_bank_1(on)
 
 def readBank():
-    bankdata=initialisation.pi.read_bank_1()
-
-
-
-    return bankdata
+    return initialisation.pi.read_bank_1()
 
 
 
@@ -236,7 +227,7 @@ def closeConnection():
     initialisation.pi.stop()
 
 def main():
-    global debug
+    #global debug
     debug=True
     initialisation.initConnection()
     # WRITE THE VALUES YOU WANT TO SEND HERE

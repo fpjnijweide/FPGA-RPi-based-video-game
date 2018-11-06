@@ -11,7 +11,8 @@ import random
 # import time # TODO use pygame.time functionality instead
 # Ok so instead of time.time()  (s)
 # It's pygame.time.get_ticks() (ms)
-
+import initialisation
+import connection
 
 def init():
     """
@@ -20,6 +21,7 @@ def init():
     Note: creating a multiline string using triple quotation marks is how you create python documentation
     """
     # Initialize all pygame modules
+    initialisation.initConnection()
     pygame.mixer.pre_init(buffer=1024)
     pygame.display.init()
     pygame.font.init()
@@ -56,6 +58,7 @@ def main():
     Level generation etc should be defined in the objects.Game class
     """
     while True:
+
         # ==== Event handling ====
         # Internally process events
         pygame.event.pump()
@@ -173,9 +176,9 @@ class Game:
             self.gameover()
             return
 
-        if keyBindings.checkPress('left', keysPressed) and (self.paddle.rect.x > constants.WALLSIZE):
+        if (keyBindings.checkPress('left', keysPressed) or (self.buttons[0]==True)) and (self.paddle.rect.x > constants.WALLSIZE):
             self.paddle.rect.x -= constants.PADDLESPEED
-        if keyBindings.checkPress('right', keysPressed) and (self.paddle.rect.x + self.paddle.width < (constants.WINDOW_WIDTH - constants.WALLSIZE)):
+        if (keyBindings.checkPress('right', keysPressed) or (self.buttons[1]==True)) and (self.paddle.rect.x + self.paddle.width < (constants.WINDOW_WIDTH - constants.WALLSIZE)):
             self.paddle.rect.x += constants.PADDLESPEED
 
         # (re)set ball location when pressing K_HOME (cheat)
@@ -206,6 +209,9 @@ class Game:
         Updates sprites and stuff. Called once every frame while playing game.
         """
         # Handle collisions
+        #self.currenttime=pygame.time.get_ticks()
+        (newxspeed, newyspeed, newpaddlespeed, self.buttons)=connection.connect(self.playerBall.xspeed,self.playerBall.yspeed,1,False)
+        
         self.handleKeys(keystohandle)
         self.collisionHandler.evaluate()
         self.check_powerup_status()
