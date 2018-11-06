@@ -126,27 +126,36 @@ def connect(xspeed,yspeed,bounciness,isvertical):
     else:
         returndata=rwByteSequence(data)
 
-
+    formatdata3=[[],[],[],[]]
 
     #todo remove this sstringwise conversion, it's slow
-    formatdata=[[],[],[],[]]
-    formatdata2 = ['0b0','0b0','0b0','0b0']
-    returndata2 = list(map(chewnumber.fixedPointToDec, returndata))
+    # formatdata=[[],[],[],[]]
+    #formatdata2 = ['0b0','0b0','0b0','0b0']
+    # returndata2 = list(map(chewnumber.fixedPointToDec, returndata))
+
+    buttondata=[]
     for i in range(0,8):
-        formatdata[0].append(str(returndata[i][0]))
-        formatdata[1].append(str(returndata[i][1]))
-        formatdata[2].append(str(returndata[i][2]))
-        formatdata[3].append(returndata[i][3])
+         buttondata.append(returndata[i][3])
 
-        if (True):
-            for j in range(0, 3):
-                formatdata2[j] = (formatdata2[j]<<1) | returndata2[i][j]
 
-    print("DATA WITH BINARY OPERATIONS:", formatdata2)
-    newxspeed=chewnumber.fixedPointToDec(''.join(formatdata[0]))
-    newyspeed=chewnumber.fixedPointToDec(''.join(formatdata[1]))
-    paddlespeed=chewnumber.fixedPointToDec(''.join(formatdata[2]))
-    buttondata=formatdata[3]
+    decreasing = [7,6,5,4,3,2,1,0]
+    for i in range(1,8):
+        for j in range (0,3):
+            formatdata3[j] |= returndata[i][j]<<decreasing[i]
+
+    for num in range(0,3):
+        formatdata3[num] /=8
+        if returndata[0][num]==1:
+            formatdata3[num]*=-1
+#divide by 8
+    newxspeed = formatdata3[0]
+    newyspeed = formatdata3[1]
+    paddlespeed = formatdata3[2]
+
+    # print("DATA WITH BINARY OPERATIONS:", formatdata2)
+    # newxspeed=chewnumber.fixedPointToDec(''.join(formatdata[0]))
+    # newyspeed=chewnumber.fixedPointToDec(''.join(formatdata[1]))
+    # paddlespeed=chewnumber.fixedPointToDec(''.join(formatdata[2]))
     buttons=[False,False]
     #TODO remove this stringwise checking, maybe use gmpy popcount
     if buttondata[0:4].count(1)>=3:
