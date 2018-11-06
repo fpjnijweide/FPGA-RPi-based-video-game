@@ -7,9 +7,10 @@ p.nice(-19)
 pi = pigpio.pi('Dragon47')
 n=3
 
-
-pi.set_PWM_frequency(11, 1000)
-pi.set_PWM_dutycycle(11,127)
+#todo check if this is better
+#pi.hardware_clock(4,4689)
+pi.set_PWM_frequency(4, 1000)
+pi.set_PWM_dutycycle(4,127)
 
 
 pi.write(10, 1)
@@ -51,11 +52,13 @@ def rwbyte(pin):
     cycles = 0
     #TODO switch to threads instead of writing/reading sequentially
 
-    clock_value_previous = pi.read(11)
+    clock_value_previous = pi.read(4)
 
     while True:
-        clock_value_now = pi.read(11)
+        #print("reading pin")
+        clock_value_now = pi.read(4)
         if (clock_value_now != clock_value_previous and clock_value_now == 1):
+            print("cycle")
             if cycles==0:
                 pi.write(10, 0)
 
@@ -72,6 +75,7 @@ def rwbyte(pin):
     
 
 for i in range(60):
+    print("trying")
     print(rwbyte(16))
 
     #select += 1

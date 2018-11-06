@@ -1,7 +1,6 @@
 import pygame
 import constants
 import random
-# import time
 
 
 class Block(pygame.sprite.Sprite):
@@ -11,11 +10,11 @@ class Block(pygame.sprite.Sprite):
     @staticmethod
     def generateType():
         throwdice = random.randint(1, 100)
-        if throwdice >= 70 and throwdice<85:
+        if 70 <= throwdice < 85:
             return "green"
-        elif throwdice >= 85 and throwdice<95:
+        elif 85 <= throwdice < 95:
             return "blue"
-        elif throwdice >= 95:
+        elif 95 <= throwdice:
             return "red"
         else:
             return "default"
@@ -33,15 +32,15 @@ class Block(pygame.sprite.Sprite):
         if type=="red":
             color=constants.colors["RED"]
             self.initialhp = constants.BLOCK_INITIAL_HP*8
-            self.score = 70
+            self.score = 40
         if type=="green":
             color=constants.colors["GREEN"]
             self.initialhp = constants.BLOCK_INITIAL_HP*3
-            self.score = 30
+            self.score = 20
         if type=="blue":
             color=constants.colors["BLUE"]
             self.initialhp = constants.BLOCK_INITIAL_HP*5
-            self.score = 40
+            self.score = 30
 
         self.type = type
         self.powertype = self.type
@@ -147,26 +146,21 @@ class Ball(pygame.sprite.Sprite):
         pygame.draw.circle(self.image, self.color, [self.radius,self.radius], self.radius)
         self.rect = self.image.get_rect()
 
-    def bounce(self, bounceIsVertical):
-        """
-        Used in conjunction with 
-        """
-        # This function should 
-        # but until the connection is realized this function will take care of that.
-        # pygame.time.delay(99)
-        if constants.FPGA_ENABLED:
-            #self.rect.x, self.rect.y = fpga_connection.sendBounce(bounceIsVertical, self.xspeed, self.yspeed, bounceConstant)
-            pass
-        else:
-            # If collision on an axis has already happened this frame,
-            # then don't bounce
-            if bounceIsVertical and not self.col_this_frame[0]:
-                self.xspeed *= -1
-                self.col_this_frame[0] = True
+    def bounce(self, bounceIsVertical, returnvals):
 
-            elif not (bounceIsVertical or self.col_this_frame[1]):
-                self.yspeed *= -1
-                self.col_this_frame[1] = True
+        if constants.XSPEED_ENABLED:
+            self.xspeed = returnvals[0]
+        elif (bounceIsVertical) and not self.col_this_frame[0]:
+            self.xspeed *= -1
+            self.col_this_frame[0] = True
+
+        if constants.YSPEED_ENABLED:
+            self.yspeed = returnvals[1]
+        elif not (bounceIsVertical or self.col_this_frame[1]):
+            self.yspeed *= -1
+            self.col_this_frame[1]=True
+
+
 
     def update(self):
         """update ball location"""
@@ -211,7 +205,7 @@ class Paddle(pygame.sprite.Sprite):
         self.active_power = []
 
         self.laser = False
-        self.laser_freq = 40
+        self.laser_freq = 25
         self.last_laser = 0
 
         self.game = game

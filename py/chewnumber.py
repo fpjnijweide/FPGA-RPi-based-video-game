@@ -25,7 +25,7 @@ def decToFixedPoint(decimal):
         binary=orginal_binary[2:]
 
 
-    if len(binary) > 7:
+    if len(binary) > 8:
         print("overflow")
         return "overflow"
 
@@ -42,6 +42,7 @@ def decToFixedPoint(decimal):
     return binary
 
 def fixedPointToDec(fixedpoint):
+    #fixedpoint = fixedpoint[1:]
     if fixedpoint[0]=='1':
         isnegative=True
     else:
@@ -111,6 +112,6 @@ def minifloatToBin(minifloat):
         minifloat = float(minifloat)/10
     exponent = bin(exp)[2:]
     for i in range(4-len(exponent)):
-        exponent = "0" + exponent
+        exponent =  exponent
     res = sign + exponent + mantissa
     return res

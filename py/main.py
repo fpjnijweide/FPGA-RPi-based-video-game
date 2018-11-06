@@ -8,12 +8,12 @@ Sensor Pong
 import pygame, sys, math
 import objects, constants, keyBindings, sensordb
 import random
-# import time # TODO use pygame.time functionality instead
+# import time # use pygame.time functionality instead
 # Ok so instead of time.time()  (s)
 # It's pygame.time.get_ticks() (ms)
-
-# if constants.FPGA_ENABLED:
-#     import FPGA
+if constants.FPGA_ENABLED:
+    import initialisation
+    import connection
 
 
 def init():
@@ -23,6 +23,9 @@ def init():
     Note: creating a multiline string using triple quotation marks is how you create python documentation
     """
     # Initialize all pygame modules
+    if constants.FPGA_ENABLED:
+        initialisation.initConnection()
+
     pygame.mixer.pre_init(buffer=1024)  # lower buffer for reduced delay
     pygame.display.init()
     pygame.font.init()
@@ -59,11 +62,10 @@ def main():
     Level generation etc should be defined in the objects.Game class
     """
     while True:
+
         # ==== Event handling ====
         # Internally process events
         pygame.event.pump()
-        # Iterate through each event
-
         # When the game window's [x] is pressed,
         # or a keypress leads to a quit event being posted
         if pygame.event.peek(pygame.QUIT):
@@ -93,11 +95,11 @@ def main():
                                                     constants.colors['WHITE'])
             Screen.blit(fps, (50, 50))
 
-        # Update entire graphical display, TODO can be heavily optimized
+        # Update entire graphical display, can be heavily optimized
         # (by using display.update() and passing it only the screen area that needs to be updated)
         # see https://www.pygame.org/docs/tut/newbieguide.html and look for "Dirty rect animation." section
-        # pygame.display.flip()
-        # pygame.display.update(dirty_rects)
+        #
+        # However, doing that requires many, many code changes and is not worth doing as of now.
 
         pygame.display.flip()
 
@@ -111,7 +113,6 @@ class Game:
     """
     # define variables to be initialized
     score = None
-    # scoreMult = None
 
     playerBall = None
     paddle = None
@@ -120,6 +121,8 @@ class Game:
     walls = [None, None, None, None]
     PowerUps = None
     currentPowerUps = None
+    wasThereABounceThisFrame = None
+    buttons=None
 
     # TODO allow player to set name somehow, or remove names altogether
     player_name = 'Player'
@@ -132,6 +135,10 @@ class Game:
         self.AllSpritesList = pygame.sprite.Group()
         self.CollisionSpritesList = pygame.sprite.Group()
         self.powerUpSpritesList = pygame.sprite.Group()
+
+        self.wasThereABounceThisFrame = False
+        self.buttons= (False,False)
+
         self.laserList = pygame.sprite.Group()
 
         # Create Ball object
@@ -153,10 +160,6 @@ class Game:
         self.blocklist=[]
         self.currentPowerUps=[]
 
-        # Play some music!
-        # use one of these
-        # AudioObj.playMusic('highScore')
-        # AudioObj.playMusic('menu')
         AudioObj.playMusic('main')
 
         # Create 4 walls
@@ -177,14 +180,13 @@ class Game:
         keysPressed = pygame.key.get_pressed()
 
         if keyBindings.checkPress('exit', keysPressed):
-            # self.gameover()
             self.nextGameState = MainMenu()
-            # Note: score is not saved
+            # Note: score is not saved, gameover() is not called
             return
 
-        if keyBindings.checkPress('left', keysPressed) and (self.paddle.rect.x > constants.WALLSIZE):
+        if (keyBindings.checkPress('left', keysPressed) or (self.buttons[0]==True)) and (self.paddle.rect.x > constants.WALLSIZE):
             self.paddle.rect.x -= constants.PADDLESPEED
-        if keyBindings.checkPress('right', keysPressed) and (self.paddle.rect.x + self.paddle.width < (constants.WINDOW_WIDTH - constants.WALLSIZE)):
+        if (keyBindings.checkPress('right', keysPressed) or (self.buttons[1]==True)) and (self.paddle.rect.x + self.paddle.width < (constants.WINDOW_WIDTH - constants.WALLSIZE)):
             self.paddle.rect.x += constants.PADDLESPEED
 
         # (re)set ball location when pressing K_HOME (cheat)
@@ -193,6 +195,20 @@ class Game:
 
         if keyBindings.checkPress('activate', keysPressed):
             pass
+
+    #This is used to move the paddle using the information received from the accelerometer
+    def handleTilt(self, tilt_value):
+        #TODO change range for changing paddle size?
+        range = constants.WINDOW_WIDTH - 2*constants.WALLSIZE - self.paddle.width
+        multiplier = (range/(2*constants.FIXEDPOINTMAX))*1.2
+        newx = int(tilt_value*multiplier) + 400
+        if (newx > constants.WALLSIZE and (newx + self.paddle.width) < (constants.WINDOW_WIDTH - constants.WALLSIZE)):
+            self.paddle.rect.x = newx
+        elif (newx <= constants.WALLSIZE):
+            newx=constants.WALLSIZE
+        elif (newx + self.paddle.width) >= (constants.WINDOW_WIDTH - constants.WALLSIZE):
+            newx=constants.WINDOW_WIDTH - constants.WALLSIZE - self.paddle.width
+        self.paddle.rect.x=newx
 
     def check_powerup_status(self):
         for p in self.currentPowerUps:
@@ -208,7 +224,10 @@ class Game:
         Updates sprites and stuff. Called once every frame while playing game.
         """
         # Handle collisions
+        self.wasThereABounceThisFrame = False
+        
         self.handleKeys()
+
         self.collisionHandler.evaluate()
         self.check_powerup_status()
 
@@ -233,8 +252,13 @@ class Game:
         score_rect.right = constants.WINDOW_WIDTH - constants.WALLSIZE - 20
         score_rect.y = 50
         Screen.blit(score_view, score_rect)
-
-        # pygame.time.delay(50)
+        if (not self.wasThereABounceThisFrame) and constants.FPGA_ENABLED:
+            returnvals=connection.readData()
+            if constants.PADDLESPEED_ENABLED:
+                accelerometerValue = returnvals[0]
+                self.handleTilt(accelerometerValue)
+            if constants.BUTTONS_ENABLED:
+                self.buttons = returnvals[1]
 
     def removeblock(self, obj1):
         self.AllSpritesList.remove(obj1)
@@ -244,10 +268,8 @@ class Game:
         del obj1
 
     def init_grid(self):
-        # Okay i tried to rewrite this so we dont need to install numpy for a single line of code
-        # self.grid = np.ndarray(([constants.GRIDY,constants.GRIDX]),dtype=np.object)
-
         self.grid = []
+
         # grid is list of Y lists with X items (initialized to none)
         for row in range(0, constants.GRIDY):
             # each row contains list like [None, None, None, ...]
@@ -265,11 +287,10 @@ class Game:
         if not self.grid[newblock.y_on_grid][newblock.x_on_grid]:
             block_x = constants.GRIDMARGIN + self.blocksize*newblock.x_on_grid + constants.BLOCKMARGIN
             block_y = constants.GRIDMARGIN + self.blocksize*newblock.y_on_grid + constants.BLOCKMARGIN
-            ball_x = self.playerBall.rect.x
-            ball_y = self.playerBall.rect.y
-            # block will not spawn too close to the ball
-            # note that the distance is measure from the top-left
-            #   of both rects, and not from the center
+            ball_x = self.playerBall.rect.center[0]
+            ball_y = self.playerBall.rect.center[1]
+
+            # Block will not spawn too close to the ball
             if math.hypot(block_x - ball_x, block_y - ball_y) >= constants.MINSPAWNDIST:
 
                 newblock.rect.x = block_x
@@ -284,10 +305,14 @@ class Game:
         self.score += points
 
     def gameover(self):
-        ishigh = sensordb.insertscore(self.player_name, self.score)
-        # is_hiscore = sensordb.get_highscore(self.score)
 
-        # pygame.time.delay(500)
+        ishigh = sensordb.insertscore(self.player_name, self.score)
+
+        print('%s got a score of %d' % (self.player_name, self.score))
+        if ishigh:
+            print('New Highscore!')
+        print()
+
         AudioObj.playSound('gameover')
         self.nextGameState = GameOver(self, ishigh)
 
@@ -302,7 +327,10 @@ class CollisionHandling:
     def evaluate(self):
         self.handle_ball_collisions()
         self.handle_power_up_collisions()
-        self.handle_laser_collisions()
+
+        # Only handle laser colls if there are laser objects
+        if len(self.game.laserList) > 0:
+            self.handle_laser_collisions()
 
     def handle_ball_collisions(self):
         """
@@ -347,8 +375,18 @@ class CollisionHandling:
 
             isVertical = CollisionHandling.find_bounce_is_vertical(self.game.playerBall, c)
 
-            self.game.playerBall.bounce(isVertical)
-
+            if constants.FPGA_ENABLED:
+                returnvals=connection.connect(self.game.playerBall.xspeed,self.game.playerBall.yspeed,1,isVertical)
+                self.game.playerBall.bounce(isVertical,returnvals)
+                if constants.PADDLESPEED_ENABLED:
+                    #self.game.paddle.rect.x = returnvals[2]
+                    accelerometerValue = returnvals[2]
+                    self.game.handleTilt(accelerometerValue)
+                if constants.BUTTONS_ENABLED:
+                    self.game.buttons = returnvals[3]
+            else:
+                self.game.playerBall.bounce(isVertical,[])
+                self.game.wasThereABounceThisFrame = True
             # Should be handled at the object collided with, not here
             AudioObj.playSound('bounce')
 
@@ -362,8 +400,6 @@ class CollisionHandling:
             powerup_color=constants.colors[  powerup_properties[1]  ]
             factor = powerup_properties[5]
 
-
-
             if powerup_properties[3]=="ball":
                 powerup_object=self.game.playerBall
             elif powerup_properties[3]=="paddle":
@@ -373,7 +409,7 @@ class CollisionHandling:
             skip = False
             # Do not activate if it is already, but do extend the time
             for entry in self.game.currentPowerUps:
-                if powerup_entry[1] == entry [1] and powerup_entry is not entry:
+                if powerup_entry[1] == entry[1] and powerup_entry is not entry:
                     skip = True
             if not skip:
                 if powerup_properties[4]=="radius":
@@ -398,6 +434,8 @@ class CollisionHandling:
             self.game.AllSpritesList.remove(c)
             self.game.powerUpSpritesList.remove(c)
 
+            AudioObj.playSound('powerup')
+
     def handle_laser_collisions(self):
         laser_colls = pygame.sprite.groupcollide(self.game.laserList, self.game.AllSpritesList, False, False)
         for c1 in laser_colls.keys():
@@ -405,7 +443,7 @@ class CollisionHandling:
                 if c1 is not c2:
                     if isinstance(c2, objects.Block):
                         self.game.removeblock(c2)
-                        self.game.inc_score(10)
+                        self.game.inc_score(50)
 
                     elif isinstance(c2, objects.Wall) and c2.name == 'top_wall':
                         self.game.AllSpritesList.remove(c1)
@@ -440,7 +478,10 @@ class CollisionHandling:
         top = top_left <= ball_in_angle < top_right
         bottom = bot_right <= ball_in_angle < bot_left
 
-        return not (top or bottom)
+        isVertical= not (top or bottom)
+
+        return isVertical
+
 
 
 class MainMenu:
@@ -472,8 +513,6 @@ class MainMenu:
     # menuItems = [mainmenu, optionsmenu, highscoremenu, startgamemenu]
     menuItems = None
     menucolor = None
-    ## revamp ##
-    entries = None
 
     def __init__(self):
         pygame.display.set_caption(constants.GAME_NAME + ' - Main menu' )
@@ -491,17 +530,12 @@ class MainMenu:
         self.menuItems = {0: self.startgamemenu, 1: self.highscoremenu, 2: self.optionsmenu, 3: self.exitmenu}
         self.selectedItem = 0
 
-        # self.mainmenu_Width = constants.WINDOW_WIDTH // 2 - self.mainmenu.width//2
-        # self.mainmenu_Height = constants.WINDOW_HEIGHT*1/4 - self.mainmenu.height//2
-        # self.widths = [ self.mainmenu_Width + constants.MAINFONT, self.widths[0] + constants.SUBFONT,
-        #                self.widths[2] + constants.SUBFONT, self.widths[3] + constants.SUBFONT ]
         self.mainmenu_Width = constants.WINDOW_WIDTH // 2 - self.mainmenu.width//2
-        self.startgamemenu_Width = 30 #constants.WINDOW_WIDTH/1000 # + self.startgamemenu.get_width()//2
+        self.startgamemenu_Width = 30
         self.highscoremenu_Width = self.startgamemenu_Width + self.startgamemenu.width
         self.optionsmenu_Width = self.highscoremenu_Width + self.highscoremenu.width
         self.exitmenu_Width = self.optionsmenu_Width + self.optionsmenu.width
-        # self.heights = {0: self.mainmenu_Height + constants.MAINFONT, 1: self.heights[0] + constants.SUBFONT,
-        #                 2: self.heighs[2] + constants.SUBFONT, 3: self.heights[3] + constants.SUBFONT }
+
         self.mainmenu_Height = constants.WINDOW_HEIGHT*1/4 - self.mainmenu.height//2
         self.startgamemenu_Height = self.mainmenu_Height + constants.MAINFONT
         self.highscoremenu_Height = self.startgamemenu_Height + constants.SUBFONT
@@ -510,7 +544,6 @@ class MainMenu:
 
         AudioObj.playMusic('menu')
 
-        # self.lastpressed = pygame.time.get_ticks()
         self.nextGameState = self
 
         pygame.event.clear()
@@ -535,14 +568,6 @@ class MainMenu:
 
             self.width = self.text.get_width()
             self.height = self.text.get_height()
-
-    # def checkinbounds(self):
-    #     now = pygame.time.get_ticks()
-    #     if (now - self.lastpressed) >= (1000/constants.MAINMENUMOVES):
-    #         self.lastpressed = now
-    #         return True
-    #     else:
-    #         return False
 
     def handleKeys(self):
 
@@ -592,8 +617,6 @@ class MainMenu:
         Screen.blit(self.menuItems[2].text, (self.optionsmenu_Width, self.optionsmenu_Height))
         Screen.blit(self.menuItems[3].text, (self.exitmenu_Width, self.exitmenu_Height))
 
-        # pygame.time.delay(80)
-
 
 class HighScores:
     """
@@ -637,30 +660,14 @@ class HighScores:
             if (chosenfont is None) or (chosenfont == self.parent.subFont):
                 self.text = self.parent.subFont.render(text, False, constants.colors['GREEN'])
             elif chosenfont == self.parent.mainFont:
-                # print('main')
                 self.text = self.parent.mainFont.render(text, False, constants.colors['WHITE'])
             elif chosenfont == self.parent.pageFont:
-                # print('pagefont')
                 self.text = self.parent.pageFont.render(text, False, constants.colors['WHITE'])
             else:
-                # print('high')
                 self.text = self.parent.highlight.render(text, False, constants.colors['RED'])
 
             self.width = self.text.get_width()
             self.height = self.text.get_height()
-        # def settext(self, newtext, chosenfont=None):
-        #     if chosenfont == (None or self.parent.subFont):
-        #         # print('none')
-        #         self.text = self.parent.subFont.render(newtext, False, constants.colors['GREEN'])
-        #     elif chosenfont == self.parent.mainFont:
-        #         # print('main')
-        #         self.text = self.parent.mainFont.render(newtext, False, constants.colors['WHITE'])
-        #     elif chosenfont == self.parent.pageFont:
-        #         # print('pagefont')
-        #         self.text = self.parent.pageFont.render(newtext, False, constants.colors['WHITE'])
-        #     else:
-        #         # print('high')
-        #         self.text = self.parent.highlight.render(newtext, False, constants.colors['RED'])
 
     def handleKeys(self):
         key_down = pygame.event.get(pygame.KEYDOWN)
@@ -672,34 +679,26 @@ class HighScores:
 
         if keyBindings.checkDown('left', key_down):
             if self.window == 0:
-                # print('should start mainmenu...')
                 self.nextGameState = MainMenu()
             else:
                 self.window = self.window - 1
                 scores = sensordb.get_scores(offset=(constants.SHOW * self.window))
-                # print('new set:' + str(scores))
                 self.rows = [None] * constants.SHOW
                 for x in range(0, len(scores)):
-                    # print('concat is: ' + scores[x][0] + ' ' + str(scores[x][1]))
                     self.rows[x] = self.highField('{:<9.9s}   {:>4d}'
                                                   .format(scores[x][0], scores[x][1]), self)
-            # print('current:' + str(self.window))
 
         if keyBindings.checkDown('right', key_down):
             sumNone = sum(x is None for x in self.rows)
-            # print('entered with window:', self.window)
             if sumNone != 0:
                 pass
             else:
                 self.window = self.window + 1
                 scores = sensordb.get_scores(constants.SHOW*self.window)
-                # print('new set:' + str(scores))
                 self.rows = [None] * constants.SHOW
                 for x in range(0, len(scores)):
-                    # print('concat is: ' + scores[x][0] + ' ' + str(scores[x][1]))
                     self.rows[x] = self.highField('{:<9.9s}   {:>4d}'
                                                   .format(scores[x][0], scores[x][1]), self)
-        # print('current:' + str(self.window))
 
     def update(self):
         self.handleKeys()
@@ -721,8 +720,6 @@ class HighScores:
                 i = i + 1
         pagecount = self.highField(str(self.window) + '/' + str(self.pages), self, self.pageFont)
         Screen.blit(pagecount.text, (constants.WINDOW_WIDTH - pagecount.width - 20, constants.WINDOW_HEIGHT - pagecount.height - 20))
-
-        # pygame.time.delay(80)
 
         return self.nextGameState
 
@@ -837,6 +834,11 @@ class Audio:
 
         self.gameSounds[soundName].play(0)
 
+    def playandduck(self, soundName):
+
+        if not constants.SOUND:
+            return
+
 
 # Execute init() and main() only when program is run directly (not imported)
 # Note: this needs to be at the end of this file,
@@ -851,6 +853,8 @@ if __name__ == '__main__':
     # Game loop broken, program exits
     pygame.quit()
 
+    if constants.FPGA_ENABLED:
+        connection.closeConnection()
     print("\n\nThank you for playing %s!\n\n" % constants.GAME_NAME)
 
     sys.exit()

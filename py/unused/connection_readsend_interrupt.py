@@ -1,6 +1,6 @@
 #Is slower and works worse than just polling the clock
 
-
+import constants
 # Initialize pigpio daemon
 from subprocess import call
 call(["sudo", "pigpiod"])
@@ -20,9 +20,11 @@ pi = pigpio.pi('Dragon47')
 n=3
 
 
-pi.set_PWM_frequency(11, 2000)
-pi.set_PWM_dutycycle(11,100)
 
+
+#pi.hardware_clock(4,4689)
+pi.set_PWM_frequency(4, constants.CLOCKSPEED)
+pi.set_PWM_dutycycle(4, constants.DUTYCYCLE)
 
 pi.write(10, 1)
 
@@ -66,8 +68,8 @@ def clockcycler(gpio, level, tick):
     global cb2
     global running
     global totalattempts
-
-    tally=cb2.tally()
+    print("cycle")
+    #tally=cb2.tally()
     cycle=tally%9
 
     if cycle==0:
@@ -104,8 +106,8 @@ running=True
 
 cb1 = pi.callback(11, pigpio.RISING_EDGE, clockcycler) #this should go outside  while loop, why is it so slow?
 
-global cb2
-cb2 = pi.callback(11, pigpio.RISING_EDGE)
+#global cb2
+#cb2 = pi.callback(4, pigpio.RISING_EDGE)
 
 #TODO fix this
 while not exit.is_set():

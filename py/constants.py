@@ -3,21 +3,30 @@
 GAME_NAME = "Sensor Pong" # use this when referencing the game name so that we can easily change it
 
 # GPIO pin definitions
-READ_PINS={"XSPEED":23,
-           "YSPEED":24,
-           "PADDLESPEED":25,
-           "BUTTONS":26}
-WRITE_PINS={"XSPEED":17,
-            "YSPEED":18,
-            "BOUNCINESS":27,
-            "IS_VERTICAL":22}
-CLOCK_PIN=11
+# TODO check if we can still use dictionary in threads? Sequentially, it does not work.
+# READ_PINS={"XSPEED:23,
+#            "YSPEED":24,
+#            "PADDLESPEED":25,
+#            "BUTTONS":26}
+# WRITE_PINS={"XSPEED":17,
+#             "YSPEED":18,
+#             "BOUNCINESS":27,
+#             "IS_VERTICAL":22}
+READ_PINS=[("XSPEED",16),("YSPEED",17),("PADDLESPEED",18),("BUTTONS",19)] #name, BCM
+WRITE_PINS=[("XSPEED",23),("YSPEED",24),("BOUNCINESS",25),("IS_VERTICAL",26)]#name, BCM
+CLOCK_PIN=20
 MOSI_PIN=10
-CLOCKSPEED=1000
-DUTYCYCLE=127
+SLAVESELECT_PIN = 9
+CLOCKSPEED=1500
+DUTYCYCLE=128
 
 # Offload functions to FPGA and receive from FPGA
-FPGA_ENABLED = False
+XSPEED_ENABLED = True
+YSPEED_ENABLED = False
+PADDLESPEED_ENABLED = False
+BUTTONS_ENABLED = True
+FPGA_ENABLED = XSPEED_ENABLED or YSPEED_ENABLED or PADDLESPEED_ENABLED or BUTTONS_ENABLED
+
 
 # Do we send and receive data over GPIO at same time, or wait?
 GPIO_SEND_RECEIVE_AT_ONCE=False
@@ -55,6 +64,8 @@ INITIAL_BALL_YSPEED = INITIAL_BALL_XSPEED
 
 # Wall size
 WALLSIZE = 20
+#Fixed point size
+FIXEDPOINTMAX=15.875
 
 # Paddle size
 PADDLEWIDTH  = 113
@@ -109,17 +120,14 @@ colors = {
 # Audio track mapping
 # 'audioName':('relative/path/to/file', volume)
 sounds = {
-        'bounce': ('../resources/audio/bounce.ogg', 0.11),
-        'gameover':('../resources/audio/dead.ogg', 0.25)
-#        'wallCollision':'../resources/audio/bounce.wav',
-#        'blockbreak':'../resources/sound/bounce2.wav'
+        'bounce': ('../resources/audio/bounce.ogg', 0.09),
+        'gameover':('../resources/audio/dead.ogg', 0.27),
+        'powerup':('../resources/audio/powerup.ogg', 0.3)
 }
-music  = {
+music = {
         'main': ('../resources/audio/main.ogg', 1.0),
-        'menu': ('../resources/audio/menu.ogg', 0.6),
+        'menu': ('../resources/audio/menu.ogg', 0.7),
         'highScore': ('../resources/audio/hiscore.ogg', 0.4)
-#        'newGame': '../resources/audio/<file>.ogg',
-#        'gameOver': '../resources/audio/<file>.ogg',
 }
 # ms for music to fade out when switching screens
 MUSICFADE = 1000
