@@ -762,7 +762,7 @@ if __name__ == '__main__':
     pygame.quit()
 
     if constants.FPGA_ENABLED:
-        connection.closeConnection():
+        connection.closeConnection()
     print("\n\nThank you for playing %s!\n\n" % constants.GAME_NAME)
 
     sys.exit()
