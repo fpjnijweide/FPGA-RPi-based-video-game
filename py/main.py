@@ -525,13 +525,13 @@ class MainMenu:
             self.parent = parent
             if chosenfont == (None or self.parent.subFont):
                 # print('none')
-                self.text = self.parent.subFont.render(text, False, constants.colors['GREEN'])
+                self.text = self.parent.subFont.render(text, False, constants.colors['WHITE'])
             elif chosenfont == self.parent.mainFont:
                 # print('main')
                 self.text = self.parent.mainFont.render(text, False, constants.colors['WHITE'])
             else:
                 # print('high')
-                self.text = self.parent.highlight.render(text, False, constants.colors['RED'])
+                self.text = self.parent.highlight.render(text, False, constants.colors['WHITE'])
 
             self.width = self.text.get_width()
             self.height = self.text.get_height()
