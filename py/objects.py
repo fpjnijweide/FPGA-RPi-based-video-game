@@ -1,6 +1,7 @@
 import pygame
 import constants
 import random
+import connection
 # import time
 
 
@@ -127,7 +128,7 @@ class Ball(pygame.sprite.Sprite):
         pygame.draw.circle(self.image, self.color, [self.radius,self.radius], self.radius)
         self.rect = self.image.get_rect()
 
-    def bounce(self, bounceIsVertical):
+    def bounce(self, bounceIsVertical, returnvals):
         """
         Used in conjunction with 
         """
@@ -135,8 +136,14 @@ class Ball(pygame.sprite.Sprite):
         # but until the connection is realized this function will take care of that.
         # pygame.time.delay(99)
         if constants.FPGA_ENABLED:
-            #self.rect.x, self.rect.y = fpga_connection.sendBounce(bounceIsVertical, self.xspeed, self.yspeed, bounceConstant)
-            pass
+            if bounceIsVertical and not self.col_this_frame[0]:
+                (self.xspeed, newyspeed, newpaddlespeed, buttons)=returnvals
+                self.col_this_frame[0] = True
+
+            elif not (bounceIsVertical or self.col_this_frame[1]):
+                (self.xspeed, newyspeed, newpaddlespeed, buttons)=returnvals
+                self.yspeed *= -1
+                self.col_this_frame[1] = True            
         else:
             # If collision on an axis has already happened this frame,
             # then don't bounce

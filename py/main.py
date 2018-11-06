@@ -345,8 +345,12 @@ class CollisionHandling:
 
             isVertical = CollisionHandling.find_bounce_is_vertical(self.game.playerBall, c)
 
-            self.game.playerBall.bounce(isVertical)
-
+            if constants.FPGA_ENABLED:
+                returnvals=connection.connect(self.xspeed,self.playerBall.yspeed,1,bounceIsVertical)
+                self.game.playerBall.bounce(isVertical,returnvals)
+            else:
+                self.game.playerBall.bounce(isVertical,[])
+            GameStateObj.wasThereABounceThisFrame = True  
             # Should be handled at the object collided with, not here
             AudioObj.playSound('bounce')
 
@@ -414,9 +418,7 @@ class CollisionHandling:
         bottom = bot_right < ball_in_angle <= bot_left
 
         isVertical= not (top or bottom)
-        if constants.FPGA_ENABLED:
-            (GameStateObj.playerBall.xspeed, newyspeed, newpaddlespeed, GameStateObj.buttons)=connection.connect(GameStateObj.playerBall.xspeed,GameStateObj.playerBall.yspeed,1,isVertical)
-        GameStateObj.wasThereABounceThisFrame = True
+
         return isVertical
 
 

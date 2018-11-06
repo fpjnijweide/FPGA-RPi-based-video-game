@@ -288,7 +288,7 @@ def main():
     # WRITE THE VALUES YOU WANT TO SEND HERE
     xspeed = -3
     yspeed = 2
-    bounciness = 2
+    bounciness = 3
     isvertical = False
 
     print("(xspeed,yspeed,bounciness,isvertical)")

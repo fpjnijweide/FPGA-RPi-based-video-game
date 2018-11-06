@@ -22,7 +22,7 @@ CLOCKSPEED=1500
 DUTYCYCLE=128
 
 # Offload functions to FPGA and receive from FPGA
-FPGA_ENABLED = False
+FPGA_ENABLED = True     
 
 # Do we send and receive data over GPIO at same time, or wait?
 GPIO_SEND_RECEIVE_AT_ONCE=False
