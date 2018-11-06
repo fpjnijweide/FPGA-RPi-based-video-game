@@ -82,21 +82,32 @@ def readData():
         receivedData[cycle]=[pin1,pin2,pin3,pin4]
 
         #todo remove this sstringwise conversion, it's slow
-    formatdata=[[],[],[],[]]
-    for i in range(0,8):
+    buttondata = []
+    for i in range(0, 8):
+        buttondata.append(receivedData[i][3])
 
-        formatdata[2].append(str(receivedData[i][2]))
-        formatdata[3].append(receivedData[i][3])
+    formatdata3 = [0, 0, 0, 0]
 
+    for j in range(2, 3):
+        for i in range(1, 8):
+            formatdata3[j] |= receivedData[i][j] << receivedData[i]
 
-    paddlespeed=chewnumber.fixedPointToDec(''.join(formatdata[2]))
-    buttondata=formatdata[3]
-    buttons=[False,False]
-    #TODO remove this stringwise checking, maybe use gmpy popcount
-    if buttondata[0:4].count(1)>=3:
-        buttons[0]=True
-    if buttondata[4:8].count(1)>=3:
-        buttons[1]=True
+    for num in range(2, 3):
+        formatdata3[num] /= 8
+        if receivedData[0][num] == 1:
+            formatdata3[num] *= -1
+    paddlespeed = formatdata3[2]
+
+    # print("DATA WITH BINARY OPERATIONS:", formatdata2)
+    # newxspeed=chewnumber.fixedPointToDec(''.join(formatdata[0]))
+    # newyspeed=chewnumber.fixedPointToDec(''.join(formatdata[1]))
+    # paddlespeed=chewnumber.fixedPointToDec(''.join(formatdata[2]))
+    buttons = [False, False]
+    # TODO remove this stringwise checking, maybe use gmpy popcount
+    if buttondata[0:4].count(1) >= 3:
+        buttons[0] = True
+    if buttondata[4:8].count(1) >= 3:
+        buttons[1] = True
 
 
     return (paddlespeed,buttons)
@@ -110,15 +121,30 @@ def connect(xspeed,yspeed,bounciness,isvertical):
     print("xspeed,yspeed,bounciness,isvertical")
     print(xspeed,yspeed,bounciness,isvertical)
 
+    data= [[],[],[]]
+
+    datalist=[xspeed*8,yspeed*8,bounciness*8]
+    decreasing = [7, 6, 5, 4, 3, 2, 1, 0]
+    for value in range(0,3):
+        for i in range(0,7):
+            data[value].append(datalist[value] >> i & 1)
+        if datalist[value]<0:
+            data[value]=[1]+data[value]
+        else:
+            data[value] = [0] + data[value]
+
+
+
+
     #TODO make this shit more efficient because string operations
-    data = list(map(chewnumber.decToFixedPoint, [xspeed, yspeed, bounciness]))
+    #data = list(map(chewnumber.decToFixedPoint, [xspeed, yspeed, bounciness]))
     #data[0]="00001111"
-    returndata = [[]]
+    #returndata = [[]]
 
     if isvertical:
-        data.append("111111111")
+        data.append([1]*8)
     else:
-        data.append("000000000")
+        data.append([0]*8)
 
     if constants.GPIO_SEND_RECEIVE_AT_ONCE: #send and receive at same time
         print(data)
@@ -129,17 +155,31 @@ def connect(xspeed,yspeed,bounciness,isvertical):
 
 
     #todo remove this sstringwise conversion, it's slow
-    formatdata=[[],[],[],[]]
-    for i in range(0,8):
-        formatdata[0].append(str(returndata[i][0]))
-        formatdata[1].append(str(returndata[i][1]))
-        formatdata[2].append(str(returndata[i][2]))
-        formatdata[3].append(returndata[i][3])
 
-    newxspeed=chewnumber.fixedPointToDec(''.join(formatdata[0]))
-    newyspeed=chewnumber.fixedPointToDec(''.join(formatdata[1]))
-    paddlespeed=chewnumber.fixedPointToDec(''.join(formatdata[2]))
-    buttondata=formatdata[3]
+
+    buttondata=[]
+    for i in range(0,8):
+         buttondata.append(returndata[i][3])
+
+    formatdata3=[0,0,0,0]
+
+    for j in range (0,3):
+        for i in range (1,8):
+            formatdata3[j] |= returndata[i][j]<<decreasing[i]
+
+    for num in range(0,3):
+        formatdata3[num] /=8
+        if returndata[0][num]==1:
+            formatdata3[num]*=-1
+
+    newxspeed = formatdata3[0]
+    newyspeed = formatdata3[1]
+    paddlespeed = formatdata3[2]
+
+    # print("DATA WITH BINARY OPERATIONS:", formatdata2)
+    # newxspeed=chewnumber.fixedPointToDec(''.join(formatdata[0]))
+    # newyspeed=chewnumber.fixedPointToDec(''.join(formatdata[1]))
+    # paddlespeed=chewnumber.fixedPointToDec(''.join(formatdata[2]))
     buttons=[False,False]
     #TODO remove this stringwise checking, maybe use gmpy popcount
     if buttondata[0:4].count(1)>=3:
@@ -241,7 +281,7 @@ def rwByteSequence(data):
                 #fpgaShouldWrite() #actually receiving
                # activateSlave()
                # receivedBits = threaded_pin.readBit()
-                
+
                # if currentCycle >= 12:
                 #    receivedData.append(receivedBits)
             #elif currentCycle>=20:
