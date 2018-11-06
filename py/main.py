@@ -8,7 +8,7 @@ Sensor Pong
 import pygame, sys, math
 import objects, constants, keyBindings, sensordb
 import random
-from lib import pygame
+from lib import pygame_textinput
 # import time # use pygame.time functionality instead
 # Ok so instead of time.time()  (s)
 # It's pygame.time.get_ticks() (ms)
@@ -51,6 +51,9 @@ def init():
 
     global GameStateObj
     GameStateObj = MainMenu()
+
+    global PlayerName
+    PlayerName = 'Player'
 
     # Avoid cluttering the pygame event queue
     pygame.event.set_allowed(None)
@@ -126,7 +129,6 @@ class Game:
     buttons=None
 
     # TODO allow player to set name somehow, or remove names altogether
-    player_name = 'Player'
 
     def __init__(self):
         # Create two empty sprite groups.
@@ -173,6 +175,9 @@ class Game:
         self.score = 0
 
         self.nextGameState = self
+
+        global PlayerName
+        self.player_name = PlayerName
 
     def handleKeys(self):
         """
@@ -517,7 +522,7 @@ class MainMenu:
 
     def __init__(self):
         pygame.display.set_caption(constants.GAME_NAME + ' - Main menu' )
-        self.texts = ['Start game', 'Highscores', 'Options', 'Exit']
+        self.texts = ['Start game', 'Highscores', 'Name', 'Exit']
         self.mainFont = pygame.font.Font(constants.fonts['Courier New'], 60) # 76? HEIGTH
         self.subFont = pygame.font.Font(constants.fonts['Courier New'], 40) # 58 HEIGTH
         self.highlight = pygame.font.Font(constants.fonts['Courier New'], 40, bold=True)
@@ -602,7 +607,10 @@ class MainMenu:
                 self.nextGameState = HighScores()
 
             elif self.selectedItem == 2:
-                pass
+                self.textinputenable = True
+                pygame.event.set_allowed(pygame.KEYUP)
+                self.clearedinput = False
+                pygame.event.clear()
 
             elif self.selectedItem == 3:
                 pygame.event.post(pygame.event.Event(pygame.QUIT))
@@ -615,7 +623,9 @@ class MainMenu:
                                                            chosenfont=self.highlight)
 
     def update(self):
-        self.handleKeys()
+        if not self.textinputenable:
+            self.handleKeys()
+
         Screen.fill(constants.colors["BLACK"])
         Screen.blit(self.mainmenu.text, (self.mainmenu_Width, self.mainmenu_Height))
         Screen.blit(self.menuItems[0].text, (self.startgamemenu_Width, self.startgamemenu_Height))
@@ -676,7 +686,7 @@ class HighScores:
         self.rows = [None]*constants.SHOW
         for x in range(0, len(scores)):
             # print('concat is: '+ scores[x][0] + ' ' + str(scores[x][1]))
-            self.rows[x] = self.highField('{:<9.9s}   {:>4d}'
+            self.rows[x] = self.highField('{:<13.13s}  {:>4d}'
                                           .format(scores[x][0],  scores[x][1]), self)
         AudioObj.playMusic('highScore')
 

@@ -50,7 +50,8 @@ def get_pages():
     return num//constants.SHOW
 
 
-conn = sqlite3.connect(':memory:')
+# conn = sqlite3.connect(':memory:')
+conn = sqlite3.connect('db/hiscores.db')
 c = conn.cursor()
 
 create_table()
