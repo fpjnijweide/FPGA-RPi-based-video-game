@@ -126,28 +126,27 @@ def connect(xspeed,yspeed,bounciness,isvertical):
     else:
         returndata=rwByteSequence(data)
 
-    formatdata3=[[],[],[],[]]
+
 
     #todo remove this sstringwise conversion, it's slow
-    # formatdata=[[],[],[],[]]
-    #formatdata2 = ['0b0','0b0','0b0','0b0']
-    # returndata2 = list(map(chewnumber.fixedPointToDec, returndata))
+
 
     buttondata=[]
     for i in range(0,8):
          buttondata.append(returndata[i][3])
 
-
+    formatdata3=[0,0,0,0]
     decreasing = [7,6,5,4,3,2,1,0]
-    for i in range(1,8):
-        for j in range (0,3):
+    for j in range (0,3):
+        result = 0
+        for i in range (1,8):
             formatdata3[j] |= returndata[i][j]<<decreasing[i]
 
     for num in range(0,3):
         formatdata3[num] /=8
         if returndata[0][num]==1:
             formatdata3[num]*=-1
-#divide by 8
+
     newxspeed = formatdata3[0]
     newyspeed = formatdata3[1]
     paddlespeed = formatdata3[2]
