@@ -21,7 +21,8 @@ def init():
     Note: creating a multiline string using triple quotation marks is how you create python documentation
     """
     # Initialize all pygame modules
-    initialisation.initConnection()
+    if constants.FPGA_ENABLED:
+        initialisation.initConnection()
     pygame.mixer.pre_init(buffer=1024)
     pygame.display.init()
     pygame.font.init()
@@ -760,6 +761,8 @@ if __name__ == '__main__':
     # Game loop broken, program exits
     pygame.quit()
 
+    if constants.FPGA_ENABLED:
+        connection.closeConnection():
     print("\n\nThank you for playing %s!\n\n" % constants.GAME_NAME)
 
     sys.exit()

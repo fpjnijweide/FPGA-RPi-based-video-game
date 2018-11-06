@@ -256,7 +256,7 @@ def rwByteSequence(data):
             if (currentCycle >= 12 and currentCycle<=19):
                 receivedBits = readBank()
                 receivedData.append(receivedBits)
-            if currentCycle ==20
+            if currentCycle ==20:
                 readBank()
                 deactivateSlave()
                 break
