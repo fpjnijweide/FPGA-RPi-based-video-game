@@ -130,12 +130,19 @@ def connect(xspeed,yspeed,bounciness,isvertical):
 
     #todo remove this sstringwise conversion, it's slow
     formatdata=[[],[],[],[]]
+    formatdata2 = ['0b0','0b0','0b0','0b0']
+    returndata2 = list(map(chewnumber.fixedPointToDec, returndata))
     for i in range(0,8):
         formatdata[0].append(str(returndata[i][0]))
         formatdata[1].append(str(returndata[i][1]))
         formatdata[2].append(str(returndata[i][2]))
         formatdata[3].append(returndata[i][3])
 
+        if (True):
+            for j in range(0, 3):
+                formatdata2[j] = (formatdata2[j]<<1) | returndata2[i][j]
+
+    print("DATA WITH BINARY OPERATIONS:", formatdata2)
     newxspeed=chewnumber.fixedPointToDec(''.join(formatdata[0]))
     newyspeed=chewnumber.fixedPointToDec(''.join(formatdata[1]))
     paddlespeed=chewnumber.fixedPointToDec(''.join(formatdata[2]))
