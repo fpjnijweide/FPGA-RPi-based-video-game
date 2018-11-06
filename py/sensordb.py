@@ -7,7 +7,6 @@ def create_table():
 
 
 def insertscore(name, score):
-    # TODO return True if its a new highscore?
     with conn:
         c.execute('select * from highscores order by score DESC limit 1')
         highest = c.fetchone()
