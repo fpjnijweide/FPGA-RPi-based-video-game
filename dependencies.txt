@@ -1,0 +1,7 @@
+python3
+pygame
+sqlite3
+
+FPGA:
+    pigpio
+    psutil

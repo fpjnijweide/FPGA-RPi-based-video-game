@@ -741,6 +741,9 @@ class MainMenu:
 
             global PlayerName
             PlayerName = self.textinput.get_text()
+            if PlayerName.strip() == '':
+                PlayerName = 'Player'
+
             pygame.event.clear()
 
             self.textinput.set_cursor_color(constants.colors['BLACK'])
@@ -971,11 +974,6 @@ class Audio:
             return
 
         self.gameSounds[soundName].play(0)
-
-    def playandduck(self, soundName):
-
-        if not constants.SOUND:
-            return
 
 
 # Execute init() and main() only when program is run directly (not imported)
