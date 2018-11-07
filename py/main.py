@@ -519,6 +519,8 @@ class MainMenu:
     # menuItems = [mainmenu, optionsmenu, highscoremenu, startgamemenu]
     menuItems = None
     menucolor = None
+    buttons=None
+    paddlespeed=None
 
     def __init__(self):
         pygame.display.set_caption(constants.GAME_NAME + ' - Main menu' )
@@ -527,6 +529,9 @@ class MainMenu:
         self.subFont = pygame.font.Font(constants.fonts['Courier New'], 40) # 58 HEIGTH
         self.highlight = pygame.font.Font(constants.fonts['Courier New'], 40, bold=True)
         self.highlight.set_underline(True)
+
+        self.buttons=(False,False)
+        self.paddlespeed=0
 
         self.mainmenu = self.highField(constants.GAME_NAME, self, self.mainFont)
         self.startgamemenu = self.highField(self.texts[0], self, self.highlight)
@@ -547,6 +552,7 @@ class MainMenu:
         self.highscoremenu_Height = self.startgamemenu_Height + constants.SUBFONT
         self.optionsmenu_Height = self.highscoremenu_Height + constants.SUBFONT
         self.exitmenu_Height = self.optionsmenu_Height + constants.SUBFONT
+        self.buttontime=0
 
         AudioObj.playMusic('menu')
 
@@ -582,21 +588,35 @@ class MainMenu:
 
     def handleKeys(self):
 
+        
         keys_down = pygame.event.get(pygame.KEYDOWN)
+	
+        if constants.FPGA_ENABLED:
+            returnvals=connection.readData()
+            if constants.PADDLESPEED_ENABLED:
+                accelerometerValue = returnvals[0]
+                #self.handleTilt(accelerometerValue)
+            if constants.BUTTONS_ENABLED and (pygame.time.get_ticks()>(self.buttontime+100)):
+                self.buttontime=pygame.time.get_ticks()
+                self.previousbuttons = self.buttons
+                self.buttons = returnvals[1]
+            else:
+                self.buttons=(False,False)
+
 
         if keyBindings.checkDown('exit', keys_down):
             pygame.event.post(pygame.event.Event(pygame.QUIT))
             return
 
-        if keyBindings.checkDown('left', keys_down):
+        if keyBindings.checkDown('left', keys_down) or (self.buttons[0] and not self.previousbuttons[0]):
             # if self.checkinbounds():
             self.move('left')
 
-        if keyBindings.checkDown('right', keys_down):
+        if keyBindings.checkDown('right', keys_down) or (self.buttons[1] and not self.previousbuttons[1]):
             # if self.checkinbounds():
             self.move('right')
 
-        if keyBindings.checkDown('activate', keys_down):
+        if keyBindings.checkDown('activate', keys_down) or ((self.buttons[0] and self.buttons[1]) and not (self.previousbuttons[0] and self.previousbuttons[1])):
 
             global GameStateObj
 
