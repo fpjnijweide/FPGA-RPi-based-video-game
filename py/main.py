@@ -162,6 +162,7 @@ class Game:
         self.last_block_time = 0
         self.blocklist=[]
         self.currentPowerUps=[]
+        self.newx=0
 
         AudioObj.playMusic('main')
 
@@ -206,15 +207,42 @@ class Game:
     def handleTilt(self, tilt_value):
         #TODO change range for changing paddle size?
         range = constants.WINDOW_WIDTH - 2*constants.WALLSIZE - self.paddle.width
-        multiplier = (range/(2*constants.FIXEDPOINTMAX))*1.2
-        newx = int(tilt_value*multiplier) + 400
-        if (newx > constants.WALLSIZE and (newx + self.paddle.width) < (constants.WINDOW_WIDTH - constants.WALLSIZE)):
-            self.paddle.rect.x = newx
-        elif (newx <= constants.WALLSIZE):
-            newx=constants.WALLSIZE
-        elif (newx + self.paddle.width) >= (constants.WINDOW_WIDTH - constants.WALLSIZE):
-            newx=constants.WINDOW_WIDTH - constants.WALLSIZE - self.paddle.width
-        self.paddle.rect.x=newx
+        multiplier = (range/(2*constants.FIXEDPOINTMAX))*3
+
+
+        
+        if (tilt_value < 0 and tilt_value > -9) or tilt_value > 6:
+            pass
+        else:
+
+            if tilt_value < 0:
+                newtilt_value=tilt_value*-1
+                newtilt_value=constants.FIXEDPOINTMAX-newtilt_value
+            else:
+                newtilt_value=tilt_value*-1
+	
+            self.oldx=self.newx
+            self.newx = int(newtilt_value*multiplier) + 400
+
+            if (self.oldx-self.newx > 100):
+                pass
+            elif (self.oldx-self.newx < -100):
+                pass
+            elif (self.oldx-self.newx > 30):
+                self.paddle.rect.x -= 30
+            elif (self.oldx-self.newx < -30):
+                self.paddle.rect.x += 30
+            else:
+
+                if (self.newx > constants.WALLSIZE and (self.newx + self.paddle.width) < (constants.WINDOW_WIDTH - constants.WALLSIZE)):
+                    self.paddle.rect.x = self.newx
+                elif (self.newx <= constants.WALLSIZE):
+                    self.newx=constants.WALLSIZE
+                elif (self.newx + self.paddle.width) >= (constants.WINDOW_WIDTH - constants.WALLSIZE):
+                    self.newx=constants.WINDOW_WIDTH - constants.WALLSIZE - self.paddle.width
+
+
+            
 
     def check_powerup_status(self):
         for p in self.currentPowerUps:
@@ -553,6 +581,7 @@ class MainMenu:
         self.optionsmenu_Height = self.highscoremenu_Height + constants.SUBFONT
         self.exitmenu_Height = self.optionsmenu_Height + constants.SUBFONT
         self.buttontime=0
+        self.newx=0
 
         AudioObj.playMusic('menu')
 
@@ -586,22 +615,49 @@ class MainMenu:
             self.width = self.text.get_width()
             self.height = self.text.get_height()
 
+    def handleTiltMenu(self, tilt_value):
+        #TODO change range for changing paddle size?
+        range = constants.WINDOW_WIDTH
+        multiplier = (range/(2*constants.FIXEDPOINTMAX))*3
+
+
+        
+        if (tilt_value < 0 and tilt_value > -9) or tilt_value > 6:
+            pass
+        else:
+
+            if tilt_value < 0:
+                newtilt_value=tilt_value*-1
+                newtilt_value=constants.FIXEDPOINTMAX-newtilt_value
+            else:
+                newtilt_value=tilt_value*-1
+	
+            self.oldx=self.newx
+            self.newx = int(newtilt_value*multiplier) + 400
+
+
+            if (self.oldx-self.newx > 30):
+                self.newx =self.oldx- 30
+            elif (self.oldx-self.newx < -30):
+                self.newx=self.oldx + 30
+
+            print(self.newx)
+
+            if self.newx<200:
+                self.selectedItem = 0
+            if self.newx >=200 and self.newx < 400:
+                self.selectedItem = 1
+            if self.newx>=400 and self.newx < 600:
+                self.selectedItem = 2
+            if self.newx>=600:
+                self.selectedItem = 3
+
     def handleKeys(self):
 
         
         keys_down = pygame.event.get(pygame.KEYDOWN)
 	
-        if constants.FPGA_ENABLED:
-            returnvals=connection.readData()
-            if constants.PADDLESPEED_ENABLED:
-                accelerometerValue = returnvals[0]
-                #self.handleTilt(accelerometerValue)
-            if constants.BUTTONS_ENABLED and (pygame.time.get_ticks()>(self.buttontime+100)):
-                self.buttontime=pygame.time.get_ticks()
-                self.previousbuttons = self.buttons
-                self.buttons = returnvals[1]
-            else:
-                self.buttons=(False,False)
+
 
 
         if keyBindings.checkDown('exit', keys_down):
@@ -643,6 +699,19 @@ class MainMenu:
                                                            chosenfont=self.highlight)
 
     def update(self):
+        if constants.FPGA_ENABLED:
+            returnvals=connection.readData()
+            if constants.PADDLESPEED_ENABLED:
+                accelerometerValue = returnvals[0]
+                self.handleTiltMenu(accelerometerValue)
+            if constants.BUTTONS_ENABLED and (pygame.time.get_ticks()>(self.buttontime+100)):
+                self.buttontime=pygame.time.get_ticks()
+                self.previousbuttons = self.buttons
+                self.buttons = returnvals[1]
+            else:
+                self.buttons=(False,False)
+
+
         if not self.textinputenable:
             self.handleKeys()
 
@@ -657,6 +726,10 @@ class MainMenu:
             self.update_input()
 
     def update_input(self):
+
+
+
+
         clear = bool(pygame.event.peek(pygame.KEYDOWN))
         # if clear and PlayerName != 'Player':
         #     print(pygame.event.get(pygame.KEYDOWN))
