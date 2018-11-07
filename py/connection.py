@@ -54,7 +54,8 @@ def readData():
     receivedData = []
     currentCycle = 0
     previousClock = initialisation.pi.read(constants.CLOCK_PIN)
-
+    decreasing=[7,6,5,4,3,2,1,0]
+	
     fpgaShouldWrite()
     activateSlave()  
     while len(receivedData)<8:
@@ -90,7 +91,10 @@ def readData():
 
     for j in range(2, 3):
         for i in range(1, 8):
-            formatdata3[j] |= receivedData[i][j] << receivedData[i]
+	    #print(type("Format data:",formatdata3[j])
+            #print(type("Received data:",receivedData[i][j])
+	    #print(type("decreasing:", decreasing[i])
+            formatdata3[j] |= receivedData[i][j] << decreasing[i]
 
     for num in range(2, 3):
         formatdata3[num] /= 8
@@ -127,7 +131,7 @@ def connect(xspeed,yspeed,bounciness,isvertical):
     decreasing = [7, 6, 5, 4, 3, 2, 1, 0]
     for value in range(0,3):
         for i in range(0,7):
-            data[value].append(datalist[value] >> i & 1)
+            data[value].append(int(datalist[value]) >> i & 1)
         if datalist[value]<0:
             data[value]=[1]+data[value]
         else:
