@@ -9,7 +9,8 @@ https://youtu.be/8V8BA9p7pKg
 
 ## How to install and run
 - Do the steps in how2git.txt
-- Then do stuff in how2pip3.txt
+- Do the steps in how2pip3.txt
+- Run py/main.py
 
 ## Authors
 - F.P.J. Nijweide
