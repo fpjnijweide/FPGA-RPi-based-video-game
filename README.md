@@ -12,9 +12,9 @@ https://youtu.be/8V8BA9p7pKg
 - Then do stuff in how2pip3.txt
 
 ## Authors
-F.P.J. Nijweide
-D. Dieperink
-L. Oberhofer
-L. Šćulac
-G. Vredeveld
-C. Rus
+- F.P.J. Nijweide
+- D. Dieperink
+- L. Oberhofer
+- L. Šćulac
+- G. Vredeveld
+- C. Rus
