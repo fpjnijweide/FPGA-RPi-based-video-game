@@ -1,4 +1,4 @@
-# Arkanoid-like game on a homemade FPGA/Raspberry Pi console (Pygame)
+# Arkanoid-like game on a homemade FPGA/Raspberry Pi console
 
 This repository contains code for a Pygame-based game, built for a homemade game console based on the DE1-SoC FPGA and the Raspberry Pi. The game resembles Arkanoid and Pong, but with powerups.
 
